@@ -15,10 +15,4 @@ class Tool extends Model
         'qa_1', 'qa_1_2', 'qa_2', 'qa_inc', 'qa_insp', 'ppic_1', 'ppic_2', 'line_scc',
         'p1', 'p2', 'p3', 'p5', 'p6', 'p7', 'p8', 'eng', 'total'
     ];
-
-    // Relasi ke Calibration
-    public function calibrations()
-    {
-        return $this->hasMany(Calibration::class);
-    }
 }

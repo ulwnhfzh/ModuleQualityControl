@@ -5,10 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Tool;
 use Illuminate\Http\Request;
 use App\Imports\ToolsImport;
+use App\Exports\ToolsExport;
+use App\Traits\LogsActivity;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class ToolController extends Controller
 {
+    use LogsActivity;
+
     public function index(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
@@ -55,7 +61,15 @@ class ToolController extends Controller
             $data['qa_2'] ?? 0
         ]);
 
-        Tool::create($data);
+        $tool = Tool::create($data);
+
+        // ===== LOG ACTIVITY =====
+        $this->logCreate(
+            'tools',
+            $tool->id,
+            $tool->tool_name . ' - ' . $tool->category . ' (' . $tool->tahun . ')',
+            $tool->toArray()
+        );
 
         return redirect()->route('tools.index')->with('success', 'Alat ukur berhasil ditambahkan!');
     }
@@ -67,6 +81,9 @@ class ToolController extends Controller
 
     public function update(Request $request, Tool $tool)
     {
+        // Simpan data lama SEBELUM update
+        $dataLama = $tool->toArray();
+
         $data = $request->validate([
             'tool_name' => 'required|string|max:255',
             'category' => 'required|string',
@@ -89,12 +106,30 @@ class ToolController extends Controller
 
         $tool->update($data);
 
+        // ===== LOG ACTIVITY =====
+        $this->logUpdate(
+            'tools',
+            $tool->id,
+            $tool->tool_name . ' - ' . $tool->category . ' (' . $tool->tahun . ')',
+            $dataLama,
+            $tool->fresh()->toArray()
+        );
+
         return redirect()->route('tools.index')->with('success', 'Data alat ukur berhasil diperbarui!');
     }
 
     public function destroy(Tool $tool)
     {
+        // Simpan data SEBELUM hapus
+        $dataLama = $tool->toArray();
+        $toolId = $tool->id;
+        $toolName = $tool->tool_name . ' - ' . $tool->category . ' (' . $tool->tahun . ')';
+
         $tool->delete();
+
+        // ===== LOG ACTIVITY =====
+        $this->logDelete('tools', $toolId, $toolName, $dataLama);
+
         return redirect()->route('tools.index')->with('success', 'Alat ukur berhasil dihapus!');
     }
 
@@ -116,10 +151,83 @@ class ToolController extends Controller
 
         try {
             Excel::import(new ToolsImport($request->tahun), $request->file('file'));
+
+            // ===== LOG ACTIVITY =====
+            $this->logActivity(
+                'CREATE',
+                'tools',
+                null,
+                'Import Excel untuk tahun ' . $request->tahun,
+                null,
+                ['tahun' => $request->tahun, 'file' => $request->file('file')->getClientOriginalName()]
+            );
+
             return redirect()->route('tools.index', ['tahun' => $request->tahun])
                 ->with('success', 'Data berhasil di-import untuk tahun ' . $request->tahun);
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal import: ' . $e->getMessage());
         }
+    }
+
+    // ==========================================
+    // FITUR EXPORT
+    // ==========================================
+
+    public function exportCsv(Request $request)
+    {
+        $tahun = $request->input('tahun', date('Y'));
+        $kategori = $request->input('kategori', 'Small Tool');
+        $filename = 'daftar-induk-' . strtolower(str_replace(' ', '-', $kategori)) . '-' . $tahun . '.xlsx';
+
+        // ===== LOG ACTIVITY =====
+        $this->logExport('tools', 'Export Excel - ' . $kategori . ' tahun ' . $tahun);
+
+        return Excel::download(new ToolsExport($tahun, $kategori), $filename);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $tahun = $request->input('tahun', date('Y'));
+        $kategori = $request->input('kategori', 'Small Tool');
+
+        $tools = Tool::where('tahun', $tahun)
+            ->where('category', $kategori)
+            ->orderBy('tool_name', 'asc')
+            ->get();
+
+        // ===== LOG ACTIVITY =====
+        $this->logExport('tools', 'Export PDF - ' . $kategori . ' tahun ' . $tahun);
+
+        $pdf = Pdf::loadView('tools.pdf', compact('tools', 'tahun', 'kategori'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download('daftar-induk-' . strtolower(str_replace(' ', '-', $kategori)) . '-' . $tahun . '.pdf');
+    }
+
+    public function downloadTemplate()
+    {
+        $headers = [
+            'tool_name', 'category',
+            'qa_1', 'qa_1_2', 'qa_inc', 'qa_insp',
+            'ppic_1', 'ppic_2', 'line_scc',
+            'p1', 'p2', 'p3', 'p5', 'p6', 'p7', 'p8', 'eng'
+        ];
+
+        $filename = 'template-import-daftar-induk.csv';
+
+        $callback = function () use ($headers) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($file, $headers);
+            fputcsv($file, [
+                'CONTOH ALAT', 'Small Tool',
+                1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1
+            ]);
+            fclose($file);
+        };
+
+        return response()->streamDownload($callback, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 }

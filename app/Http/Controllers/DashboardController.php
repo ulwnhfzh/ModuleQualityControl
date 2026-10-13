@@ -16,7 +16,7 @@ class DashboardController extends Controller
     {
         $tahun = $request->input('tahun', date('Y'));
 
-        // Kartu Ringkasan
+        // ===== KARTU RINGKASAN =====
         $totalTools       = Tool::where('tahun', $tahun)->count();
         $totalVerifikasi  = Verifikasi::where('tahun', $tahun)->count();
         $totalInternal    = Internal::where('tahun', $tahun)->count();
@@ -27,9 +27,7 @@ class DashboardController extends Controller
         $kategoriSmall   = Tool::where('tahun', $tahun)->where('category', 'Small Tool')->count();
         $kategoriMachine = Tool::where('tahun', $tahun)->where('category', 'Machine')->count();
 
-        // ===== DATA GRAFIK PER BULAN =====
-        // Hanya dari tabel yang punya kolom bulan (verifikasis, internals, eksternals, eksternal_mesins)
-        // Tabel `tools` TIDAK punya kolom bulan, jadi dikecualikan
+        // ===== DATA BULANAN =====
         $bulanLabels  = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         $bulanColumns = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
@@ -45,38 +43,43 @@ class DashboardController extends Controller
             $mesinPerBulan[]      = (int) EksternalMesin::where('tahun', $tahun)->sum($col);
         }
 
-        // Grafik Per Kategori (Doughnut)
+        // ===== DATA TAHUNAN (5 tahun terakhir) =====
+        $tahunRange = range(date('Y'), date('Y') - 4);
+        sort($tahunRange);
+        $tahunLabels = array_map('strval', $tahunRange);
+
+        $verifikasiPerTahun = [];
+        $internalPerTahun   = [];
+        $eksternalPerTahun  = [];
+        $mesinPerTahun      = [];
+        $toolsPerTahun      = [];
+
+        foreach ($tahunRange as $th) {
+            $verifikasiPerTahun[] = Verifikasi::where('tahun', $th)->count();
+            $internalPerTahun[]   = Internal::where('tahun', $th)->count();
+            $eksternalPerTahun[]  = Eksternal::where('tahun', $th)->count();
+            $mesinPerTahun[]      = EksternalMesin::where('tahun', $th)->count();
+            $toolsPerTahun[]      = Tool::where('tahun', $th)->count();
+        }
+
+        // Distribusi Kategori untuk Doughnut (jika masih dipakai)
         $kategoriData = [
             'Small Tool' => $kategoriSmall,
             'Machine'    => $kategoriMachine,
         ];
 
-        // Grafik Distribusi (Horizontal Bar)
-        $distribusi = [
-            'Daftar Induk' => $totalTools,
-            'Verifikasi'   => $totalVerifikasi,
-            'Internal'     => $totalInternal,
-            'Eksternal'    => $totalEksternal,
-            'Mesin'        => $totalMesin,
-        ];
+        $viewData = compact(
+            'tahun',
+            'totalTools', 'totalVerifikasi', 'totalInternal', 'totalEksternal', 'totalMesin',
+            'kategoriSmall', 'kategoriMachine', 'kategoriData',
+            'bulanLabels', 'verifikasiPerBulan', 'internalPerBulan', 'eksternalPerBulan', 'mesinPerBulan',
+            'tahunLabels', 'verifikasiPerTahun', 'internalPerTahun', 'eksternalPerTahun', 'mesinPerTahun', 'toolsPerTahun'
+        );
 
-        // Cek Role untuk menentukan View
         if (Auth::check() && Auth::user()->role === 'admin') {
-            return view('dashboard.index', compact(
-                'tahun', 'totalTools', 'totalVerifikasi', 'totalInternal',
-                'totalEksternal', 'totalMesin', 'kategoriSmall', 'kategoriMachine',
-                'bulanLabels', 'verifikasiPerBulan',
-                'internalPerBulan', 'eksternalPerBulan', 'mesinPerBulan',
-                'kategoriData', 'distribusi'
-            ));
+            return view('dashboard.index', $viewData);
         }
 
-        return view('dashboard.user', compact(
-            'tahun', 'totalTools', 'totalVerifikasi', 'totalInternal',
-            'totalEksternal', 'totalMesin', 'kategoriSmall', 'kategoriMachine',
-            'bulanLabels', 'verifikasiPerBulan',
-            'internalPerBulan', 'eksternalPerBulan', 'mesinPerBulan',
-            'kategoriData', 'distribusi'
-        ));
+        return view('dashboard.user', $viewData);
     }
 }

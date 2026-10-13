@@ -9,16 +9,15 @@ use Maatwebsite\Excel\Concerns\WithUpserts;
 
 class ToolsImport implements ToModel, WithHeadingRow, WithUpserts
 {
-    protected $tahun;
+    protected string $tahun;
 
-    public function __construct($tahun)
+    public function __construct(string $tahun)
     {
         $this->tahun = $tahun;
     }
 
     public function model(array $row)
     {
-        // Lewati baris kosong
         if (empty($row['tool_name'])) {
             return null;
         }
@@ -44,18 +43,16 @@ class ToolsImport implements ToModel, WithHeadingRow, WithUpserts
             'eng'       => $row['eng'] ?? 0,
         ];
 
-        // Hitung total
         $data['total'] = array_sum([
             $data['qa_1'], $data['qa_1_2'], $data['qa_inc'], $data['qa_insp'],
             $data['ppic_1'], $data['ppic_2'], $data['line_scc'],
-            $data['p1'], $data['p2'], $data['p3'], $data['p5'], 
+            $data['p1'], $data['p2'], $data['p3'], $data['p5'],
             $data['p6'], $data['p7'], $data['p8'], $data['eng']
         ]);
 
         return new Tool($data);
     }
 
-    // Kunci unik untuk update jika data sudah ada
     public function uniqueBy()
     {
         return 'tool_name';
