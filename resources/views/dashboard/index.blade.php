@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
 <div class="space-y-6">
 
     {{-- HEADER --}}
@@ -23,94 +24,256 @@
         </div>
     </div>
 
-    {{-- INFO MODE ADMIN --}}
+    {{-- INFO AKSES ADMINISTRATOR --}}
     <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-start gap-3">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <div>
-            <p class="text-sm font-semibold text-emerald-800">Mode Administrator</p>
-            <p class="text-xs text-emerald-600 mt-0.5">Anda dapat mengelola seluruh data: tambah, edit, dan hapus.</p>
+            <p class="text-sm font-semibold text-emerald-800">Akses Administrator</p>
+            <p class="text-xs text-emerald-600 mt-0.5">Anda memiliki akses penuh terhadap seluruh data sistem.</p>
         </div>
     </div>
 
-    {{-- KARTU RINGKASAN --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        @php
-            $cards = [
-                ['label' => 'Daftar Induk', 'value' => $totalTools, 'color' => 'blue', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
-                ['label' => 'Verifikasi', 'value' => $totalVerifikasi, 'color' => 'emerald', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-                ['label' => 'Internal', 'value' => $totalInternal, 'color' => 'purple', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'],
-                ['label' => 'Eksternal', 'value' => $totalEksternal, 'color' => 'amber', 'icon' => 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2'],
-                ['label' => 'Mesin', 'value' => $totalMesin, 'color' => 'rose', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'],
-            ];
-        @endphp
+    {{-- INDIKATOR KINERJA --}}
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="font-bold text-slate-800 text-lg">Indikator Kinerja — {{ $kpi['bulanLabel'] }}</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Rekapitulasi capaian periode bulan berjalan</p>
+            </div>
+        </div>
 
-        @foreach($cards as $card)
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">{{ $card['label'] }}</p>
-                    <p class="text-3xl font-bold text-slate-800 mt-2">{{ $card['value'] }}</p>
-                </div>
-                <div class="bg-{{ $card['color'] }}-100 text-{{ $card['color'] }}-600 rounded-lg p-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $card['icon'] }}" />
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            {{-- Progres Kalibrasi --}}
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Progres Kalibrasi</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                 </div>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-4xl font-bold text-blue-700">{{ $kpi['progressKalibrasi'] }}%</p>
+                </div>
+                <p class="text-xs text-blue-600 mt-1">
+                    {{ $kpi['totalKalibrasiBulanIni'] }} dari {{ $kpi['totalAlatKalibrasi'] }} alat
+                </p>
+                <div class="w-full bg-blue-200 rounded-full h-2 mt-3">
+                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                         style="width: {{ min($kpi['progressKalibrasi'], 100) }}%"></div>
+                </div>
+            </div>
+
+            {{-- Alat Terlambat --}}
+            <div class="bg-gradient-to-br from-rose-50 to-rose-100 rounded-lg p-4 border border-rose-200">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs font-semibold text-rose-700 uppercase tracking-wide">Alat Terlambat</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <p class="text-4xl font-bold text-rose-700">{{ $kpi['jumlahTerlambat'] }}</p>
+                <p class="text-xs text-rose-600 mt-1">
+                    @if($kpi['jumlahTerlambat'] > 0)
+                        Memerlukan tindak lanjut segera
+                    @else
+                        Seluruh alat terkalibrasi sesuai jadwal
+                    @endif
+                </p>
+            </div>
+
+            {{-- Aktivitas Minggu Ini --}}
+            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 border border-emerald-200">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Aktivitas Minggu Ini</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-4xl font-bold text-emerald-700">{{ $kpi['aktivitasMingguIni'] }}</p>
+                    @php $perubahan = $kpi['perubahanAktivitas']; @endphp
+                    @if($perubahan > 0)
+                        <span class="text-sm font-semibold text-emerald-600">↑ {{ $perubahan }}%</span>
+                    @elseif($perubahan < 0)
+                        <span class="text-sm font-semibold text-rose-600">↓ {{ abs($perubahan) }}%</span>
+                    @else
+                        <span class="text-sm font-semibold text-gray-500">—</span>
+                    @endif
+                </div>
+                <p class="text-xs text-emerald-600 mt-1">
+                    Periode sebelumnya: {{ $kpi['aktivitasMingguLalu'] }} aktivitas
+                </p>
             </div>
         </div>
-        @endforeach
     </div>
 
-    {{-- ====== 5 KARTU GRAFIK PER FITUR ====== --}}
-    @php
-        $fiturGrafik = [
-            ['id' => 'tools',       'title' => 'Daftar Induk',              'color' => '#3b82f6', 'bulanan' => array_fill(0, 12, 0), 'tahunan' => $toolsPerTahun],
-            ['id' => 'verifikasi',  'title' => 'Jadwal Verifikasi',         'color' => '#10b981', 'bulanan' => $verifikasiPerBulan, 'tahunan' => $verifikasiPerTahun],
-            ['id' => 'internal',    'title' => 'Kalibrasi Internal',        'color' => '#8b5cf6', 'bulanan' => $internalPerBulan,   'tahunan' => $internalPerTahun],
-            ['id' => 'eksternal',   'title' => 'Kalibrasi Eksternal (Small Tool)', 'color' => '#f59e0b', 'bulanan' => $eksternalPerBulan, 'tahunan' => $eksternalPerTahun],
-            ['id' => 'mesin',       'title' => 'Kalibrasi Eksternal (Mesin Alat Ukur)', 'color' => '#f43f5e', 'bulanan' => $mesinPerBulan, 'tahunan' => $mesinPerTahun],
-        ];
-    @endphp
+    {{-- PEMBERITAHUAN --}}
+    @if($kpi['jumlahTerlambat'] > 0 || $kpi['jumlahJatuhTempo7'] > 0 || $kpi['jumlahJatuhTempo30'] > 0)
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-amber-50 px-4 py-3 border-b border-amber-200 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <h3 class="font-bold text-amber-800 text-sm">Pemberitahuan — Terdapat Alat yang Memerlukan Tindak Lanjut</h3>
+        </div>
 
+        <div class="p-4 space-y-3">
+
+            {{-- Terlambat --}}
+            @if($kpi['jumlahTerlambat'] > 0)
+            <div class="bg-rose-50 border-l-4 border-rose-500 rounded-r-lg p-3">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">🔴</span>
+                        <span class="font-semibold text-rose-800 text-sm">
+                            {{ $kpi['jumlahTerlambat'] }} alat terlambat kalibrasi
+                        </span>
+                    </div>
+                    <span class="text-xs text-rose-600">Memerlukan tindakan segera</span>
+                </div>
+                <div class="pl-7 space-y-1">
+                    @foreach($kpi['alatTerlambat']->take(3) as $alat)
+                    <div class="text-xs text-rose-700">
+                        • <strong>{{ $alat->tool_name }}</strong>
+                        ({{ $alat->machine_model ?? '-' }}) —
+                        @php $sisa = (int) $alat->sisa_hari; @endphp
+                        @if($sisa < 0)
+                            Terlambat {{ abs($sisa) }} hari
+                        @else
+                            {{ $sisa }} hari lagi
+                        @endif
+                    </div>
+                    @endforeach
+                    @if($kpi['alatTerlambat']->count() > 3)
+                    <div class="text-xs text-rose-600 font-semibold">... dan {{ $kpi['alatTerlambat']->count() - 3 }} alat lainnya</div>
+                    @endif
+                </div>
+            </div>
+            @endif
+
+            {{-- Jatuh Tempo Cepat --}}
+            @if($kpi['jumlahJatuhTempo7'] > 0)
+            <div class="bg-orange-50 border-l-4 border-orange-500 rounded-r-lg p-3">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">🟠</span>
+                        <span class="font-semibold text-orange-800 text-sm">
+                            {{ $kpi['jumlahJatuhTempo7'] }} alat akan jatuh tempo
+                        </span>
+                    </div>
+                    <span class="text-xs text-orange-600">Segera dipersiapkan</span>
+                </div>
+                <div class="pl-7 space-y-1">
+                    @foreach($kpi['alatJatuhTempo7Hari']->take(3) as $alat)
+                    <div class="text-xs text-orange-700">
+                        • <strong>{{ $alat->tool_name }}</strong>
+                        ({{ $alat->machine_model ?? '-' }}) —
+                        @php $sisa = (int) $alat->sisa_hari; @endphp
+                        @if($sisa == 0)
+                            Hari ini
+                        @elseif($sisa == 1)
+                            Besok
+                        @else
+                            {{ $sisa }} hari lagi
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- Jatuh Tempo Standar --}}
+            @if($kpi['jumlahJatuhTempo30'] > 0)
+            <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">🔵</span>
+                        <span class="font-semibold text-blue-800 text-sm">
+                            {{ $kpi['jumlahJatuhTempo30'] }} alat akan jatuh tempo dalam periode mendatang
+                        </span>
+                    </div>
+                    <a href="{{ route('mesin.index') }}" class="text-xs text-blue-600 underline hover:text-blue-800">
+                        Lihat Rincian →
+                    </a>
+                </div>
+            </div>
+            @endif
+
+        </div>
+    </div>
+    @endif
+
+    {{-- AKSES CEPAT --}}
+    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <h3 class="font-semibold text-slate-800 text-sm mb-3">Akses Cepat</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <a href="{{ route('tools.index') }}"
+               class="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-3 text-center transition">
+                <div class="text-blue-600 font-semibold text-xs">Daftar Induk</div>
+            </a>
+            <a href="{{ route('verifikasi.index') }}"
+               class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg p-3 text-center transition">
+                <div class="text-emerald-600 font-semibold text-xs">Verifikasi</div>
+            </a>
+            <a href="{{ route('laporan.harian.index') }}"
+               class="bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg p-3 text-center transition">
+                <div class="text-purple-600 font-semibold text-xs">Laporan Harian</div>
+            </a>
+            <a href="{{ route('reports.index') }}"
+               class="bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg p-3 text-center transition">
+                <div class="text-amber-600 font-semibold text-xs">Reports</div>
+            </a>
+        </div>
+    </div>
+
+    {{-- REKAPITULASI --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        @foreach($fiturGrafik as $f)
-        @php
-            $totalTahunan = array_sum($f['bulanan']);
-        @endphp
-        <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-            <div class="flex items-start justify-between mb-4">
-                <div>
-                    <h3 class="font-semibold text-slate-800">{{ $f['title'] }}</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Tren data tahun {{ $tahun }}</p>
+
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <h3 class="font-semibold text-slate-800 text-sm mb-3">Rekapitulasi Alat per Kategori</h3>
+            <div class="space-y-2">
+                @forelse($kpi['breakdownKategori'] as $kat)
+                <div class="flex items-center justify-between border-b border-gray-100 py-2">
+                    <span class="text-sm text-gray-700 font-medium">{{ $kat->category }}</span>
+                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">{{ $kat->jumlah }}</span>
                 </div>
-                <div class="flex gap-1 bg-slate-100 rounded-lg p-1">
-                    <button onclick="switchTab('{{ $f['id'] }}', 'bulanan', this)"
-                            class="tab-btn-{{ $f['id'] }} px-3 py-1 text-xs font-medium rounded-md bg-white text-slate-800 shadow-sm">
-                        Bulanan
-                    </button>
-                    <button onclick="switchTab('{{ $f['id'] }}', 'tahunan', this)"
-                            class="tab-btn-{{ $f['id'] }} px-3 py-1 text-xs font-medium rounded-md text-slate-500">
-                        Tahunan
-                    </button>
-                </div>
-            </div>
-            <div class="h-64">
-                <canvas id="chart-{{ $f['id'] }}"></canvas>
-            </div>
-            {{-- Info Total Setahun --}}
-            <div class="mt-3 text-[11px] text-slate-500 flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Total tahun {{ $tahun }}: <strong class="text-slate-700">{{ $totalTahunan }} data</strong>
+                @empty
+                <div class="text-center text-gray-400 text-sm py-4">Belum terdapat data</div>
+                @endforelse
             </div>
         </div>
-        @endforeach
+
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <h3 class="font-semibold text-slate-800 text-sm mb-3">Rekapitulasi Data Tahun {{ $tahun }}</h3>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-blue-50 rounded-lg p-2 text-center">
+                    <p class="text-2xl font-bold text-blue-700">{{ $totalTools }}</p>
+                    <p class="text-[10px] text-blue-600 uppercase">Daftar Induk</p>
+                </div>
+                <div class="bg-emerald-50 rounded-lg p-2 text-center">
+                    <p class="text-2xl font-bold text-emerald-700">{{ $totalVerifikasi }}</p>
+                    <p class="text-[10px] text-emerald-600 uppercase">Verifikasi</p>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-2 text-center">
+                    <p class="text-2xl font-bold text-purple-700">{{ $totalInternal }}</p>
+                    <p class="text-[10px] text-purple-600 uppercase">Internal</p>
+                </div>
+                <div class="bg-amber-50 rounded-lg p-2 text-center">
+                    <p class="text-2xl font-bold text-amber-700">{{ $totalEksternal }}</p>
+                    <p class="text-[10px] text-amber-600 uppercase">Eksternal</p>
+                </div>
+                <div class="bg-rose-50 rounded-lg p-2 text-center col-span-2">
+                    <p class="text-2xl font-bold text-rose-700">{{ $totalMesin }}</p>
+                    <p class="text-[10px] text-rose-600 uppercase">Mesin</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    {{-- INSIGHT --}}
+    {{-- CATATAN SISTEM --}}
     <div class="bg-slate-50 border border-slate-200 rounded-xl p-5">
         <div class="flex items-start gap-3">
             <div class="bg-amber-100 text-amber-600 rounded-full p-2 shrink-0">
@@ -119,14 +282,21 @@
                 </svg>
             </div>
             <div>
-                <h4 class="text-sm font-semibold text-slate-800">Insight Tahun {{ $tahun }}</h4>
+                <h4 class="text-sm font-semibold text-slate-800">Catatan Sistem</h4>
                 <ul class="text-xs text-slate-600 mt-1 space-y-1 list-disc list-inside">
-                    <li>Total <strong>{{ $totalVerifikasi + $totalInternal + $totalEksternal + $totalMesin }} aktivitas</strong> kalibrasi & verifikasi tercatat tahun ini.</li>
-                    @if($totalVerifikasi > 0)
-                        <li>Proses <strong>Verifikasi</strong> mendominasi dengan {{ $totalVerifikasi }} data.</li>
+                    <li>Progres kalibrasi bulan ini: <strong>{{ $kpi['progressKalibrasi'] }}%</strong> ({{ $kpi['totalKalibrasiBulanIni'] }} dari {{ $kpi['totalAlatKalibrasi'] }} alat).</li>
+                    <li>Aktivitas minggu ini: <strong>{{ $kpi['aktivitasMingguIni'] }}</strong>
+                        @if($kpi['perubahanAktivitas'] > 0)
+                            (mengalami kenaikan {{ $kpi['perubahanAktivitas'] }}% dari periode sebelumnya)
+                        @elseif($kpi['perubahanAktivitas'] < 0)
+                            (mengalami penurunan {{ abs($kpi['perubahanAktivitas']) }}% dari periode sebelumnya)
+                        @endif
+                    </li>
+                    @if($kpi['jumlahTerlambat'] > 0)
+                        <li class="text-rose-600 font-medium">Perhatian: {{ $kpi['jumlahTerlambat'] }} alat <strong>terlambat kalibrasi</strong>.</li>
                     @endif
-                    @if($totalInternal == 0)
-                        <li class="text-rose-600 font-medium">Perhatian: Belum ada data <strong>Kalibrasi Internal</strong> untuk tahun ini.</li>
+                    @if($kpi['jumlahJatuhTempo7'] > 0)
+                        <li class="text-orange-600 font-medium">{{ $kpi['jumlahJatuhTempo7'] }} alat akan jatuh tempo dalam waktu dekat.</li>
                     @endif
                 </ul>
             </div>
@@ -135,89 +305,4 @@
 
 </div>
 
-{{-- CHART.JS --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-<script>
-const bulanLabels = @json($bulanLabels);
-const tahunLabels = @json($tahunLabels);
-
-const fiturData = {
-    tools:      { bulanan: Array(12).fill(0), tahunan: @json($toolsPerTahun),      color: '#3b82f6' },
-    verifikasi: { bulanan: @json($verifikasiPerBulan), tahunan: @json($verifikasiPerTahun), color: '#10b981' },
-    internal:   { bulanan: @json($internalPerBulan),   tahunan: @json($internalPerTahun),   color: '#8b5cf6' },
-    eksternal:  { bulanan: @json($eksternalPerBulan),  tahunan: @json($eksternalPerTahun),  color: '#f59e0b' },
-    mesin:      { bulanan: @json($mesinPerBulan),      tahunan: @json($mesinPerTahun),      color: '#f43f5e' },
-};
-
-const charts = {};
-
-function buildChart(id, mode) {
-    if (charts[id]) charts[id].destroy();
-    const data = fiturData[id];
-    const labels = mode === 'bulanan' ? bulanLabels : tahunLabels;
-    const values = mode === 'bulanan' ? data.bulanan : data.tahunan;
-
-    const ctx = document.getElementById('chart-' + id).getContext('2d');
-    charts[id] = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Jumlah Data',
-                data: values,
-                borderColor: data.color,
-                backgroundColor: data.color + '20',
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: data.color,
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#1e293b',
-                    padding: 10,
-                    callbacks: {
-                        label: (ctx) => 'Jumlah: ' + ctx.parsed.y + ' data'
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1, font: { size: 10 } },
-                    grid: { color: 'rgba(0,0,0,0.05)' }
-                },
-                x: {
-                    ticks: { font: { size: 10 } },
-                    grid: { display: false }
-                }
-            }
-        }
-    });
-}
-
-function switchTab(id, mode, btn) {
-    document.querySelectorAll('.tab-btn-' + id).forEach(b => {
-        b.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
-        b.classList.add('text-slate-500');
-    });
-    btn.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
-    btn.classList.remove('text-slate-500');
-
-    buildChart(id, mode);
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    Object.keys(fiturData).forEach(id => buildChart(id, 'bulanan'));
-});
-</script>
 @endsection

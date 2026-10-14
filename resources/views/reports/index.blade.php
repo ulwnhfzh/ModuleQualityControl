@@ -8,18 +8,12 @@
 </div>
 @endif
 
-@if(session('success'))
-<div class="bg-green-100 border border-green-400 text-green-700 rounded mb-3 px-4 py-3 text-sm">
-    {{ session('success') }}
-</div>
-@endif
-
 {{-- ===== HEADER ===== --}}
 <div class="bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-3">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
             <h1 class="text-base font-bold text-gray-800">Reports</h1>
-            <p class="text-xs text-gray-500 mt-0.5">Ringkasan & log aktivitas QC Measurement Tools</p>
+            <p class="text-xs text-gray-500 mt-0.5">Ringkasan, log aktivitas & grafik QC Measurement Tools</p>
         </div>
 
         <form method="GET" action="{{ route('reports.index') }}" class="flex items-center gap-2">
@@ -37,16 +31,21 @@
 
 {{-- ===== TAB NAVIGATION ===== --}}
 <div class="bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-2">
-    <div class="flex gap-2 border-b border-gray-200">
+    <div class="flex gap-2 border-b border-gray-200 overflow-x-auto">
         <a href="{{ route('reports.index', ['tab' => 'ringkasan', 'tahun' => $tahun]) }}"
-           class="px-4 py-2 text-sm font-semibold transition
+           class="px-4 py-2 text-sm font-semibold transition whitespace-nowrap
                   {{ $tab == 'ringkasan' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800' }}">
             📊 Ringkasan
         </a>
         <a href="{{ route('reports.index', ['tab' => 'log', 'tahun' => $tahun]) }}"
-           class="px-4 py-2 text-sm font-semibold transition
+           class="px-4 py-2 text-sm font-semibold transition whitespace-nowrap
                   {{ $tab == 'log' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800' }}">
             📋 Log Aktivitas
+        </a>
+        <a href="{{ route('reports.index', ['tab' => 'grafik', 'tahun' => $tahun]) }}"
+           class="px-4 py-2 text-sm font-semibold transition whitespace-nowrap
+                  {{ $tab == 'grafik' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800' }}">
+            📈 Grafik
         </a>
     </div>
 </div>
@@ -54,7 +53,6 @@
 {{-- ===== TAB: RINGKASAN ===== --}}
 @if($tab == 'ringkasan')
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-4">
-
     <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
         <div class="flex items-center justify-between">
             <div>
@@ -68,7 +66,6 @@
             </div>
         </div>
     </div>
-
     <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
         <div class="flex items-center justify-between">
             <div>
@@ -82,7 +79,6 @@
             </div>
         </div>
     </div>
-
     <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
         <div class="flex items-center justify-between">
             <div>
@@ -97,7 +93,6 @@
             </div>
         </div>
     </div>
-
     <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
         <div class="flex items-center justify-between">
             <div>
@@ -111,7 +106,6 @@
             </div>
         </div>
     </div>
-
     <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
         <div class="flex items-center justify-between">
             <div>
@@ -128,7 +122,6 @@
     </div>
 </div>
 
-{{-- TABEL DETAIL KATEGORI --}}
 <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
     <div class="px-4 py-3 border-b border-gray-200">
         <h3 class="font-semibold text-gray-800 text-sm">Detail Kategori Daftar Induk</h3>
@@ -160,8 +153,6 @@
 
 {{-- ===== TAB: LOG AKTIVITAS ===== --}}
 @if($tab == 'log')
-
-{{-- FILTER --}}
 <div class="bg-white rounded-lg shadow-sm mb-3 p-4">
     <form method="GET" action="{{ route('reports.index') }}" class="grid grid-cols-1 md:grid-cols-6 gap-3">
         <input type="hidden" name="tab" value="log">
@@ -228,34 +219,22 @@
     </form>
 </div>
 
-{{-- TOMBOL EXPORT --}}
 <div class="bg-white rounded-lg shadow-sm mb-3 px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
     <div>
-        <span class="text-xs text-gray-600">
-            Total: <strong>{{ $logs->total() }}</strong> log
-        </span>
+        <span class="text-xs text-gray-600">Total: <strong>{{ $logs->total() }}</strong> log</span>
     </div>
     <div class="flex gap-2">
         <a href="{{ route('reports.export.log.excel', request()->query()) }}"
            class="flex items-center gap-2.5 px-3 py-2 text-xs text-white bg-green-600 rounded-lg hover:bg-green-700 transition font-semibold">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
-                <path fill="#FFFFFF" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
-                <text x="12" y="17" text-anchor="middle" fill="#1D6F42" font-family="Arial, sans-serif" font-weight="bold" font-size="9">X</text>
-            </svg>
             Excel
         </a>
         <a href="{{ route('reports.export.log.pdf', request()->query()) }}"
            class="flex items-center gap-2.5 px-3 py-2 text-xs text-white bg-red-600 rounded-lg hover:bg-red-700 transition font-semibold">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
-                <path fill="#FFFFFF" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
-                <text x="12" y="17" text-anchor="middle" fill="#DC2626" font-family="Arial, sans-serif" font-weight="bold" font-size="7">PDF</text>
-            </svg>
             PDF
         </a>
     </div>
 </div>
 
-{{-- TABEL LOG --}}
 <div class="bg-white rounded-lg shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-xs text-left">
@@ -303,14 +282,328 @@
         </table>
     </div>
 
-    {{-- PAGINATION --}}
     @if($logs->hasPages())
     <div class="px-4 py-3 border-t border-gray-200">
         {{ $logs->links() }}
     </div>
     @endif
 </div>
+@endif
 
+{{-- ===== TAB: GRAFIK (PARETO) - DIPERBAIKI ===== --}}
+@if($tab == 'grafik')
+
+{{-- PARETO 1: TOTAL DATA PER FITUR --}}
+<div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-4">
+    <div class="mb-4">
+        <h3 class="font-bold text-slate-800 text-base">📊 Total Data per Fitur</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Distribusi jumlah data berdasarkan fitur QC - Tahun {{ $tahun }}</p>
+    </div>
+    <div class="h-96">
+        <canvas id="chartParetoFitur"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+
+    {{-- PARETO 2: DISTRIBUSI KATEGORI ALAT --}}
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+        <div class="mb-4">
+            <h3 class="font-bold text-slate-800 text-sm">📊 Distribusi Kategori Alat</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Kategori dari Daftar Induk - {{ $tahun }}</p>
+        </div>
+        <div class="h-80">
+            <canvas id="chartParetoKategori"></canvas>
+        </div>
+    </div>
+
+    {{-- PARETO 3: AKTIVITAS PER BULAN --}}
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+        <div class="mb-4">
+            <h3 class="font-bold text-slate-800 text-sm">📊 Aktivitas per Bulan</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Total aktivitas kalibrasi & verifikasi per bulan - {{ $tahun }}</p>
+        </div>
+        <div class="h-80">
+            <canvas id="chartParetoBulan"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 gap-4">
+
+    {{-- PARETO 4: DISTRIBUSI DATA PER DEPARTEMEN --}}
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+        <div class="mb-4">
+            <h3 class="font-bold text-slate-800 text-sm">📊 Distribusi Data per Departemen</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Jumlah data dari tabel Verifikasi per departemen - {{ $tahun }}</p>
+        </div>
+        <div class="h-96">
+            <canvas id="chartParetoDepartemen"></canvas>
+        </div>
+    </div>
+</div>
+
+{{-- Chart.js + Plugin --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    Chart.register(ChartDataLabels);
+
+    // ========================================
+    // FUNGSI UTAMA: PARETO CHART
+    // ========================================
+    function buatParetoChart(canvasId, labels, values, warnaBar = '#3b82f6') {
+        // Sortir descending
+        const combined = labels.map((label, i) => ({ label, value: values[i] }));
+        combined.sort((a, b) => b.value - a.value);
+
+        const sortedLabels = combined.map(c => c.label);
+        const sortedValues = combined.map(c => c.value);
+
+        const total = sortedValues.reduce((a, b) => a + b, 0);
+
+        // Hitung % kumulatif
+        let cumulative = 0;
+        const cumulativePercentages = sortedValues.map(v => {
+            cumulative += v;
+            return total > 0 ? (cumulative / total) * 100 : 0;
+        });
+
+        // Hitung max Y
+        const maxValue = Math.max(...sortedValues, 1);
+        const maxY = Math.ceil(maxValue * 1.2);
+
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sortedLabels,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Jumlah',
+                        data: sortedValues,
+                        backgroundColor: warnaBar,
+                        borderColor: warnaBar,
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        yAxisID: 'y',
+                        order: 2,
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'end',
+                            color: '#1e40af',
+                            font: { size: 11, weight: 'bold' },
+                            formatter: function(value) {
+                                return value > 0 ? value : '';
+                            },
+                            offset: 4
+                        }
+                    },
+                    {
+                        type: 'line',
+                        label: '% Kumulatif',
+                        data: cumulativePercentages,
+                        borderColor: '#dc2626',
+                        backgroundColor: '#dc2626',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#dc2626',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        tension: 0.2,
+                        yAxisID: 'y1',
+                        order: 1,
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#dc2626',
+                            font: { size: 10, weight: 'bold' },
+                            formatter: function(value) {
+                                return value.toFixed(0) + '%';
+                            },
+                            offset: 6
+                        }
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: { top: 30, right: 20, left: 10, bottom: 10 }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            boxWidth: 14,
+                            boxHeight: 14,
+                            padding: 12,
+                            font: { size: 11, weight: '600' },
+                            usePointStyle: true,
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        padding: 12,
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyFont: { size: 11 },
+                        callbacks: {
+                            label: function(context) {
+                                if (context.dataset.type === 'line') {
+                                    return '  ' + context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                                }
+                                return '  ' + context.dataset.label + ': ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: maxY,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Jumlah',
+                            font: { size: 11, weight: 'bold' },
+                            color: '#1e40af'
+                        },
+                        ticks: {
+                            stepSize: maxY <= 10 ? 1 : Math.ceil(maxY / 10),
+                            font: { size: 10 },
+                            color: '#1e40af'
+                        },
+                        grid: {
+                            color: 'rgba(30, 64, 175, 0.08)',
+                            drawBorder: false
+                        }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        max: 100,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: '% Kumulatif',
+                            font: { size: 11, weight: 'bold' },
+                            color: '#dc2626'
+                        },
+                        ticks: {
+                            stepSize: 20,
+                            font: { size: 10 },
+                            color: '#dc2626',
+                            callback: function(value) { return value + '%'; }
+                        },
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 10, weight: '600' },
+                            maxRotation: 0,
+                            minRotation: 0,
+                            autoSkip: false
+                        },
+                        grid: { display: false, drawBorder: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // ========================================
+    // CHART 1: TOTAL DATA PER FITUR
+    // ========================================
+    buatParetoChart('chartParetoFitur',
+        ['Daftar Induk', 'Verifikasi', 'Kalibrasi Internal', 'Kalibrasi Eksternal', 'Kalibrasi Mesin'],
+        [
+            {{ $totalTools }},
+            {{ $totalVerifikasi }},
+            {{ $totalInternal }},
+            {{ $totalEksternal }},
+            {{ $totalMesin }}
+        ],
+        '#3b82f6'
+    );
+
+    // ========================================
+    // CHART 2: DISTRIBUSI KATEGORI ALAT
+    // ========================================
+    buatParetoChart('chartParetoKategori',
+        ['Small Tool', 'Machine', 'Jig'],
+        [
+            {{ $toolsSmallTool }},
+            {{ $toolsMachine }},
+            {{ $toolsJig }}
+        ],
+        '#10b981'
+    );
+
+    // ========================================
+    // CHART 3: AKTIVITAS PER BULAN
+    // ========================================
+    const totalPerBulan = [
+        @json($verifikasiPerBulan),
+        @json($internalPerBulan),
+        @json($eksternalPerBulan),
+        @json($mesinPerBulan)
+    ];
+    const dataBulanan = [];
+    for (let i = 0; i < 12; i++) {
+        dataBulanan.push(
+            (totalPerBulan[0][i] || 0) +
+            (totalPerBulan[1][i] || 0) +
+            (totalPerBulan[2][i] || 0) +
+            (totalPerBulan[3][i] || 0)
+        );
+    }
+    buatParetoChart('chartParetoBulan',
+        @json($bulanLabels),
+        dataBulanan,
+        '#8b5cf6'
+    );
+
+    // ========================================
+    // CHART 4: DISTRIBUSI DATA PER DEPARTEMEN
+    // ========================================
+    buatParetoChart('chartParetoDepartemen',
+        ['QA 1', 'QA 1.2', 'QA INC', 'QA INSP', 'PPIC 1', 'PPIC 2', 'LINE SCC', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'ENG'],
+        [
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('qa_1') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('qa_1_2') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('qa_inc') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('qa_insp') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('ppic_1') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('ppic_2') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('line_scc') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p1') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p2') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p3') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p5') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p6') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p7') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p8') }},
+            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('eng') }}
+        ],
+        '#f59e0b'
+    );
+
+});
+</script>
 @endif
 
 @endsection
