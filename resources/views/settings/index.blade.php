@@ -21,11 +21,19 @@
             <p class="text-xs text-gray-500 mt-0.5">Kelola user & hak akses aplikasi</p>
         </div>
 
-        <a href="{{ route('settings.user.create') }}"
-           class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
-                  px-3 py-2 text-xs sm:text-sm">
-            <span>+</span> Tambah User
-        </a>
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="{{ route('settings.notifikasi') }}"
+               class="bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition inline-flex items-center gap-1 whitespace-nowrap
+                      px-3 py-2 text-xs sm:text-sm">
+                ⚙️ Pengaturan Notifikasi
+            </a>
+
+            <a href="{{ route('settings.user.create') }}"
+               class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
+                      px-3 py-2 text-xs sm:text-sm">
+                <span>+</span> Tambah User
+            </a>
+        </div>
     </div>
 </div>
 
