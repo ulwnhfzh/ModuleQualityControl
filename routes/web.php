@@ -10,6 +10,8 @@ use App\Http\Controllers\GuestController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\LaporanHarianController;
+use App\Http\Controllers\NotifikasiController;
+use App\Http\Controllers\PengaturanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,7 +35,15 @@ Route::get('/mesin', [CalibrationController::class, 'mesin'])->name('mesin.index
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
+
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+    // Notifikasi
+    Route::get('/notifikasi', [NotifikasiController::class, 'index'])->name('notifikasi.index');
+    Route::post('/notifikasi/{alatId}/diproses', [NotifikasiController::class, 'tandaiDiproses'])->name('notifikasi.diproses');
+    Route::post('/notifikasi/{alatId}/selesai', [NotifikasiController::class, 'tandaiSelesai'])->name('notifikasi.selesai');
+    Route::post('/notifikasi/{alatId}/batal', [NotifikasiController::class, 'batal'])->name('notifikasi.batal');
 });
 
 /*
@@ -103,26 +113,30 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/mesin/export/pdf', [CalibrationController::class, 'mesinExportPdf'])->name('mesin.export.pdf');
     Route::get('/mesin/download-template', [CalibrationController::class, 'mesinDownloadTemplate'])->name('mesin.template');
 
-    // ===== REPORTS (ADMIN) =====
+    // ===== REPORTS =====
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::post('/reports/export-all/excel', [ReportController::class, 'exportAllExcel'])->name('reports.export.all.excel');
     Route::post('/reports/export-all/pdf', [ReportController::class, 'exportAllPdf'])->name('reports.export.all.pdf');
     Route::get('/reports/export-log/excel', [ReportController::class, 'exportLogExcel'])->name('reports.export.log.excel');
     Route::get('/reports/export-log/pdf', [ReportController::class, 'exportLogPdf'])->name('reports.export.log.pdf');
 
-    // ===== LAPORAN HARIAN (ADMIN) - BARU =====
+    // ===== LAPORAN HARIAN =====
     Route::get('/laporan-harian', [LaporanHarianController::class, 'index'])->name('laporan.harian.index');
     Route::get('/laporan-harian/preview-nomor', [LaporanHarianController::class, 'previewNomor'])->name('laporan.harian.preview');
     Route::get('/laporan-harian/export-pdf', [LaporanHarianController::class, 'exportPdf'])->name('laporan.harian.pdf');
     Route::get('/laporan-harian/export-excel', [LaporanHarianController::class, 'exportExcel'])->name('laporan.harian.excel');
 
-    // ===== SETTINGS (ADMIN) =====
+    // ===== SETTINGS =====
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::get('/settings/user/create', [SettingController::class, 'createUser'])->name('settings.user.create');
     Route::post('/settings/user', [SettingController::class, 'storeUser'])->name('settings.user.store');
     Route::get('/settings/user/{user}/edit', [SettingController::class, 'editUser'])->name('settings.user.edit');
     Route::put('/settings/user/{user}', [SettingController::class, 'updateUser'])->name('settings.user.update');
     Route::delete('/settings/user/{user}', [SettingController::class, 'destroyUser'])->name('settings.user.destroy');
+
+    // ===== PENGATURAN NOTIFIKASI =====
+    Route::get('/settings/notifikasi', [PengaturanController::class, 'notifikasi'])->name('settings.notifikasi');
+    Route::post('/settings/notifikasi', [PengaturanController::class, 'updateNotifikasi'])->name('settings.notifikasi.update');
 });
 
 require __DIR__.'/auth.php';

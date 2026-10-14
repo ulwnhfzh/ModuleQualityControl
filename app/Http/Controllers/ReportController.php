@@ -17,13 +17,10 @@ class ReportController extends Controller
 {
     use LogsActivity;
 
-    /**
-     * Halaman Reports (tab Ringkasan + Log)
-     */
     public function index(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
-        $tab = $request->input('tab', 'ringkasan'); // ringkasan | log
+        $tab = $request->input('tab', 'ringkasan'); // ringkasan | log | grafik
 
         // ===== TAB RINGKASAN =====
         $totalTools       = Tool::where('tahun', $tahun)->count();
@@ -39,47 +36,71 @@ class ReportController extends Controller
         // ===== TAB LOG AKTIVITAS =====
         $query = ActivityLog::query();
 
-        // Filter by tanggal
         if ($request->filled('tanggal')) {
             $query->whereDate('created_at', $request->tanggal);
         }
-
-        // Filter by user
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
         }
-
-        // Filter by jenis
         if ($request->filled('jenis')) {
             $query->where('jenis_data', $request->jenis);
         }
-
-        // Filter by aksi
         if ($request->filled('aksi')) {
             $query->where('aksi', $request->aksi);
         }
-
-        // Pencarian keterangan
         if ($request->filled('search')) {
             $query->where('keterangan', 'like', '%' . $request->search . '%');
         }
 
         $logs = $query->orderBy('id', 'desc')->paginate(25)->withQueryString();
 
-        // Data untuk dropdown filter
         $users = User::orderBy('name')->get();
+
+        // ===== TAB GRAFIK (BARU) =====
+        $bulanLabels  = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        $bulanColumns = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+        $verifikasiPerBulan = [];
+        $internalPerBulan   = [];
+        $eksternalPerBulan  = [];
+        $mesinPerBulan      = [];
+
+        foreach ($bulanColumns as $col) {
+            $verifikasiPerBulan[] = (int) Verifikasi::where('tahun', $tahun)->sum($col);
+            $internalPerBulan[]   = (int) Internal::where('tahun', $tahun)->sum($col);
+            $eksternalPerBulan[]  = (int) Eksternal::where('tahun', $tahun)->sum($col);
+            $mesinPerBulan[]      = (int) EksternalMesin::where('tahun', $tahun)->sum($col);
+        }
+
+        $tahunRange = range(date('Y'), date('Y') - 4);
+        sort($tahunRange);
+        $tahunLabels = array_map('strval', $tahunRange);
+
+        $verifikasiPerTahun = [];
+        $internalPerTahun   = [];
+        $eksternalPerTahun  = [];
+        $mesinPerTahun      = [];
+        $toolsPerTahun      = [];
+
+        foreach ($tahunRange as $th) {
+            $verifikasiPerTahun[] = Verifikasi::where('tahun', $th)->count();
+            $internalPerTahun[]   = Internal::where('tahun', $th)->count();
+            $eksternalPerTahun[]  = Eksternal::where('tahun', $th)->count();
+            $mesinPerTahun[]      = EksternalMesin::where('tahun', $th)->count();
+            $toolsPerTahun[]      = Tool::where('tahun', $th)->count();
+        }
 
         return view('reports.index', compact(
             'tahun', 'tab',
             'totalTools', 'totalVerifikasi', 'totalInternal', 'totalEksternal', 'totalMesin',
             'toolsSmallTool', 'toolsMachine', 'toolsJig',
-            'logs', 'users'
+            'logs', 'users',
+            // Data grafik
+            'bulanLabels', 'verifikasiPerBulan', 'internalPerBulan', 'eksternalPerBulan', 'mesinPerBulan',
+            'tahunLabels', 'verifikasiPerTahun', 'internalPerTahun', 'eksternalPerTahun', 'mesinPerTahun', 'toolsPerTahun'
         ));
     }
 
-    /**
-     * Export Log Aktivitas ke Excel (format CSV)
-     */
     public function exportLogExcel(Request $request)
     {
         $query = ActivityLog::query();
@@ -102,7 +123,6 @@ class ReportController extends Controller
 
         $logs = $query->orderBy('id', 'desc')->get();
 
-        // ===== LOG ACTIVITY =====
         $this->logExport('log', 'Export Log Aktivitas ke Excel');
 
         $filename = 'log-aktivitas-' . date('Y-m-d-His') . '.csv';
@@ -111,12 +131,8 @@ class ReportController extends Controller
             $file = fopen('php://output', 'w');
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Header
-            fputcsv($file, [
-                'No', 'Waktu', 'User', 'Aksi', 'Jenis Data', 'Keterangan', 'IP Address'
-            ]);
+            fputcsv($file, ['No', 'Waktu', 'User', 'Aksi', 'Jenis Data', 'Keterangan', 'IP Address']);
 
-            // Data
             foreach ($logs as $index => $log) {
                 fputcsv($file, [
                     $index + 1,
@@ -137,9 +153,6 @@ class ReportController extends Controller
         ]);
     }
 
-    /**
-     * Export Log Aktivitas ke PDF
-     */
     public function exportLogPdf(Request $request)
     {
         $query = ActivityLog::query();
@@ -162,7 +175,6 @@ class ReportController extends Controller
 
         $logs = $query->orderBy('id', 'desc')->limit(500)->get();
 
-        // ===== LOG ACTIVITY =====
         $this->logExport('log', 'Export Log Aktivitas ke PDF');
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.log-pdf', compact('logs'))
@@ -171,18 +183,12 @@ class ReportController extends Controller
         return $pdf->download('log-aktivitas-' . date('Y-m-d-His') . '.pdf');
     }
 
-    /**
-     * Export All (Excel) - dari fitur lama
-     */
     public function exportAllExcel(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
         return back()->with('info', 'Export All Excel tahun ' . $tahun . ' sedang dikembangkan.');
     }
 
-    /**
-     * Export All (PDF) - dari fitur lama
-     */
     public function exportAllPdf(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));

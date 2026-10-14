@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Verifikasi;
 use App\Models\Tool;
+use App\Models\DokumenCounter;
 use App\Imports\VerifikasiImport;
 use App\Exports\VerifikasiExport;
 use App\Traits\LogsActivity;
@@ -125,7 +126,6 @@ class VerifikasiController extends Controller
 
         $verifikasi = Verifikasi::create($data);
 
-        // ===== LOG ACTIVITY =====
         $this->logCreate(
             'verifikasi',
             $verifikasi->id,
@@ -137,20 +137,13 @@ class VerifikasiController extends Controller
             ->with('success', 'Jadwal verifikasi berhasil ditambahkan!');
     }
 
-    // ==========================================
-    // FORM EDIT
-    // ==========================================
     public function edit(Verifikasi $verifikasi)
     {
         return view('verifikasi.edit', compact('verifikasi'));
     }
 
-    // ==========================================
-    // UPDATE
-    // ==========================================
     public function update(Request $request, Verifikasi $verifikasi)
     {
-        // Simpan data lama SEBELUM update
         $dataLama = $verifikasi->toArray();
 
         $data['tool_name'] = strtoupper($request->tool_name);
@@ -218,7 +211,6 @@ class VerifikasiController extends Controller
 
         $verifikasi->update($data);
 
-        // ===== LOG ACTIVITY =====
         $this->logUpdate(
             'verifikasi',
             $verifikasi->id,
@@ -231,9 +223,6 @@ class VerifikasiController extends Controller
             ->with('success', 'Jadwal verifikasi berhasil diperbarui!');
     }
 
-    // ==========================================
-    // HAPUS
-    // ==========================================
     public function destroy(Verifikasi $verifikasi)
     {
         $dataLama = $verifikasi->toArray();
@@ -243,7 +232,6 @@ class VerifikasiController extends Controller
 
         $verifikasi->delete();
 
-        // ===== LOG ACTIVITY =====
         $this->logDelete('verifikasi', $verifikasiId, $keterangan, $dataLama);
 
         return redirect()->route('verifikasi.index', ['mode' => $mode])
@@ -273,7 +261,6 @@ class VerifikasiController extends Controller
                 $request->file('file')
             );
 
-            // ===== LOG ACTIVITY =====
             $this->logActivity(
                 'CREATE',
                 'verifikasi',
@@ -303,12 +290,14 @@ class VerifikasiController extends Controller
         $labelMode = $mode === 'bulanan' ? 'tahunan' : 'bulanan';
         $filename = 'verifikasi-' . $labelMode . '-' . $tahun . '.xlsx';
 
-        // ===== LOG ACTIVITY =====
         $this->logExport('verifikasi', 'Export Excel mode ' . strtoupper($mode) . ' tahun ' . $tahun);
 
         return Excel::download(new VerifikasiExport($tahun, $mode), $filename);
     }
 
+    /**
+     * Export PDF dengan nomor dokumen otomatis
+     */
     public function exportPdf(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
@@ -319,19 +308,20 @@ class VerifikasiController extends Controller
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        // ===== LOG ACTIVITY =====
-        $this->logExport('verifikasi', 'Export PDF mode ' . strtoupper($mode) . ' tahun ' . $tahun);
+        // ===== GENERATE NOMOR DOKUMEN =====
+        $nomorDokumen = DokumenCounter::generateNomor('VFR', $tahun, 'QC');
 
-        $pdf = Pdf::loadView('verifikasi.pdf', compact('data', 'tahun', 'mode'))
+        // ===== LOG ACTIVITY =====
+        $this->logExport('verifikasi', 'Export PDF Verifikasi mode ' . strtoupper($mode) . ' - Nomor: ' . $nomorDokumen);
+
+        // ===== GENERATE PDF =====
+        $pdf = Pdf::loadView('verifikasi.pdf', compact('data', 'tahun', 'mode', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
 
         $labelMode = $mode === 'bulanan' ? 'tahunan' : 'bulanan';
         return $pdf->download('verifikasi-' . $labelMode . '-' . $tahun . '.pdf');
     }
 
-    // ==========================================
-    // DOWNLOAD TEMPLATE
-    // ==========================================
     public function downloadTemplate(Request $request)
     {
         $mode = $request->input('mode', 'bulanan');

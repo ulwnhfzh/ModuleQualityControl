@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Internal;
 use App\Models\Tool;
+use App\Models\DokumenCounter;
 use App\Imports\InternalImport;
 use App\Exports\InternalExport;
 use App\Traits\LogsActivity;
@@ -15,7 +16,6 @@ class InternalController extends Controller
 {
     use LogsActivity;
 
-    // Tampilkan Tabel
     public function index(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
@@ -27,7 +27,6 @@ class InternalController extends Controller
         return view('internal.index', compact('schedules', 'tahun'));
     }
 
-    // Form Tambah
     public function create()
     {
         $tools = Tool::select('tool_name')
@@ -38,7 +37,6 @@ class InternalController extends Controller
         return view('internal.create', compact('tools'));
     }
 
-    // Simpan Data
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -58,7 +56,6 @@ class InternalController extends Controller
 
         $internal = Internal::create($data);
 
-        // ===== LOG ACTIVITY =====
         $this->logCreate(
             'internal',
             $internal->id,
@@ -70,16 +67,13 @@ class InternalController extends Controller
             ->with('success', 'Jadwal kalibrasi internal berhasil ditambahkan!');
     }
 
-    // Form Edit
     public function edit(Internal $internal)
     {
         return view('internal.edit', compact('internal'));
     }
 
-    // Update Data
     public function update(Request $request, Internal $internal)
     {
-        // Simpan data lama SEBELUM update
         $dataLama = $internal->toArray();
 
         $data = $request->validate([
@@ -99,7 +93,6 @@ class InternalController extends Controller
 
         $internal->update($data);
 
-        // ===== LOG ACTIVITY =====
         $this->logUpdate(
             'internal',
             $internal->id,
@@ -111,7 +104,6 @@ class InternalController extends Controller
         return redirect()->route('internal.index')->with('success', 'Jadwal kalibrasi internal berhasil diperbarui!');
     }
 
-    // Hapus Data
     public function destroy(Internal $internal)
     {
         $dataLama = $internal->toArray();
@@ -120,7 +112,6 @@ class InternalController extends Controller
 
         $internal->delete();
 
-        // ===== LOG ACTIVITY =====
         $this->logDelete('internal', $internalId, $keterangan, $dataLama);
 
         return redirect()->route('internal.index')->with('success', 'Jadwal kalibrasi internal berhasil dihapus!');
@@ -142,7 +133,6 @@ class InternalController extends Controller
         try {
             Excel::import(new InternalImport($request->tahun), $request->file('file'));
 
-            // ===== LOG ACTIVITY =====
             $this->logActivity(
                 'CREATE',
                 'internal',
@@ -165,12 +155,14 @@ class InternalController extends Controller
         $tahun = $request->input('tahun', date('Y'));
         $filename = 'internal-' . $tahun . '.xlsx';
 
-        // ===== LOG ACTIVITY =====
         $this->logExport('internal', 'Export Excel Kalibrasi Internal tahun ' . $tahun);
 
         return Excel::download(new InternalExport($tahun), $filename);
     }
 
+    /**
+     * Export PDF dengan nomor dokumen otomatis
+     */
     public function exportPdf(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
@@ -179,10 +171,14 @@ class InternalController extends Controller
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        // ===== LOG ACTIVITY =====
-        $this->logExport('internal', 'Export PDF Kalibrasi Internal tahun ' . $tahun);
+        // ===== GENERATE NOMOR DOKUMEN =====
+        $nomorDokumen = DokumenCounter::generateNomor('INT', $tahun, 'QC');
 
-        $pdf = Pdf::loadView('internal.pdf', compact('data', 'tahun'))
+        // ===== LOG ACTIVITY =====
+        $this->logExport('internal', 'Export PDF Kalibrasi Internal - Nomor: ' . $nomorDokumen);
+
+        // ===== GENERATE PDF =====
+        $pdf = Pdf::loadView('internal.pdf', compact('data', 'tahun', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('internal-' . $tahun . '.pdf');

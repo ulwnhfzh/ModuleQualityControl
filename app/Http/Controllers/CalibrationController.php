@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Eksternal;
 use App\Models\EksternalMesin;
 use App\Models\Tool;
+use App\Models\DokumenCounter;
 use App\Imports\EksternalImport;
 use App\Exports\EksternalExport;
 use App\Imports\MesinImport;
@@ -60,7 +61,6 @@ class CalibrationController extends Controller
 
         $eksternal = Eksternal::create($data);
 
-        // ===== LOG ACTIVITY =====
         $this->logCreate(
             'eksternal',
             $eksternal->id,
@@ -79,7 +79,6 @@ class CalibrationController extends Controller
 
     public function eksternalSmallUpdate(Request $request, Eksternal $eksternal)
     {
-        // Simpan data lama SEBELUM update
         $dataLama = $eksternal->toArray();
 
         $data = $request->validate([
@@ -98,7 +97,6 @@ class CalibrationController extends Controller
 
         $eksternal->update($data);
 
-        // ===== LOG ACTIVITY =====
         $this->logUpdate(
             'eksternal',
             $eksternal->id,
@@ -118,7 +116,6 @@ class CalibrationController extends Controller
 
         $eksternal->delete();
 
-        // ===== LOG ACTIVITY =====
         $this->logDelete('eksternal', $eksternalId, $keterangan, $dataLama);
 
         return redirect()->route('eksternal.small')->with('success', 'Jadwal kalibrasi eksternal berhasil dihapus!');
@@ -140,7 +137,6 @@ class CalibrationController extends Controller
         try {
             Excel::import(new EksternalImport($request->tahun), $request->file('file'));
 
-            // ===== LOG ACTIVITY =====
             $this->logActivity(
                 'CREATE',
                 'eksternal',
@@ -163,12 +159,14 @@ class CalibrationController extends Controller
         $tahun = $request->input('tahun', date('Y'));
         $filename = 'eksternal-small-' . $tahun . '.xlsx';
 
-        // ===== LOG ACTIVITY =====
         $this->logExport('eksternal', 'Export Excel Eksternal Small Tool tahun ' . $tahun);
 
         return Excel::download(new EksternalExport($tahun), $filename);
     }
 
+    /**
+     * Export PDF Eksternal Small dengan nomor dokumen otomatis
+     */
     public function eksternalSmallExportPdf(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
@@ -177,10 +175,14 @@ class CalibrationController extends Controller
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        // ===== LOG ACTIVITY =====
-        $this->logExport('eksternal', 'Export PDF Eksternal Small Tool tahun ' . $tahun);
+        // ===== GENERATE NOMOR DOKUMEN =====
+        $nomorDokumen = DokumenCounter::generateNomor('EKS', $tahun, 'QC');
 
-        $pdf = Pdf::loadView('eksternal.pdf', compact('data', 'tahun'))
+        // ===== LOG ACTIVITY =====
+        $this->logExport('eksternal', 'Export PDF Eksternal Small Tool - Nomor: ' . $nomorDokumen);
+
+        // ===== GENERATE PDF =====
+        $pdf = Pdf::loadView('eksternal.pdf', compact('data', 'tahun', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('eksternal-small-' . $tahun . '.pdf');
@@ -259,7 +261,6 @@ class CalibrationController extends Controller
 
         $mesin = EksternalMesin::create($data);
 
-        // ===== LOG ACTIVITY =====
         $this->logCreate(
             'mesin',
             $mesin->id,
@@ -278,7 +279,6 @@ class CalibrationController extends Controller
 
     public function mesinUpdate(Request $request, EksternalMesin $mesin)
     {
-        // Simpan data lama SEBELUM update
         $dataLama = $mesin->toArray();
 
         $data = $request->validate([
@@ -305,7 +305,6 @@ class CalibrationController extends Controller
 
         $mesin->update($data);
 
-        // ===== LOG ACTIVITY =====
         $this->logUpdate(
             'mesin',
             $mesin->id,
@@ -326,7 +325,6 @@ class CalibrationController extends Controller
 
         $mesin->delete();
 
-        // ===== LOG ACTIVITY =====
         $this->logDelete('mesin', $mesinId, $keterangan, $dataLama);
 
         return redirect()->route('mesin.index')
@@ -349,7 +347,6 @@ class CalibrationController extends Controller
         try {
             Excel::import(new MesinImport($request->tahun), $request->file('file'));
 
-            // ===== LOG ACTIVITY =====
             $this->logActivity(
                 'CREATE',
                 'mesin',
@@ -372,12 +369,14 @@ class CalibrationController extends Controller
         $tahun = $request->input('tahun', date('Y'));
         $filename = 'eksternal-mesin-' . $tahun . '.xlsx';
 
-        // ===== LOG ACTIVITY =====
         $this->logExport('mesin', 'Export Excel Mesin Alat Ukur tahun ' . $tahun);
 
         return Excel::download(new MesinExport($tahun), $filename);
     }
 
+    /**
+     * Export PDF Mesin dengan nomor dokumen otomatis
+     */
     public function mesinExportPdf(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
@@ -386,10 +385,14 @@ class CalibrationController extends Controller
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        // ===== LOG ACTIVITY =====
-        $this->logExport('mesin', 'Export PDF Mesin Alat Ukur tahun ' . $tahun);
+        // ===== GENERATE NOMOR DOKUMEN =====
+        $nomorDokumen = DokumenCounter::generateNomor('MSN', $tahun, 'QC');
 
-        $pdf = Pdf::loadView('mesin.pdf', compact('data', 'tahun'))
+        // ===== LOG ACTIVITY =====
+        $this->logExport('mesin', 'Export PDF Eksternal Mesin - Nomor: ' . $nomorDokumen);
+
+        // ===== GENERATE PDF =====
+        $pdf = Pdf::loadView('mesin.pdf', compact('data', 'tahun', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('eksternal-mesin-' . $tahun . '.pdf');

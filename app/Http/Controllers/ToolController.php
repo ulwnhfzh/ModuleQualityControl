@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tool;
+use App\Models\DokumenCounter;
 use Illuminate\Http\Request;
 use App\Imports\ToolsImport;
 use App\Exports\ToolsExport;
@@ -63,7 +64,6 @@ class ToolController extends Controller
 
         $tool = Tool::create($data);
 
-        // ===== LOG ACTIVITY =====
         $this->logCreate(
             'tools',
             $tool->id,
@@ -81,7 +81,6 @@ class ToolController extends Controller
 
     public function update(Request $request, Tool $tool)
     {
-        // Simpan data lama SEBELUM update
         $dataLama = $tool->toArray();
 
         $data = $request->validate([
@@ -106,7 +105,6 @@ class ToolController extends Controller
 
         $tool->update($data);
 
-        // ===== LOG ACTIVITY =====
         $this->logUpdate(
             'tools',
             $tool->id,
@@ -120,23 +118,20 @@ class ToolController extends Controller
 
     public function destroy(Tool $tool)
     {
-        // Simpan data SEBELUM hapus
         $dataLama = $tool->toArray();
         $toolId = $tool->id;
         $toolName = $tool->tool_name . ' - ' . $tool->category . ' (' . $tool->tahun . ')';
 
         $tool->delete();
 
-        // ===== LOG ACTIVITY =====
         $this->logDelete('tools', $toolId, $toolName, $dataLama);
 
         return redirect()->route('tools.index')->with('success', 'Alat ukur berhasil dihapus!');
     }
 
     // ==========================================
-    // FITUR IMPORT EXCEL
+    // IMPORT EXCEL
     // ==========================================
-
     public function importForm()
     {
         return view('tools.import');
@@ -152,7 +147,6 @@ class ToolController extends Controller
         try {
             Excel::import(new ToolsImport($request->tahun), $request->file('file'));
 
-            // ===== LOG ACTIVITY =====
             $this->logActivity(
                 'CREATE',
                 'tools',
@@ -170,21 +164,22 @@ class ToolController extends Controller
     }
 
     // ==========================================
-    // FITUR EXPORT
+    // EXPORT
     // ==========================================
-
     public function exportCsv(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
         $kategori = $request->input('kategori', 'Small Tool');
         $filename = 'daftar-induk-' . strtolower(str_replace(' ', '-', $kategori)) . '-' . $tahun . '.xlsx';
 
-        // ===== LOG ACTIVITY =====
         $this->logExport('tools', 'Export Excel - ' . $kategori . ' tahun ' . $tahun);
 
         return Excel::download(new ToolsExport($tahun, $kategori), $filename);
     }
 
+    /**
+     * Export PDF dengan nomor dokumen otomatis
+     */
     public function exportPdf(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
@@ -195,10 +190,14 @@ class ToolController extends Controller
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        // ===== LOG ACTIVITY =====
-        $this->logExport('tools', 'Export PDF - ' . $kategori . ' tahun ' . $tahun);
+        // ===== GENERATE NOMOR DOKUMEN =====
+        $nomorDokumen = DokumenCounter::generateNomor('DIN', $tahun, 'QC');
 
-        $pdf = Pdf::loadView('tools.pdf', compact('tools', 'tahun', 'kategori'))
+        // ===== LOG ACTIVITY =====
+        $this->logExport('tools', 'Export PDF Daftar Induk - ' . $kategori . ' - Nomor: ' . $nomorDokumen);
+
+        // ===== GENERATE PDF =====
+        $pdf = Pdf::loadView('tools.pdf', compact('tools', 'tahun', 'kategori', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('daftar-induk-' . strtolower(str_replace(' ', '-', $kategori)) . '-' . $tahun . '.pdf');
