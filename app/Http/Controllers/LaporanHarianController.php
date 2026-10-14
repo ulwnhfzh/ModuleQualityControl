@@ -21,15 +21,12 @@ class LaporanHarianController extends Controller
 {
     use LogsActivity;
 
-    /**
-     * Halaman Laporan Harian
-     */
     public function index(Request $request)
     {
         $tanggal = $request->input('tanggal', date('Y-m-d'));
-        $tanggalCarbon = Carbon::parse($tanggal);
+        $tanggalCarbon = Carbon::parse($tanggal)->startOfDay();
 
-        // ===== STATISTIK HARI INI =====
+        // ===== STATISTIK =====
         $totalAktivitas = ActivityLog::whereDate('created_at', $tanggal)->count();
 
         $userAktif = ActivityLog::whereDate('created_at', $tanggal)
@@ -57,20 +54,20 @@ class LaporanHarianController extends Controller
             ->groupBy('aksi')
             ->get();
 
-        // ===== LOG AKTIVITAS HARI INI =====
+        // ===== LOG AKTIVITAS =====
         $logs = ActivityLog::whereDate('created_at', $tanggal)
             ->orderBy('id', 'desc')
             ->get();
 
-        // ===== ALAT JATUH TEMPO =====
-        $batasJatuhTempo = $tanggalCarbon->copy()->addDays(30);
+        // ===== ALAT JATUH TEMPO (FIXED) =====
+        $batasJatuhTempo = $tanggalCarbon->copy()->addDays(30)->startOfDay();
 
         $alatJatuhTempo = EksternalMesin::whereNotNull('next_date')
             ->whereBetween('next_date', [$tanggalCarbon, $batasJatuhTempo])
             ->orderBy('next_date', 'asc')
             ->get()
             ->map(function ($item) use ($tanggalCarbon) {
-                $item->sisa_hari = $tanggalCarbon->diffInDays(Carbon::parse($item->next_date), false);
+                $item->sisa_hari = (int) $tanggalCarbon->diffInDays(Carbon::parse($item->next_date)->startOfDay(), false);
                 return $item;
             });
 
@@ -91,9 +88,6 @@ class LaporanHarianController extends Controller
         ));
     }
 
-    /**
-     * Preview nomor dokumen berikutnya (AJAX)
-     */
     public function previewNomor(Request $request)
     {
         $tanggal = $request->input('tanggal', date('Y-m-d'));
@@ -111,13 +105,10 @@ class LaporanHarianController extends Controller
         ]);
     }
 
-    /**
-     * Export PDF Laporan Harian
-     */
     public function exportPdf(Request $request)
     {
         $tanggal = $request->input('tanggal', date('Y-m-d'));
-        $tanggalCarbon = Carbon::parse($tanggal);
+        $tanggalCarbon = Carbon::parse($tanggal)->startOfDay();
         $tahun = $tanggalCarbon->year;
 
         $nomorDokumen = DokumenCounter::generateNomor('LAP', $tahun, 'QC');
@@ -142,12 +133,12 @@ class LaporanHarianController extends Controller
         $logs = ActivityLog::whereDate('created_at', $tanggal)
             ->orderBy('id', 'desc')->get();
 
-        $batasJatuhTempo = $tanggalCarbon->copy()->addDays(30);
+        $batasJatuhTempo = $tanggalCarbon->copy()->addDays(30)->startOfDay();
         $alatJatuhTempo = EksternalMesin::whereNotNull('next_date')
             ->whereBetween('next_date', [$tanggalCarbon, $batasJatuhTempo])
             ->orderBy('next_date', 'asc')->get()
             ->map(function ($item) use ($tanggalCarbon) {
-                $item->sisa_hari = $tanggalCarbon->diffInDays(Carbon::parse($item->next_date), false);
+                $item->sisa_hari = (int) $tanggalCarbon->diffInDays(Carbon::parse($item->next_date)->startOfDay(), false);
                 return $item;
             });
 
@@ -166,13 +157,10 @@ class LaporanHarianController extends Controller
         return $pdf->download($filename);
     }
 
-    /**
-     * Export Excel (CSV) Laporan Harian
-     */
     public function exportExcel(Request $request)
     {
         $tanggal = $request->input('tanggal', date('Y-m-d'));
-        $tanggalCarbon = Carbon::parse($tanggal);
+        $tanggalCarbon = Carbon::parse($tanggal)->startOfDay();
         $tahun = $tanggalCarbon->year;
 
         $nomorDokumen = DokumenCounter::generateNomor('LAP', $tahun, 'QC');
