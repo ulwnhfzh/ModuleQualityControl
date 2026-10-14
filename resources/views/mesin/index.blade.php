@@ -99,8 +99,8 @@
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs">Maker</th>
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs">No. Machine</th>
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs">Retension</th>
-                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs">Start</th>
-                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs">Next</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs">Start Calibration</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs">Next Calibration</th>
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Jan</th>
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Feb</th>
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Mar</th>
