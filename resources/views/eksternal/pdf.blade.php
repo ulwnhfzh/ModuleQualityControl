@@ -5,22 +5,32 @@
     <title>Kalibrasi Eksternal Small Tool - {{ $tahun }}</title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 10px; }
-        h2 { text-align: center; margin-bottom: 5px; }
-        p.sub { text-align: center; color: #666; margin-top: 0; margin-bottom: 15px; font-size: 11px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #333; padding: 4px 5px; text-align: center; }
-        th { background-color: #1e40af; color: #fff; font-size: 9px; }
-        td.text-left { text-align: left; }
-        tfoot td { background-color: #d1fae5; font-weight: bold; }
-        .footer { margin-top: 20px; text-align: right; font-size: 10px; color: #666; }
+        table.data { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table.data th, table.data td { border: 1px solid #333; padding: 4px 5px; text-align: center; font-size: 9px; }
+        table.data th { background-color: #1e40af; color: #fff; font-size: 9px; }
+        table.data td.text-left { text-align: left; }
+        table.data tfoot td { background-color: #d1fae5; font-weight: bold; }
+        table.data tr:nth-child(even) { background-color: #f8fafc; }
     </style>
 </head>
 <body>
 
-    <h2>KALIBRASI EKSTERNAL - SMALL TOOL</h2>
-    <p class="sub">Tahun: {{ $tahun }}</p>
+    {{-- ===== KOP SURAT ===== --}}
+    @include('pdf.kop-surat', [
+        'judul' => 'KALIBRASI EKSTERNAL - SMALL TOOL',
+        'nomorDokumen' => $nomorDokumen ?? null,
+    ])
 
-    <table>
+    {{-- INFO TAMBAHAN --}}
+    <table style="width: 100%; border: none; font-size: 10px; margin-bottom: 5px;">
+        <tr>
+            <td style="border: none; padding: 2px 0; text-align: right;">Tahun</td>
+            <td style="border: none; padding: 2px 0;">: <strong>{{ $tahun }}</strong></td>
+        </tr>
+    </table>
+
+    {{-- ===== TABEL DATA ===== --}}
+    <table class="data">
         <thead>
             <tr>
                 <th>No</th>
@@ -85,9 +95,8 @@
         @endif
     </table>
 
-    <div class="footer">
-        Dicetak pada: {{ date('d F Y, H:i') }}
-    </div>
+    {{-- ===== FOOTER DOKUMEN ===== --}}
+    @include('pdf.footer-dokumen', ['nomorDokumen' => $nomorDokumen ?? null])
 
 </body>
 </html>
