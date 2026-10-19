@@ -57,13 +57,11 @@
             </div>
             <div>
                 <label class="block text-sm font-semibold mb-1">Start Date</label>
-                <input type="date" name="start_date" value="{{ old('start_date', $mesin->start_date) }}"
-                       class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                <x-date-entry name="start_date" :value="old('start_date', $mesin->start_date)" input-class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
             <div>
                 <label class="block text-sm font-semibold mb-1">Next Date</label>
-                <input type="date" name="next_date" value="{{ old('next_date', $mesin->next_date) }}"
-                       class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                <x-date-entry name="next_date" :value="old('next_date', $mesin->next_date)" input-class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
         </div>
 

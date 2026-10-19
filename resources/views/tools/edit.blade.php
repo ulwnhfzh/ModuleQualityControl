@@ -14,12 +14,34 @@
                 <label class="block text-sm font-semibold mb-1">Nama Alat Ukur</label>
                 <input type="text" name="tool_name" value="{{ $tool->tool_name }}" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
-            <div>
-                <label class="block text-sm font-semibold mb-1">Kategori</label>
-                <select name="category" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
-                    <option value="Small Tool" {{ $tool->category == 'Small Tool' ? 'selected' : '' }}>Small Tool</option>
-                    <option value="Machine" {{ $tool->category == 'Machine' ? 'selected' : '' }}>Machine</option>
+            <div x-data="{ newCategory: '{{ old('category') === '__new' ? 'true' : 'false' }}' === 'true' }">
+                <label class="block text-sm font-semibold mb-1">Type / Kategori</label>
+                <select name="category" required @change="newCategory = $event.target.value === '__new'"
+                        class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                    @foreach($categories as $category)
+                        <option value="{{ $category }}" @selected(old('category', $tool->category) === $category)>{{ $category }}</option>
+                    @endforeach
+                    <option value="__new" @selected(old('category') === '__new')>＋ Tambah type baru…</option>
                 </select>
+                <input x-show="newCategory" x-cloak type="text" name="category_new" value="{{ old('category_new') }}"
+                       :required="newCategory" maxlength="100" placeholder="Ketik type baru, contoh: Master Tool"
+                       class="mt-2 w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+        </div>
+
+        <h3 class="font-semibold text-gray-700 mb-3 border-b pb-2">Informasi Stok</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+                <label class="block text-sm font-semibold mb-1">Nomor Order</label>
+                <input type="text" name="order_number" value="{{ old('order_number', $tool->stockInfo?->order_number) }}" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-1">Spesifikasi</label>
+                <input type="text" name="specification" value="{{ old('specification', $tool->stockInfo?->specification) }}" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-1">Stok Awal *</label>
+                <input type="number" name="opening_stock" min="0" required value="{{ old('opening_stock', $tool->stockInfo?->opening_stock ?? $tool->total) }}" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
         </div>
 

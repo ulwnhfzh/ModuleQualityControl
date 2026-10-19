@@ -26,6 +26,16 @@
             <p class="text-xs text-gray-500 mt-1">Data yang di-import akan masuk ke tahun ini.</p>
         </div>
 
+        <div class="mb-4">
+            <label class="block text-sm font-semibold mb-1">Kategori Data</label>
+            <select name="kategori" required class="w-full border border-gray-300 p-2 rounded">
+                @foreach(['Small Tool', 'Machine', 'Jig'] as $category)
+                    <option value="{{ $category }}" @selected(old('kategori', 'Small Tool') === $category)>{{ $category }}</option>
+                @endforeach
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Dipakai jika file Excel tidak memiliki kolom kategori.</p>
+        </div>
+
         <!-- Upload File -->
         <div class="mb-4">
             <label class="block text-sm font-semibold mb-1">File Excel (.xlsx, .xls, .csv)</label>
@@ -35,11 +45,11 @@
         <!-- Contoh Format -->
         <div class="bg-blue-50 border border-blue-200 p-4 rounded mb-6 text-sm">
             <p class="font-semibold text-blue-800 mb-2">📋 Format Kolom Excel yang Benar:</p>
-            <p class="text-gray-700">Baris pertama harus berisi header kolom:</p>
+            <p class="text-gray-700">Import akan mencari header secara otomatis, termasuk pada file dengan judul dan header berulang per halaman:</p>
             <code class="block bg-white p-2 rounded mt-2 text-xs text-blue-700 overflow-x-auto">
-                tool_name | category | qa_1 | qa_1_2 | qa_inc | qa_insp | ppic_1 | ppic_2 | line_scc | p1 | p2 | p3 | p5 | p6 | p7 | p8 | eng
+                NO | TOOL NAME | QA 1 | QA 1.2 | QA INC | QA INSP | PPIC 1 | PPIC 2 | LINE SCC | P1 | P2 | P3 | P5 | P6 | P7 | P8 | ENG | QA 2 | TOTAL
             </code>
-            <p class="text-gray-600 mt-2 text-xs">Nama kolom harus huruf kecil dan pakai underscore (_), misal: <strong>tool_name</strong>, <strong>qa_1</strong>.</p>
+            <p class="text-gray-600 mt-2 text-xs">Kategori tidak wajib ada di Excel; pilih kategori di atas. Header bisa berada di baris bawah judul dan dapat berulang di halaman berikutnya.</p>
         </div>
 
         <!-- Tombol -->

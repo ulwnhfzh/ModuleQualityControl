@@ -9,7 +9,7 @@
 @endif
 
 {{-- ===== HEADER ===== --}}
-<div class="bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-3">
+<div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-3">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
             <h1 class="text-base font-bold text-gray-800">Reports</h1>
@@ -160,8 +160,7 @@
 
         <div>
             <label class="block text-[10px] font-semibold text-gray-500 mb-1">TANGGAL</label>
-            <input type="date" name="tanggal" value="{{ request('tanggal') }}"
-                   class="w-full border border-gray-300 rounded text-xs px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <x-date-entry name="tanggal" :value="request('tanggal')" input-class="w-full border border-gray-300 rounded text-xs px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
 
         <div>

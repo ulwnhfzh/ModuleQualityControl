@@ -18,7 +18,7 @@
 {{-- ============================================ --}}
 {{-- CARD 1: JUDUL --}}
 {{-- ============================================ --}}
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-3">
+<div class="feature-toolbar bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-3">
     <div class="flex items-center gap-4">
         <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md" style="background-color:#059669;">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -39,7 +39,7 @@
 {{-- ============================================ --}}
 {{-- CARD 2: FILTER --}}
 {{-- ============================================ --}}
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-3">
+<div class="feature-toolbar bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-3">
     <form method="GET" action="{{ route('guest.index') }}" class="flex flex-col sm:flex-row gap-3">
         <input type="hidden" name="tab" value="{{ $tab }}">
 

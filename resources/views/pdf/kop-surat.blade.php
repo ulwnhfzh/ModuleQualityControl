@@ -1,74 +1,31 @@
-{{--
-    KOMPONEN KOP SURAT PDF
-    ======================
-    Komponen reusable untuk semua template PDF.
+@php
+    $logoPath = public_path('images/hamatetsu_indonesia_logo.jpg');
+    $logoBase64 = is_file($logoPath)
+        ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($logoPath))
+        : null;
+@endphp
 
-    Cara pakai:
-    @include('pdf.kop-surat', [
-        'judul' => 'DAFTAR INDUK ALAT UKUR',
-        'nomorDokumen' => $nomorDokumen,  // opsional
-    ])
-
-    Pastikan template PDF Anda punya style:
-    <style>
-        .kop-header { ... }
-        .kop-logo { ... }
-        .kop-judul { ... }
-        .kop-nomor { ... }
-    </style>
---}}
-
-<div class="kop-header" style="border-bottom: 3px double #1e40af; padding-bottom: 10px; margin-bottom: 15px;">
-    <table style="width: 100%; border: none;">
-        <tr>
-            {{-- KOLOM KIRI: LOGO --}}
-            <td style="width: 12%; vertical-align: middle; border: none; padding: 0;">
-                @php
-                    $logoPath = public_path('images/hamatetsu_indonesia_logo.jpg');
-                    $logoBase64 = file_exists($logoPath)
-                        ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($logoPath))
-                        : null;
-                @endphp
-                @if($logoBase64)
-                    <img src="{{ $logoBase64 }}" alt="Logo" style="width: 60px; height: 60px; object-fit: contain;">
-                @endif
-            </td>
-
-            {{-- KOLOM TENGAH: INFO PT --}}
-            <td style="width: 50%; vertical-align: middle; border: none; padding: 0 10px; text-align: center;">
-                <div style="font-size: 16px; font-weight: bold; color: #1e40af; letter-spacing: 0.5px;">
-                    PT. HAMATETSU INDONESIA
-                </div>
-                <div style="font-size: 10px; color: #333; margin-top: 2px;">
-                    QC Measurement Tools
-                </div>
-                <div style="font-size: 9px; color: #666; margin-top: 3px;">
-                    Jl. Industri No. 123, Jakarta
-                </div>
-                <div style="font-size: 9px; color: #666;">
-                    Telp: (021) 1234567 | Email: info@hamatetsu.com
-                </div>
-                <div style="font-size: 9px; color: #666;">
-                    www.hamatetsu.com
-                </div>
-            </td>
-
-            {{-- KOLOM KANAN: KOSONG (untuk balance) --}}
-            <td style="width: 12%; vertical-align: middle; border: none; padding: 0;"></td>
-        </tr>
-    </table>
-</div>
-
-{{-- JUDUL DOKUMEN --}}
-@if(isset($judul))
-<div style="text-align: center; margin-bottom: 15px;">
-    <div style="font-size: 13px; font-weight: bold; color: #000; text-decoration: underline; letter-spacing: 0.5px;">
-        {{ strtoupper($judul) }}
-    </div>
-    @if(isset($nomorDokumen) && $nomorDokumen)
-        <div style="font-size: 10px; color: #333; margin-top: 3px;">
-            Nomor: <strong>{{ $nomorDokumen }}</strong>
-        </div>
-    @endif
-</div>
-@endif
+<table style="width:100%; border-collapse:collapse; border:1px solid #333; margin-bottom:12px;">
+    <tr>
+        <td style="width:18%; border:1px solid #333; text-align:center; vertical-align:middle; padding:8px;">
+            @if($logoBase64)
+                <img src="{{ $logoBase64 }}" alt="Logo Hamatetsu" style="max-width:105px; max-height:55px;">
+            @else
+                <strong>HT</strong>
+            @endif
+        </td>
+        <td style="width:52%; border:1px solid #333; text-align:center; vertical-align:middle; padding:8px;">
+            <div style="font-size:11px; font-weight:bold;">PT. HAMATETSU INDONESIA</div>
+            <div style="font-size:9px; margin-top:3px;">QC Measurement Tools</div>
+            <div style="font-size:14px; font-weight:bold; margin-top:8px;">{{ strtoupper($judul ?? 'DOKUMEN QC') }}</div>
+        </td>
+        <td style="width:30%; border:1px solid #333; padding:0; font-size:8px;">
+            <table style="width:100%; border-collapse:collapse;">
+                <tr><td style="border:1px solid #777; padding:4px;">Halaman</td><td style="border:1px solid #777; padding:4px;">&nbsp;</td></tr>
+                <tr><td style="border:1px solid #777; padding:4px;">Nomor Dokumen</td><td style="border:1px solid #777; padding:4px;"><strong>F-QC-01</strong></td></tr>
+                <tr><td style="border:1px solid #777; padding:4px;">Tanggal Terbit</td><td style="border:1px solid #777; padding:4px;">10 Juli 2023</td></tr>
+                <tr><td style="border:1px solid #777; padding:4px;">Revisi</td><td style="border:1px solid #777; padding:4px;">02</td></tr>
+            </table>
+        </td>
+    </tr>
+</table>

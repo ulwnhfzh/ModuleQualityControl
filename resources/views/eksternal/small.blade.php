@@ -14,11 +14,18 @@
 </div>
 @endif
 
-<div class="bg-white rounded-lg shadow-sm mb-3 md:mb-4 p-3 sm:p-4">
+<div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 p-3 sm:p-4">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <form method="GET" action="{{ route('eksternal.small') }}" class="flex items-center gap-2">
-            <label class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
-            <select name="tahun" onchange="this.form.submit()"
+        <form method="GET" action="{{ route('eksternal.small') }}" class="flex items-center gap-2 flex-wrap">
+            <label for="kategori-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">KATEGORI</label>
+            <select id="kategori-eksternal" aria-label="Kategori kalibrasi eksternal"
+                    onchange="this.form.action = this.value; this.form.submit()"
+                    class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="{{ route('eksternal.small') }}" selected>Small Tool</option>
+                <option value="{{ route('mesin.index') }}">Mesin Alat Ukur</option>
+            </select>
+            <label for="tahun-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
+            <select id="tahun-eksternal" name="tahun" onchange="this.form.submit()"
                     class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 @for($y = date('Y'); $y >= date('Y') - 12; $y--)
                     <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
@@ -26,7 +33,7 @@
             </select>
         </form>
 
-        <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-wrap">
+        <div class="feature-toolbar-actions flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-wrap">
             <p class="text-gray-600 text-[10px] sm:text-xs whitespace-nowrap">
                 Total {{ $schedules->count() }} jadwal
             </p>
@@ -73,7 +80,7 @@
                 </div>
             @endif
 
-            <a href="{{ route('eksternal.small.create') }}"
+            <a href="{{ route('eksternal.small.create', ['tahun' => $tahun]) }}"
                class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
                       px-3 py-1.5 text-[11px] sm:px-4 sm:py-2 sm:text-sm">
                 <span>+</span> Tambah Jadwal

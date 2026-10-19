@@ -221,8 +221,9 @@
     <!-- SIDEBAR DESKTOP -->
     <aside class="sidebar-desktop hidden lg:flex flex-col bg-slate-900 border-r border-slate-800"
            x-data="{
-               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'true' : 'false' }},
-               eksternalOpen: {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'true' : 'false' }}
+               verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
+               stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
+               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'true' : 'false' }}
            }">
         <div class="flex-1 overflow-y-auto sidebar-scroll py-3">
             <p class="sidebar-section">Main Menu</p>
@@ -238,10 +239,34 @@
                     <span>Daftar Induk</span>
                 </a>
 
-                <a href="{{ route('verifikasi.index') }}" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
+                <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
-                    <span>Jadwal Verifikasi Internal</span>
-                </a>
+                    <span class="flex-1 text-left">Jadwal Verifikasi Internal</span>
+                    <svg class="chevron w-4 h-4" :class="verifikasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+                <div x-show="verifikasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
+                    <a href="{{ route('verifikasi.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Jadwal Tahunan/Bulanan</span>
+                    </a>
+                    <a href="{{ route('verifikasi.periode.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') ? 'active' : '' }}">
+                        <span class="dot"></span><span>List Up Periode</span>
+                    </a>
+                </div>
+                @if(Auth::check() && Auth::user()->role === 'admin')
+                <button type="button" @click="stockOpen = !stockOpen" class="sidebar-link {{ request()->routeIs('stock.*') ? 'active' : '' }}">
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 12 3l9 4.5M4.5 9v9L12 21l7.5-3V9M12 21v-9m9-4.5-9 4.5-9-4.5" /></svg></span>
+                    <span class="flex-1 text-left">Stok Alat Ukur</span>
+                    <svg class="chevron w-4 h-4" :class="stockOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+                <div x-show="stockOpen" x-cloak class="pl-3 space-y-1 mt-1">
+                    <a href="{{ route('stock.index') }}" class="sidebar-sublink {{ request()->routeIs('stock.index', 'stock.import.form') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Data Stok</span>
+                    </a>
+                    <a href="{{ route('stock.summary') }}" class="sidebar-sublink {{ request()->routeIs('stock.summary') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Laporan Bulanan</span>
+                    </a>
+                </div>
+                @endif
 
                 <button type="button" @click="kalibrasiOpen = !kalibrasiOpen"
                         class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
@@ -254,27 +279,10 @@
                 </button>
 
                 <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
-                    <button type="button" @click="eksternalOpen = !eksternalOpen"
-                            class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
+                    <a href="{{ route('eksternal.small') }}" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
                         <span class="dot"></span>
-                        <span class="flex-1 text-left">Eksternal</span>
-                        <svg class="chevron w-3.5 h-3.5" :class="eksternalOpen ? 'rotate-90' : ''"
-                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-
-                    <div x-show="eksternalOpen" x-cloak class="pl-4 space-y-0.5">
-                        <a href="{{ route('eksternal.small') }}" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') ? 'active' : '' }}">
-                            <span class="dot"></span>
-                            <span>Small Tool</span>
-                        </a>
-
-                        <a href="{{ route('mesin.index') }}" class="sidebar-sublink {{ request()->routeIs('mesin.*') ? 'active' : '' }}">
-                            <span class="dot"></span>
-                            <span>Mesin Alat Ukur</span>
-                        </a>
-                    </div>
+                        <span>Eksternal</span>
+                    </a>
 
                     <a href="{{ route('internal.index') }}" class="sidebar-sublink {{ request()->routeIs('internal.*') ? 'active' : '' }}">
                         <span class="dot"></span>
@@ -324,8 +332,9 @@
            class="lg:hidden fixed left-0 z-50 bg-slate-900 w-64 shadow-2xl flex flex-col"
            style="top: 64px; bottom: 0;"
            x-data="{
-               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'true' : 'false' }},
-               eksternalOpen: {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'true' : 'false' }}
+               verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
+               stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
+               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'true' : 'false' }}
            }">
         <div class="flex-1 overflow-y-auto sidebar-scroll py-3">
             <p class="sidebar-section">Main Menu</p>
@@ -341,15 +350,39 @@
                     <span>Daftar Induk</span>
                 </a>
 
-                <a href="{{ route('verifikasi.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
+                <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
-                    <span>Jadwal Verifikasi Internal</span>
-                </a>
+                    <span class="flex-1 text-left">Jadwal Verifikasi Internal</span>
+                    <svg class="chevron w-4 h-4" :class="verifikasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+                <div x-show="verifikasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
+                    <a href="{{ route('verifikasi.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Jadwal Tahunan/Bulanan</span>
+                    </a>
+                    <a href="{{ route('verifikasi.periode.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') ? 'active' : '' }}">
+                        <span class="dot"></span><span>List Up Periode</span>
+                    </a>
+                </div>
+                @if(Auth::check() && Auth::user()->role === 'admin')
+                <button type="button" @click="stockOpen = !stockOpen" class="sidebar-link {{ request()->routeIs('stock.*') ? 'active' : '' }}">
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 12 3l9 4.5M4.5 9v9L12 21l7.5-3V9M12 21v-9m9-4.5-9 4.5-9-4.5" /></svg></span>
+                    <span class="flex-1 text-left">Stok Alat Ukur</span>
+                    <svg class="chevron w-4 h-4" :class="stockOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+                <div x-show="stockOpen" x-cloak class="pl-3 space-y-1 mt-1">
+                    <a href="{{ route('stock.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('stock.index', 'stock.import.form') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Data Stok</span>
+                    </a>
+                    <a href="{{ route('stock.summary') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('stock.summary') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Laporan Bulanan</span>
+                    </a>
+                </div>
+                @endif
 
                 <button type="button" @click="kalibrasiOpen = !kalibrasiOpen"
                         class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
-                    <span class="flex-1 text-left">Kalibrasi</span>
+                    <span class="flex-1 text-left">Jadwal Kalibrasi</span>
                     <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''"
                          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -357,27 +390,10 @@
                 </button>
 
                 <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
-                    <button type="button" @click="eksternalOpen = !eksternalOpen"
-                            class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
+                    <a href="{{ route('eksternal.small') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
                         <span class="dot"></span>
-                        <span class="flex-1 text-left">Eksternal</span>
-                        <svg class="chevron w-3.5 h-3.5" :class="eksternalOpen ? 'rotate-90' : ''"
-                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-
-                    <div x-show="eksternalOpen" x-cloak class="pl-4 space-y-0.5">
-                        <a href="{{ route('eksternal.small') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') ? 'active' : '' }}">
-                            <span class="dot"></span>
-                            <span>Small Tool</span>
-                        </a>
-
-                        <a href="{{ route('mesin.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('mesin.*') ? 'active' : '' }}">
-                            <span class="dot"></span>
-                            <span>Mesin Alat Ukur</span>
-                        </a>
-                    </div>
+                        <span>Eksternal</span>
+                    </a>
 
                     <a href="{{ route('internal.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('internal.*') ? 'active' : '' }}">
                         <span class="dot"></span>

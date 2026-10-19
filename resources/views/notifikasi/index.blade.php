@@ -15,7 +15,7 @@
 @endif
 
 {{-- HEADER --}}
-<div class="bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-3">
+<div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-3">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
             <h1 class="text-base font-bold text-gray-800">Notifikasi</h1>

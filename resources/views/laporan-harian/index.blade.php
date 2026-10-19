@@ -15,7 +15,7 @@
 @endif
 
 {{-- ===== HEADER ===== --}}
-<div class="bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-3">
+<div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-3">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
             <h1 class="text-base font-bold text-gray-800">📅 Laporan Harian QC</h1>
@@ -24,8 +24,7 @@
 
         <form method="GET" action="{{ route('laporan.harian.index') }}" class="flex items-center gap-2 flex-wrap">
             <label class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TANGGAL</label>
-            <input type="date" name="tanggal" value="{{ $tanggal }}"
-                   class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <x-date-entry name="tanggal" :value="$tanggal" input-class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <button type="submit"
                     class="bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm">
                 🔍 Tampilkan

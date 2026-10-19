@@ -14,7 +14,7 @@
 </div>
 @endif
 
-<div class="bg-white rounded-lg shadow-sm mb-3 md:mb-4 p-3 sm:p-4">
+<div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 p-3 sm:p-4">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <form method="GET" action="{{ route('internal.index') }}" class="flex items-center gap-2">
             <label class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
@@ -26,7 +26,7 @@
             </select>
         </form>
 
-        <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-wrap">
+        <div class="feature-toolbar-actions flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-wrap">
             <p class="text-gray-600 text-[10px] sm:text-xs whitespace-nowrap">
                 Total {{ $schedules->count() }} jadwal
             </p>
@@ -73,7 +73,7 @@
                 </div>
             @endif
 
-            <a href="{{ route('internal.create') }}"
+            <a href="{{ route('internal.create', ['tahun' => $tahun]) }}"
                class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
                       px-3 py-1.5 text-[11px] sm:px-4 sm:py-2 sm:text-sm">
                 <span>+</span> Tambah Jadwal
