@@ -39,7 +39,7 @@ class ToolsExport implements FromCollection, WithHeadings, WithMapping, WithStyl
     {
         return [
             'No', 'Tool Name', 'Category', 'Tahun',
-            'QA 1', 'QA 1.2', 'QA INC', 'QA INSP',
+            'QA 1', 'QA 1.2', 'QA 2', 'QA INC', 'QA INSP',
             'PPIC 1', 'PPIC 2', 'LINE SCC',
             'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'ENG',
             'Total'
@@ -58,6 +58,7 @@ class ToolsExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             $tool->tahun,
             (int) ($tool->qa_1 ?? 0),
             (int) ($tool->qa_1_2 ?? 0),
+            (int) ($tool->qa_2 ?? 0),
             (int) ($tool->qa_inc ?? 0),
             (int) ($tool->qa_insp ?? 0),
             (int) ($tool->ppic_1 ?? 0),
@@ -85,7 +86,7 @@ class ToolsExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         $jumlahData = $this->tools->count();
         $firstDataRow = 2;
         $lastDataRow = $firstDataRow + $jumlahData - 1;
-        $lastCol = 'T';
+        $lastCol = 'U';
 
         // ===== HEADER (baris 1) =====
         $sheet->getStyle('A1:' . $lastCol . '1')->applyFromArray([
@@ -122,7 +123,7 @@ class ToolsExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             $sheet->getStyle('A' . $firstDataRow . ':A' . $lastDataRow)
                   ->getAlignment()->setHorizontal('center');
 
-            // Kolom angka (E s/d T) rata tengah + format angka
+            // Kolom angka (E s/d U) rata tengah + format angka
             $sheet->getStyle('E' . $firstDataRow . ':' . $lastCol . $lastDataRow)
                   ->getAlignment()->setHorizontal('center');
             $sheet->getStyle('E' . $firstDataRow . ':' . $lastCol . $lastDataRow)
@@ -148,7 +149,7 @@ class ToolsExport implements FromCollection, WithHeadings, WithMapping, WithStyl
 
                 if ($jumlahData > 0) {
                     for ($row = $firstDataRow; $row <= $lastDataRow; $row++) {
-                        for ($col = 'E'; $col <= 'T'; $col++) {
+                        for ($col = 'E'; $col <= 'U'; $col++) {
                             $cell = $sheet->getCell($col . $row);
                             $value = $cell->getValue();
 
@@ -166,23 +167,24 @@ class ToolsExport implements FromCollection, WithHeadings, WithMapping, WithStyl
 
                 $sheet->setCellValue('E' . $totalRow,  $this->tools->sum('qa_1'));
                 $sheet->setCellValue('F' . $totalRow,  $this->tools->sum('qa_1_2'));
-                $sheet->setCellValue('G' . $totalRow,  $this->tools->sum('qa_inc'));
-                $sheet->setCellValue('H' . $totalRow,  $this->tools->sum('qa_insp'));
-                $sheet->setCellValue('I' . $totalRow,  $this->tools->sum('ppic_1'));
-                $sheet->setCellValue('J' . $totalRow,  $this->tools->sum('ppic_2'));
-                $sheet->setCellValue('K' . $totalRow,  $this->tools->sum('line_scc'));
-                $sheet->setCellValue('L' . $totalRow,  $this->tools->sum('p1'));
-                $sheet->setCellValue('M' . $totalRow,  $this->tools->sum('p2'));
-                $sheet->setCellValue('N' . $totalRow,  $this->tools->sum('p3'));
-                $sheet->setCellValue('O' . $totalRow,  $this->tools->sum('p5'));
-                $sheet->setCellValue('P' . $totalRow,  $this->tools->sum('p6'));
-                $sheet->setCellValue('Q' . $totalRow,  $this->tools->sum('p7'));
-                $sheet->setCellValue('R' . $totalRow,  $this->tools->sum('p8'));
-                $sheet->setCellValue('S' . $totalRow,  $this->tools->sum('eng'));
-                $sheet->setCellValue('T' . $totalRow,  $this->tools->sum('total'));
+                $sheet->setCellValue('G' . $totalRow,  $this->tools->sum('qa_2'));
+                $sheet->setCellValue('H' . $totalRow,  $this->tools->sum('qa_inc'));
+                $sheet->setCellValue('I' . $totalRow,  $this->tools->sum('qa_insp'));
+                $sheet->setCellValue('J' . $totalRow,  $this->tools->sum('ppic_1'));
+                $sheet->setCellValue('K' . $totalRow,  $this->tools->sum('ppic_2'));
+                $sheet->setCellValue('L' . $totalRow,  $this->tools->sum('line_scc'));
+                $sheet->setCellValue('M' . $totalRow,  $this->tools->sum('p1'));
+                $sheet->setCellValue('N' . $totalRow,  $this->tools->sum('p2'));
+                $sheet->setCellValue('O' . $totalRow,  $this->tools->sum('p3'));
+                $sheet->setCellValue('P' . $totalRow,  $this->tools->sum('p5'));
+                $sheet->setCellValue('Q' . $totalRow,  $this->tools->sum('p6'));
+                $sheet->setCellValue('R' . $totalRow,  $this->tools->sum('p7'));
+                $sheet->setCellValue('S' . $totalRow,  $this->tools->sum('p8'));
+                $sheet->setCellValue('T' . $totalRow,  $this->tools->sum('eng'));
+                $sheet->setCellValue('U' . $totalRow,  $this->tools->sum('total'));
 
                 // STYLE BARIS TOTAL
-                $sheet->getStyle('A' . $totalRow . ':T' . $totalRow)->applyFromArray([
+                $sheet->getStyle('A' . $totalRow . ':U' . $totalRow)->applyFromArray([
                     'font' => [
                         'bold' => true,
                         'color' => ['rgb' => '065F46'],
@@ -207,12 +209,14 @@ class ToolsExport implements FromCollection, WithHeadings, WithMapping, WithStyl
 
                 // ===== WARNA ANGKA 0 DI BARIS TOTAL =====
                 // Kalau Anda mau angka 0 di baris TOTAL juga berwarna abu-abu
-                for ($col = 'E'; $col <= 'T'; $col++) {
+                for ($col = 'E'; $col <= 'U'; $col++) {
                     $cell = $sheet->getCell($col . $totalRow);
                     if ($cell->getValue() == 0) {
                         $cell->getStyle()->getFont()->getColor()->setRGB($warnaNol);
                     }
                 }
+
+                DocumentExportLayout::apply($sheet, 'U', 'DAFTAR INDUK ALAT UKUR - ' . $this->kategori, $this->tahun);
             },
         ];
     }

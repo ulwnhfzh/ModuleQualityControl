@@ -245,6 +245,8 @@ class VerifikasiExport implements FromCollection, WithHeadings, WithMapping, Wit
                         $cell->getStyle()->getFont()->getColor()->setRGB($warnaNol);
                     }
                 }
+
+                DocumentExportLayout::apply($sheet, $lastCol, 'JADWAL VERIFIKASI INTERNAL', $this->tahun);
             },
         ];
     }

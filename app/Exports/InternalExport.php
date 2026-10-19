@@ -175,6 +175,8 @@ class InternalExport implements FromCollection, WithHeadings, WithMapping, WithS
                         $cell->getStyle()->getFont()->getColor()->setRGB($warnaNol);
                     }
                 }
+
+                DocumentExportLayout::apply($sheet, $lastCol, 'JADWAL KALIBRASI INTERNAL', $this->tahun);
             },
         ];
     }

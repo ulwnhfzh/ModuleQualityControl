@@ -174,6 +174,8 @@ class EksternalExport implements FromCollection, WithHeadings, WithMapping, With
                         $cell->getStyle()->getFont()->getColor()->setRGB($warnaNol);
                     }
                 }
+
+                DocumentExportLayout::apply($sheet, $lastCol, 'JADWAL KALIBRASI EKSTERNAL', $this->tahun, 'Small Tool');
             },
         ];
     }

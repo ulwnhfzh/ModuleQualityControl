@@ -179,6 +179,8 @@ class MesinExport implements FromCollection, WithHeadings, WithMapping, WithStyl
                         $cell->getStyle()->getFont()->getColor()->setRGB($warnaNol);
                     }
                 }
+
+                DocumentExportLayout::apply($sheet, $lastCol, 'JADWAL KALIBRASI EKSTERNAL', $this->tahun, 'Mesin Alat Ukur');
             },
         ];
     }
