@@ -9,11 +9,15 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 class MesinImport implements ToModel, WithHeadingRow
 {
     protected string $tahun;
+    protected int $rowHeader;
 
-    public function __construct(string $tahun)
+    public function __construct(string $tahun, int $rowHeader = 1)
     {
         $this->tahun = $tahun;
+        $this->rowHeader = $rowHeader;
     }
+
+    public function headingRow(): int { return $this->rowHeader; }
 
     public function model(array $row)
     {

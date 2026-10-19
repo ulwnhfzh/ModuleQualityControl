@@ -3,58 +3,109 @@
 namespace App\Imports;
 
 use App\Models\Tool;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithUpserts;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\ToCollection;
 
-class ToolsImport implements ToModel, WithHeadingRow, WithUpserts
+class ToolsImport implements ToCollection
 {
     protected string $tahun;
+    protected string $defaultCategory;
+    protected int $importedCount = 0;
 
-    public function __construct(string $tahun)
+    public function __construct(string $tahun, string $defaultCategory = 'Small Tool')
     {
         $this->tahun = $tahun;
+        $this->defaultCategory = $defaultCategory;
     }
 
-    public function model(array $row)
+    public function collection(Collection $rows): void
     {
-        if (empty($row['tool_name'])) {
-            return null;
+        $fields = [
+            'qa_1', 'qa_1_2', 'qa_2', 'qa_inc', 'qa_insp', 'ppic_1', 'ppic_2',
+            'line_scc', 'p1', 'p2', 'p3', 'p5', 'p6', 'p7', 'p8', 'eng',
+        ];
+        $headers = null;
+
+        foreach ($rows as $row) {
+            $values = $row->toArray();
+            $candidateHeaders = [];
+            foreach ($values as $column => $value) {
+                $candidateHeaders[$column] = $this->normalizeHeader($value);
+            }
+
+            $nameColumn = $this->findNameColumn($candidateHeaders);
+            if ($nameColumn !== null) {
+                $headers = $candidateHeaders;
+                continue;
+            }
+
+            if ($headers === null) {
+                continue;
+            }
+
+            $nameColumn = $this->findNameColumn($headers);
+            $toolName = trim((string) ($values[$nameColumn] ?? ''));
+            if ($toolName === '' || in_array(mb_strtoupper($toolName), ['TOTAL', 'GRAND TOTAL', 'GRAND TOTAL MEASUREMENT', 'APPROVED', 'CHECKED', 'ISSUED'], true)) {
+                continue;
+            }
+
+            $rowByHeader = [];
+            foreach ($headers as $column => $header) {
+                if ($header !== '') {
+                    $rowByHeader[$header] = $values[$column] ?? null;
+                }
+            }
+
+            $data = [
+                'tool_name' => mb_strtoupper($toolName),
+                'category' => trim((string) ($rowByHeader['category'] ?? $rowByHeader['kategori'] ?? $this->defaultCategory)) ?: $this->defaultCategory,
+                'tahun' => $this->tahun,
+            ];
+            foreach ($fields as $field) {
+                $data[$field] = $this->toInteger($rowByHeader[$field] ?? 0);
+            }
+            $data['total'] = array_sum(array_map(fn ($field) => $data[$field], $fields));
+
+            $tool = Tool::firstOrNew([
+                'tool_name' => $data['tool_name'],
+                'category' => $data['category'],
+                'tahun' => $data['tahun'],
+            ]);
+            $tool->fill($data)->save();
+            $this->importedCount++;
+        }
+    }
+
+    public function getImportedCount(): int
+    {
+        return $this->importedCount;
+    }
+
+    private function toInteger(mixed $value): int
+    {
+        if (is_int($value) || is_float($value) || (is_string($value) && is_numeric(trim($value)))) {
+            return (int) $value;
         }
 
-        $data = [
-            'tool_name' => strtoupper($row['tool_name']),
-            'category'  => $row['category'] ?? 'Small Tool',
-            'tahun'     => $this->tahun,
-            'qa_1'      => $row['qa_1'] ?? 0,
-            'qa_1_2'    => $row['qa_1_2'] ?? 0,
-            'qa_inc'    => $row['qa_inc'] ?? 0,
-            'qa_insp'   => $row['qa_insp'] ?? 0,
-            'ppic_1'    => $row['ppic_1'] ?? 0,
-            'ppic_2'    => $row['ppic_2'] ?? 0,
-            'line_scc'  => $row['line_scc'] ?? 0,
-            'p1'        => $row['p1'] ?? 0,
-            'p2'        => $row['p2'] ?? 0,
-            'p3'        => $row['p3'] ?? 0,
-            'p5'        => $row['p5'] ?? 0,
-            'p6'        => $row['p6'] ?? 0,
-            'p7'        => $row['p7'] ?? 0,
-            'p8'        => $row['p8'] ?? 0,
-            'eng'       => $row['eng'] ?? 0,
-        ];
-
-        $data['total'] = array_sum([
-            $data['qa_1'], $data['qa_1_2'], $data['qa_inc'], $data['qa_insp'],
-            $data['ppic_1'], $data['ppic_2'], $data['line_scc'],
-            $data['p1'], $data['p2'], $data['p3'], $data['p5'],
-            $data['p6'], $data['p7'], $data['p8'], $data['eng']
-        ]);
-
-        return new Tool($data);
+        $digits = preg_replace('/[^0-9-]/', '', (string) $value);
+        return $digits === '' || $digits === '-' ? 0 : (int) $digits;
     }
 
-    public function uniqueBy()
+    private function normalizeHeader(mixed $value): string
     {
-        return 'tool_name';
+        $value = mb_strtolower(trim((string) $value));
+        $value = str_replace(['.', '/'], ['_', '_'], $value);
+        $value = preg_replace('/[^a-z0-9]+/', '_', $value);
+        return trim($value, '_');
+    }
+
+    private function findNameColumn(array $headers): int|string|null
+    {
+        foreach ($headers as $column => $header) {
+            if (in_array($header, ['tool_name', 'nama_alat', 'nama_alat_ukur', 'alat_ukur', 'tool'], true)) {
+                return $column;
+            }
+        }
+        return null;
     }
 }

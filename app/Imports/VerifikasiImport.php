@@ -10,12 +10,16 @@ class VerifikasiImport implements ToModel, WithHeadingRow
 {
     protected string $tahun;
     protected string $mode;
+    protected int $rowHeader;
 
-    public function __construct(string $tahun, string $mode)
+    public function __construct(string $tahun, string $mode, int $rowHeader = 1)
     {
         $this->tahun = $tahun;
         $this->mode = $mode;
+        $this->rowHeader = $rowHeader;
     }
+
+    public function headingRow(): int { return $this->rowHeader; }
 
     public function model(array $row)
     {
