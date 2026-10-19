@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ToolController;
 use App\Http\Controllers\VerifikasiController;
+use App\Http\Controllers\VerifikasiPeriodeController;
 use App\Http\Controllers\InternalController;
 use App\Http\Controllers\CalibrationController;
 use App\Http\Controllers\DashboardController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\LaporanHarianController;
 use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\StockController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +27,7 @@ Route::get('/', function () {
 Route::get('/view', [GuestController::class, 'index'])->name('guest.index');
 Route::get('/tools', [ToolController::class, 'index'])->name('tools.index');
 Route::get('/verifikasi', [VerifikasiController::class, 'index'])->name('verifikasi.index');
+Route::get('/verifikasi/periode', [VerifikasiPeriodeController::class, 'index'])->name('verifikasi.periode.index');
 Route::get('/internal', [InternalController::class, 'index'])->name('internal.index');
 Route::get('/eksternal-small', [CalibrationController::class, 'eksternalSmall'])->name('eksternal.small');
 Route::get('/mesin', [CalibrationController::class, 'mesin'])->name('mesin.index');
@@ -35,6 +38,10 @@ Route::get('/mesin', [CalibrationController::class, 'mesin'])->name('mesin.index
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
+
+    // Laporan dan transaksi stok alat ukur
+    Route::get('/stock', [StockController::class, 'index'])->name('stock.index');
+    Route::get('/stock/rekap-bulanan', [StockController::class, 'summary'])->name('stock.summary');
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
@@ -53,6 +60,13 @@ Route::middleware('auth')->group(function () {
 */
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
+    Route::post('/stock/movements', [StockController::class, 'store'])->name('stock.movements.store');
+    Route::post('/stock/grid', [StockController::class, 'storeGrid'])->name('stock.grid.store');
+    Route::post('/stock/items', [StockController::class, 'storeItem'])->name('stock.items.store');
+    Route::get('/stock/import', [StockController::class, 'importForm'])->name('stock.import.form');
+    Route::post('/stock/import', [StockController::class, 'importMovements'])->name('stock.import');
+    Route::get('/stock/export', [StockController::class, 'export'])->name('stock.export');
+
     // ===== DAFTAR INDUK =====
     Route::get('/tools/create', [ToolController::class, 'create'])->name('tools.create');
     Route::post('/tools', [ToolController::class, 'store'])->name('tools.store');
@@ -67,6 +81,22 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // ===== JADWAL VERIFIKASI =====
     Route::get('/verifikasi/create', [VerifikasiController::class, 'create'])->name('verifikasi.create');
+    Route::get('/verifikasi/periode/create', [VerifikasiPeriodeController::class, 'create'])->name('verifikasi.periode.create');
+    Route::get('/verifikasi/periode/import/form', [VerifikasiPeriodeController::class, 'importForm'])->name('verifikasi.periode.import.form');
+    Route::post('/verifikasi/periode/import', [VerifikasiPeriodeController::class, 'import'])->name('verifikasi.periode.import');
+    Route::get('/verifikasi/periode/export', [VerifikasiPeriodeController::class, 'export'])->name('verifikasi.periode.export');
+    Route::get('/verifikasi/periode/kalibrasi/create', [VerifikasiPeriodeController::class, 'internalCalibrationCreate'])->name('verifikasi.periode.kalibrasi.create');
+    Route::post('/verifikasi/periode/kalibrasi', [VerifikasiPeriodeController::class, 'internalCalibrationStore'])->name('verifikasi.periode.kalibrasi.store');
+    Route::get('/verifikasi/periode/kalibrasi/import/form', [VerifikasiPeriodeController::class, 'internalCalibrationImportForm'])->name('verifikasi.periode.kalibrasi.import.form');
+    Route::post('/verifikasi/periode/kalibrasi/import', [VerifikasiPeriodeController::class, 'internalCalibrationImport'])->name('verifikasi.periode.kalibrasi.import');
+    Route::get('/verifikasi/periode/kalibrasi/export', [VerifikasiPeriodeController::class, 'internalCalibrationExport'])->name('verifikasi.periode.kalibrasi.export');
+    Route::get('/verifikasi/periode/kalibrasi/{schedule}/edit', [VerifikasiPeriodeController::class, 'internalCalibrationEdit'])->name('verifikasi.periode.kalibrasi.edit');
+    Route::put('/verifikasi/periode/kalibrasi/{schedule}', [VerifikasiPeriodeController::class, 'internalCalibrationUpdate'])->name('verifikasi.periode.kalibrasi.update');
+    Route::delete('/verifikasi/periode/kalibrasi/{schedule}', [VerifikasiPeriodeController::class, 'internalCalibrationDestroy'])->name('verifikasi.periode.kalibrasi.destroy');
+    Route::post('/verifikasi/periode', [VerifikasiPeriodeController::class, 'store'])->name('verifikasi.periode.store');
+    Route::get('/verifikasi/periode/{schedule}/edit', [VerifikasiPeriodeController::class, 'edit'])->name('verifikasi.periode.edit');
+    Route::put('/verifikasi/periode/{schedule}', [VerifikasiPeriodeController::class, 'update'])->name('verifikasi.periode.update');
+    Route::delete('/verifikasi/periode/{schedule}', [VerifikasiPeriodeController::class, 'destroy'])->name('verifikasi.periode.destroy');
     Route::post('/verifikasi', [VerifikasiController::class, 'store'])->name('verifikasi.store');
     Route::get('/verifikasi/{verifikasi}/edit', [VerifikasiController::class, 'edit'])->name('verifikasi.edit');
     Route::put('/verifikasi/{verifikasi}', [VerifikasiController::class, 'update'])->name('verifikasi.update');

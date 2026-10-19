@@ -1,3 +1,116 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Shared polish for data-heavy screens across the application. */
+@layer components {
+    .main-content,
+    .main-content > div {
+        min-width: 0;
+    }
+
+    main .overflow-x-auto {
+        max-width: 100%;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-color: #94a3b8 #f1f5f9;
+        scrollbar-width: thin;
+    }
+
+    main .overflow-x-auto::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    main .overflow-x-auto::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 9999px;
+    }
+
+    main .overflow-x-auto::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border: 2px solid #f1f5f9;
+        border-radius: 9999px;
+    }
+
+    main .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+
+    main :where(input, select, textarea):focus-visible {
+        outline: 2px solid #10b981;
+        outline-offset: 1px;
+    }
+
+    main :where(button, a)[class*="rounded"] {
+        transition-property: color, background-color, border-color, box-shadow, transform;
+        transition-duration: 150ms;
+    }
+
+    .feature-toolbar {
+        min-width: 0;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgb(15 23 42 / 0.06);
+    }
+
+    .feature-toolbar > div,
+    .feature-toolbar form {
+        min-width: 0;
+    }
+
+    @media (max-width: 639px) {
+        .feature-toolbar {
+            padding: 0.75rem !important;
+        }
+
+        .feature-toolbar > div {
+            gap: 0.75rem;
+        }
+
+        .feature-toolbar select,
+        .feature-toolbar input {
+            min-height: 40px;
+        }
+
+        .feature-toolbar a,
+        .feature-toolbar button {
+            min-height: 40px;
+        }
+
+        .feature-toolbar-actions {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            align-items: stretch !important;
+            justify-content: initial !important;
+            width: 100%;
+        }
+
+        .feature-toolbar-actions > p:first-child {
+            grid-column: 1 / -1;
+            margin: 0;
+        }
+
+        .feature-toolbar-actions > a:last-child {
+            grid-column: 1 / -1;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .feature-toolbar-actions > a:not(:last-child),
+        .feature-toolbar-actions > div {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .feature-toolbar-actions > div > button {
+            justify-content: center;
+            width: 100%;
+        }
+    }
+
+    @media (min-width: 640px) {
+        .feature-toolbar-actions {
+            display: flex;
+        }
+    }
+}
