@@ -6,7 +6,9 @@ use App\Models\Eksternal;
 use App\Models\EksternalMesin;
 use App\Models\Tool;
 use App\Models\DokumenCounter;
+use App\Support\DocumentPdfLayout;
 use App\Imports\EksternalImport;
+use App\Imports\SpreadsheetHeaderRowDetector;
 use App\Exports\EksternalExport;
 use App\Imports\MesinImport;
 use App\Exports\MesinExport;
@@ -33,14 +35,15 @@ class CalibrationController extends Controller
         return view('eksternal.small', compact('schedules', 'tahun'));
     }
 
-    public function eksternalSmallCreate()
+    public function eksternalSmallCreate(Request $request)
     {
         $tools = Tool::select('tool_name')
             ->distinct()
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        return view('eksternal.create', compact('tools'));
+        $tahun = (int) $request->input('tahun', date('Y'));
+        return view('eksternal.create', compact('tools', 'tahun'));
     }
 
     public function eksternalSmallStore(Request $request)
@@ -67,6 +70,11 @@ class CalibrationController extends Controller
             $eksternal->tool_name . ' - Eksternal Small Tool (' . $eksternal->tahun . ')',
             $eksternal->toArray()
         );
+
+        if ($request->input('save_mode') === 'another') {
+            return redirect()->route('eksternal.small.create', ['tahun' => $data['tahun']])
+                ->with('success', 'Jadwal berhasil disimpan. Lanjutkan input berikutnya.');
+        }
 
         return redirect()->route('eksternal.small', ['tahun' => $data['tahun']])
             ->with('success', 'Jadwal kalibrasi eksternal berhasil ditambahkan!');
@@ -135,7 +143,8 @@ class CalibrationController extends Controller
         ]);
 
         try {
-            Excel::import(new EksternalImport($request->tahun), $request->file('file'));
+            $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
+            Excel::import(new EksternalImport($request->tahun, $rowHeader), $request->file('file'));
 
             $this->logActivity(
                 'CREATE',
@@ -185,6 +194,8 @@ class CalibrationController extends Controller
         $pdf = Pdf::loadView('eksternal.pdf', compact('data', 'tahun', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
 
+        DocumentPdfLayout::addPageNumbers($pdf);
+
         return $pdf->download('eksternal-small-' . $tahun . '.pdf');
     }
 
@@ -230,9 +241,10 @@ class CalibrationController extends Controller
         return view('mesin.index', compact('machines', 'tahun'));
     }
 
-    public function mesinCreate()
+    public function mesinCreate(Request $request)
     {
-        return view('mesin.create');
+        $tahun = (int) $request->input('tahun', date('Y'));
+        return view('mesin.create', compact('tahun'));
     }
 
     public function mesinStore(Request $request)
@@ -268,7 +280,12 @@ class CalibrationController extends Controller
             $mesin->toArray()
         );
 
-        return redirect()->route('mesin.index')
+        if ($request->input('save_mode') === 'another') {
+            return redirect()->route('mesin.create', ['tahun' => $data['tahun']])
+                ->with('success', 'Data mesin berhasil disimpan. Lanjutkan input berikutnya.');
+        }
+
+        return redirect()->route('mesin.index', ['tahun' => $data['tahun']])
             ->with('success', 'Data mesin berhasil ditambahkan!');
     }
 
@@ -345,7 +362,8 @@ class CalibrationController extends Controller
         ]);
 
         try {
-            Excel::import(new MesinImport($request->tahun), $request->file('file'));
+            $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
+            Excel::import(new MesinImport($request->tahun, $rowHeader), $request->file('file'));
 
             $this->logActivity(
                 'CREATE',
@@ -394,6 +412,8 @@ class CalibrationController extends Controller
         // ===== GENERATE PDF =====
         $pdf = Pdf::loadView('mesin.pdf', compact('data', 'tahun', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
+
+        DocumentPdfLayout::addPageNumbers($pdf);
 
         return $pdf->download('eksternal-mesin-' . $tahun . '.pdf');
     }
