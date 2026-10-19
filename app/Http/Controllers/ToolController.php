@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tool;
+use App\Models\ToolStock;
 use App\Models\DokumenCounter;
+use App\Support\DocumentPdfLayout;
 use Illuminate\Http\Request;
 use App\Imports\ToolsImport;
 use App\Exports\ToolsExport;
@@ -20,6 +22,7 @@ class ToolController extends Controller
     {
         $tahun = $request->input('tahun', date('Y'));
         $kategori = $request->input('kategori', 'Small Tool');
+        $categories = Tool::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category');
 
         $query = Tool::query();
 
@@ -31,19 +34,24 @@ class ToolController extends Controller
         }
 
         $tools = $query->orderBy('tool_name', 'asc')->get();
-        return view('tools.index', compact('tools', 'tahun', 'kategori'));
+        return view('tools.index', compact('tools', 'tahun', 'kategori', 'categories'));
     }
 
     public function create()
     {
-        return view('tools.create');
+        $categories = Tool::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category');
+        return view('tools.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
             'tool_name' => 'required|string|max:255',
-            'category' => 'required|string',
+            'category' => 'required|string|max:100',
+            'category_new' => 'required_if:category,__new|nullable|string|max:100',
+            'order_number' => 'nullable|string|max:255',
+            'specification' => 'nullable|string|max:255',
+            'opening_stock' => 'required|integer|min:0',
             'qa_1' => 'integer|min:0', 'qa_1_2' => 'integer|min:0', 'qa_inc' => 'integer|min:0', 'qa_insp' => 'integer|min:0',
             'ppic_1' => 'integer|min:0', 'ppic_2' => 'integer|min:0', 'line_scc' => 'integer|min:0',
             'p1' => 'integer|min:0', 'p2' => 'integer|min:0', 'p3' => 'integer|min:0', 'p5' => 'integer|min:0',
@@ -51,6 +59,10 @@ class ToolController extends Controller
             'qa_2' => 'integer|min:0',
         ]);
 
+        if ($data['category'] === '__new') {
+            $data['category'] = trim($data['category_new']);
+        }
+        unset($data['category_new']);
         $data['tool_name'] = strtoupper($data['tool_name']);
         $data['tahun'] = date('Y');
 
@@ -62,7 +74,14 @@ class ToolController extends Controller
             $data['qa_2'] ?? 0
         ]);
 
+        $stockData = [
+            'order_number' => $data['order_number'] ?? null,
+            'specification' => $data['specification'] ?? null,
+            'opening_stock' => $data['opening_stock'],
+        ];
+        unset($data['order_number'], $data['specification'], $data['opening_stock']);
         $tool = Tool::create($data);
+        $tool->stockInfo()->create($stockData);
 
         $this->logCreate(
             'tools',
@@ -71,12 +90,19 @@ class ToolController extends Controller
             $tool->toArray()
         );
 
+        if ($request->input('save_mode') === 'another') {
+            return redirect()->route('tools.create', ['kategori' => $tool->category])
+                ->with('success', 'Alat berhasil disimpan. Lanjutkan input alat berikutnya.');
+        }
+
         return redirect()->route('tools.index')->with('success', 'Alat ukur berhasil ditambahkan!');
     }
 
     public function edit(Tool $tool)
     {
-        return view('tools.edit', compact('tool'));
+        $tool->load('stockInfo');
+        $categories = Tool::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category');
+        return view('tools.edit', compact('tool', 'categories'));
     }
 
     public function update(Request $request, Tool $tool)
@@ -85,7 +111,11 @@ class ToolController extends Controller
 
         $data = $request->validate([
             'tool_name' => 'required|string|max:255',
-            'category' => 'required|string',
+            'category' => 'required|string|max:100',
+            'category_new' => 'required_if:category,__new|nullable|string|max:100',
+            'order_number' => 'nullable|string|max:255',
+            'specification' => 'nullable|string|max:255',
+            'opening_stock' => 'required|integer|min:0',
             'qa_1' => 'integer|min:0', 'qa_1_2' => 'integer|min:0', 'qa_inc' => 'integer|min:0', 'qa_insp' => 'integer|min:0',
             'ppic_1' => 'integer|min:0', 'ppic_2' => 'integer|min:0', 'line_scc' => 'integer|min:0',
             'p1' => 'integer|min:0', 'p2' => 'integer|min:0', 'p3' => 'integer|min:0', 'p5' => 'integer|min:0',
@@ -93,6 +123,10 @@ class ToolController extends Controller
             'qa_2' => 'integer|min:0',
         ]);
 
+        if ($data['category'] === '__new') {
+            $data['category'] = trim($data['category_new']);
+        }
+        unset($data['category_new']);
         $data['tool_name'] = strtoupper($data['tool_name']);
 
         $data['total'] = array_sum([
@@ -103,7 +137,14 @@ class ToolController extends Controller
             $data['qa_2'] ?? 0
         ]);
 
+        $stockData = [
+            'order_number' => $data['order_number'] ?? null,
+            'specification' => $data['specification'] ?? null,
+            'opening_stock' => $data['opening_stock'],
+        ];
+        unset($data['order_number'], $data['specification'], $data['opening_stock']);
         $tool->update($data);
+        ToolStock::updateOrCreate(['tool_id' => $tool->id], $stockData);
 
         $this->logUpdate(
             'tools',
@@ -134,7 +175,8 @@ class ToolController extends Controller
     // ==========================================
     public function importForm()
     {
-        return view('tools.import');
+        $categories = Tool::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category');
+        return view('tools.import', compact('categories'));
     }
 
     public function importStore(Request $request)
@@ -142,10 +184,16 @@ class ToolController extends Controller
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv|max:2048',
             'tahun' => 'required|digits:4',
+            'kategori' => 'required|string|max:100',
         ]);
 
         try {
-            Excel::import(new ToolsImport($request->tahun), $request->file('file'));
+            $import = new ToolsImport($request->tahun, $request->kategori);
+            Excel::import($import, $request->file('file'));
+
+            if ($import->getImportedCount() === 0) {
+                return back()->withInput()->with('error', 'Header TOOL NAME atau NAMA ALAT tidak ditemukan. Pastikan file memiliki kolom nama alat; header boleh berada setelah judul laporan.');
+            }
 
             $this->logActivity(
                 'CREATE',
@@ -153,11 +201,11 @@ class ToolController extends Controller
                 null,
                 'Import Excel untuk tahun ' . $request->tahun,
                 null,
-                ['tahun' => $request->tahun, 'file' => $request->file('file')->getClientOriginalName()]
+                ['tahun' => $request->tahun, 'kategori' => $request->kategori, 'file' => $request->file('file')->getClientOriginalName()]
             );
 
-            return redirect()->route('tools.index', ['tahun' => $request->tahun])
-                ->with('success', 'Data berhasil di-import untuk tahun ' . $request->tahun);
+            return redirect()->route('tools.index', ['tahun' => $request->tahun, 'kategori' => $request->kategori])
+                ->with('success', $import->getImportedCount() . ' baris data berhasil di-import untuk tahun ' . $request->tahun);
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal import: ' . $e->getMessage());
         }
@@ -199,6 +247,8 @@ class ToolController extends Controller
         // ===== GENERATE PDF =====
         $pdf = Pdf::loadView('tools.pdf', compact('tools', 'tahun', 'kategori', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
+
+        DocumentPdfLayout::addPageNumbers($pdf);
 
         return $pdf->download('daftar-induk-' . strtolower(str_replace(' ', '-', $kategori)) . '-' . $tahun . '.pdf');
     }

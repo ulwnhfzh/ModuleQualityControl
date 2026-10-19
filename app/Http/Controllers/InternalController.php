@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Internal;
 use App\Models\Tool;
 use App\Models\DokumenCounter;
+use App\Support\DocumentPdfLayout;
 use App\Imports\InternalImport;
+use App\Imports\SpreadsheetHeaderRowDetector;
 use App\Exports\InternalExport;
 use App\Traits\LogsActivity;
 use Maatwebsite\Excel\Facades\Excel;
@@ -27,14 +29,15 @@ class InternalController extends Controller
         return view('internal.index', compact('schedules', 'tahun'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $tools = Tool::select('tool_name')
             ->distinct()
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        return view('internal.create', compact('tools'));
+        $tahun = (int) $request->input('tahun', date('Y'));
+        return view('internal.create', compact('tools', 'tahun'));
     }
 
     public function store(Request $request)
@@ -62,6 +65,11 @@ class InternalController extends Controller
             $internal->tool_name . ' - Kalibrasi Internal (' . $internal->tahun . ')',
             $internal->toArray()
         );
+
+        if ($request->input('save_mode') === 'another') {
+            return redirect()->route('internal.create', ['tahun' => $data['tahun']])
+                ->with('success', 'Jadwal berhasil disimpan. Lanjutkan input berikutnya.');
+        }
 
         return redirect()->route('internal.index', ['tahun' => $data['tahun']])
             ->with('success', 'Jadwal kalibrasi internal berhasil ditambahkan!');
@@ -131,7 +139,8 @@ class InternalController extends Controller
         ]);
 
         try {
-            Excel::import(new InternalImport($request->tahun), $request->file('file'));
+            $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
+            Excel::import(new InternalImport($request->tahun, $rowHeader), $request->file('file'));
 
             $this->logActivity(
                 'CREATE',
@@ -180,6 +189,8 @@ class InternalController extends Controller
         // ===== GENERATE PDF =====
         $pdf = Pdf::loadView('internal.pdf', compact('data', 'tahun', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
+
+        DocumentPdfLayout::addPageNumbers($pdf);
 
         return $pdf->download('internal-' . $tahun . '.pdf');
     }

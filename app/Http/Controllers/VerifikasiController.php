@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Verifikasi;
 use App\Models\Tool;
 use App\Models\DokumenCounter;
+use App\Support\DocumentPdfLayout;
 use App\Imports\VerifikasiImport;
+use App\Imports\SpreadsheetHeaderRowDetector;
 use App\Exports\VerifikasiExport;
 use App\Traits\LogsActivity;
 use Maatwebsite\Excel\Facades\Excel;
@@ -45,13 +47,14 @@ class VerifikasiController extends Controller
     public function create(Request $request)
     {
         $mode = $request->input('mode', 'bulanan');
+        $tahun = (int) $request->input('tahun', date('Y'));
 
         $tools = Tool::select('tool_name')
             ->distinct()
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        return view('verifikasi.create', compact('tools', 'mode'));
+        return view('verifikasi.create', compact('tools', 'mode', 'tahun'));
     }
 
     // ==========================================
@@ -132,6 +135,11 @@ class VerifikasiController extends Controller
             $verifikasi->tool_name . ' - Mode ' . strtoupper($mode) . ' (' . $verifikasi->tahun . ')',
             $verifikasi->toArray()
         );
+
+        if ($request->input('save_mode') === 'another') {
+            return redirect()->route('verifikasi.create', ['tahun' => $data['tahun'], 'mode' => $mode])
+                ->with('success', 'Data berhasil disimpan. Lanjutkan input berikutnya.');
+        }
 
         return redirect()->route('verifikasi.index', ['tahun' => $data['tahun'], 'mode' => $mode])
             ->with('success', 'Jadwal verifikasi berhasil ditambahkan!');
@@ -257,7 +265,11 @@ class VerifikasiController extends Controller
 
         try {
             Excel::import(
-                new VerifikasiImport($request->tahun, $request->mode),
+                new VerifikasiImport(
+                    $request->tahun,
+                    $request->mode,
+                    SpreadsheetHeaderRowDetector::detect($request->file('file'))
+                ),
                 $request->file('file')
             );
 
@@ -317,6 +329,8 @@ class VerifikasiController extends Controller
         // ===== GENERATE PDF =====
         $pdf = Pdf::loadView('verifikasi.pdf', compact('data', 'tahun', 'mode', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
+
+        DocumentPdfLayout::addPageNumbers($pdf);
 
         $labelMode = $mode === 'bulanan' ? 'tahunan' : 'bulanan';
         return $pdf->download('verifikasi-' . $labelMode . '-' . $tahun . '.pdf');
