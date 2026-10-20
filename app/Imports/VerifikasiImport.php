@@ -34,22 +34,11 @@ class VerifikasiImport implements ToModel, WithHeadingRow
         ];
 
         if ($this->mode === 'harian') {
-            $data['tanggal']  = $row['tanggal'] ?? null;
-            $data['qa_1']     = $row['qa_1'] ?? 0;
-            $data['qa_1_2']   = $row['qa_1_2'] ?? 0;
-            $data['qa_inc']   = $row['qa_inc'] ?? 0;
-            $data['qa_insp']  = $row['qa_insp'] ?? 0;
-            $data['ppic_1']   = $row['ppic_1'] ?? 0;
-            $data['ppic_2']   = $row['ppic_2'] ?? 0;
-            $data['line_scc'] = $row['line_scc'] ?? 0;
-            $data['p1']       = $row['p1'] ?? 0;
-            $data['p2']       = $row['p2'] ?? 0;
-            $data['p3']       = $row['p3'] ?? 0;
-            $data['p5']       = $row['p5'] ?? 0;
-            $data['p6']       = $row['p6'] ?? 0;
-            $data['p7']       = $row['p7'] ?? 0;
-            $data['p8']       = $row['p8'] ?? 0;
-            $data['eng']      = $row['eng'] ?? 0;
+            $data['tanggal'] = SpreadsheetInput::date($row['tanggal'] ?? null, "{$row['tool_name']} / tanggal");
+            $fields = ['qa_1', 'qa_1_2', 'qa_inc', 'qa_insp', 'ppic_1', 'ppic_2', 'line_scc', 'p1', 'p2', 'p3', 'p5', 'p6', 'p7', 'p8', 'eng'];
+            foreach ($fields as $field) {
+                $data[$field] = SpreadsheetInput::integer($row[$field] ?? null, "{$row['tool_name']} / {$field}");
+            }
 
             $data['total'] = array_sum([
                 $data['qa_1'], $data['qa_1_2'], $data['qa_inc'], $data['qa_insp'],
@@ -58,18 +47,9 @@ class VerifikasiImport implements ToModel, WithHeadingRow
                 $data['p6'], $data['p7'], $data['p8'], $data['eng']
             ]);
         } else {
-            $data['jan'] = $row['jan'] ?? 0;
-            $data['feb'] = $row['feb'] ?? 0;
-            $data['mar'] = $row['mar'] ?? 0;
-            $data['apr'] = $row['apr'] ?? 0;
-            $data['may'] = $row['may'] ?? 0;
-            $data['jun'] = $row['jun'] ?? 0;
-            $data['jul'] = $row['jul'] ?? 0;
-            $data['aug'] = $row['aug'] ?? 0;
-            $data['sep'] = $row['sep'] ?? 0;
-            $data['oct'] = $row['oct'] ?? 0;
-            $data['nov'] = $row['nov'] ?? 0;
-            $data['dec'] = $row['dec'] ?? 0;
+            foreach (SpreadsheetInput::MONTH_FIELDS as $month) {
+                $data[$month] = SpreadsheetInput::integer($row[$month] ?? null, "{$row['tool_name']} / {$month}");
+            }
 
             $data['total'] = array_sum([
                 $data['jan'], $data['feb'], $data['mar'], $data['apr'],

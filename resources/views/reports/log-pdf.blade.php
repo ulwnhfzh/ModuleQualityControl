@@ -21,13 +21,14 @@
         .badge-logout { background-color: #6b7280; }
         .badge-export { background-color: #8b5cf6; }
     </style>
+    @include('pdf.table-theme')
 </head>
 <body>
 
     <h2>LOG AKTIVITAS SISTEM</h2>
     <p class="sub">QC Measurement Tools - PT. Hamatetsu Indonesia</p>
 
-    <table>
+    <table class="data">
         <thead>
             <tr>
                 <th style="width: 4%;">No</th>

@@ -13,9 +13,14 @@ class GuestController extends Controller
 {
     public function index(Request $request)
     {
-        $tab    = $request->input('tab', 'semua');
-        $search = trim($request->input('search', ''));
-        $tahun  = $request->input('tahun', date('Y'));
+        $filters = $request->validate([
+            'tab' => 'nullable|in:semua,induk,verifikasi,internal,eksternal,mesin',
+            'search' => 'nullable|string|max:255',
+            'tahun' => 'nullable|integer|between:2000,2100',
+        ]);
+        $tab = $filters['tab'] ?? 'semua';
+        $search = trim($filters['search'] ?? '');
+        $tahun = $filters['tahun'] ?? date('Y');
 
         $data = [];
 

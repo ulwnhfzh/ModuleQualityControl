@@ -10,11 +10,14 @@
     @endif
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <form method="GET" action="{{ route('verifikasi.periode.index') }}" class="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3 gap-y-3 sm:flex sm:flex-wrap">
+            
             <label for="jenis-list-up" class="text-xs font-semibold text-slate-500">JENIS LIST UP</label>
             <select id="jenis-list-up" name="jenis" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
-                <option value="kalibrasi">Kalibrasi Internal</option>
-                <option value="verifikasi" selected>Verifikasi Internal</option>
+                <option value="kalibrasi" {{ $jenis === 'kalibrasi' ? 'selected' : '' }}>Kalibrasi Internal</option>
+                <option value="verifikasi" {{ $jenis === 'verifikasi' ? 'selected' : '' }}>Verifikasi Internal</option>
+                <option value="verifikasi" {{ $jenis === 'verifikasi' ? 'selected' : '' }}>Verifikasi Internal QC2</option>
             </select>
+
             <label for="tahun" class="text-xs font-semibold text-slate-500">TAHUN</label>
             <select id="tahun" name="tahun" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
                 @for($y = max((int) date('Y') + 2, $tahun); $y >= date('Y') - 12; $y--)
@@ -22,16 +25,48 @@
                 @endfor
             </select>
         </form>
-        <div class="grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap sm:gap-3 lg:justify-end">
-            <p class="col-span-2 text-xs text-slate-500 sm:col-span-1 sm:mr-1">Total {{ $schedules->count() }} jadwal</p>
+        
+        <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+            <p class="text-xs text-slate-500 mr-1">Total {{ $schedules->count() }} jadwal</p>
+            
             @if(Auth::check() && Auth::user()->role === 'admin')
-                <a href="{{ route('verifikasi.periode.import.form', ['tahun' => $tahun]) }}" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:w-auto sm:px-4">
-                    <span aria-hidden="true">📥</span> Import
+                <!-- Tombol Import -->
+                <a href="{{ route('verifikasi.periode.import.form', ['tahun' => $tahun]) }}" class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                    📥 Import
                 </a>
-                <a href="{{ route('verifikasi.periode.export', ['tahun' => $tahun]) }}" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 sm:w-auto sm:px-4">
-                    <span aria-hidden="true">📤</span> Export
+
+                <!-- Tombol Export Dropdown -->
+                <div class="relative inline-block" id="exportDropdownVerif">
+                    <button type="button" onclick="toggleExportVerif()" class="bg-slate-800 text-white rounded font-semibold hover:bg-slate-900 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                        📤 Export
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="exportMenuVerif" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                        <a href="{{ route('verifikasi.periode.export', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-green-50 transition border-b border-gray-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
+                                <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
+                                <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
+                                <text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="9">X</text>
+                            </svg>
+                            <span class="font-medium">Export Excel</span>
+                        </a>
+                        <a href="{{ route('verifikasi.periode.export', ['tahun' => $tahun, 'format' => 'pdf']) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
+                                <path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
+                                <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
+                                <text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="7">PDF</text>
+                            </svg>
+                            <span class="font-medium">Export PDF</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Tombol Tambah -->
+                <a href="{{ route($jenis === 'kalibrasi' ? 'verifikasi.periode.kalibrasi.create' : 'verifikasi.periode.create', ['tahun' => $tahun]) }}" class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                    <span>+</span> Tambah
                 </a>
-                <a href="{{ route($jenis === 'kalibrasi' ? 'verifikasi.periode.kalibrasi.create' : 'verifikasi.periode.create', ['tahun' => $tahun]) }}" class="col-span-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-black px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800 sm:col-span-1 sm:w-auto">+ Tambah Jadwal</a>
             @endif
         </div>
     </div>
@@ -44,7 +79,6 @@
 
 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
     <div class="overflow-x-auto">
-        <!-- Tambahan table-auto agar proporsi kolom lebih baik -->
         <table class="w-full min-w-[1450px] table-auto border-collapse text-xs text-slate-700">
             <thead class="bg-slate-800 text-white">
                 <!-- BARIS 1: Header Utama -->
@@ -115,7 +149,6 @@
                         @endif
                     </tr>
                 @empty
-                    <!-- Perbaikan Colspan: 7 kolom kiri + 6 kolom periode + 1 kolom aksi (jika admin) -->
                     <tr>
                         <td colspan="{{ Auth::check() && Auth::user()->role === 'admin' ? 14 : 13 }}" class="px-4 py-12 text-center text-slate-500">
                             Belum ada jadwal periode untuk tahun {{ $tahun }}. Tambahkan jadwal untuk mulai mengisi daftar ini.
@@ -126,4 +159,16 @@
         </table>
     </div>
 </div>
+
+<script>
+function toggleExportVerif() {
+    document.getElementById('exportMenuVerif').classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('exportDropdownVerif');
+    if (dropdown && !dropdown.contains(e.target)) {
+        document.getElementById('exportMenuVerif').classList.add('hidden');
+    }
+});
+</script>
 @endsection

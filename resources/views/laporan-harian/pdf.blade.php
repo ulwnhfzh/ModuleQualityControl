@@ -35,6 +35,7 @@
         .ttd .line { border-top: 1px solid #333; padding-top: 5px; display: inline-block; width: 200px; }
         .footer { margin-top: 20px; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #ddd; padding-top: 10px; }
     </style>
+    @include('pdf.table-theme')
 </head>
 <body>
 

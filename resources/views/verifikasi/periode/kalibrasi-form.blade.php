@@ -22,14 +22,39 @@
                 </label>
             @endforeach
         </div>
+
+        <!-- FIELD PERIODE 1 -->
         <fieldset class="rounded-xl border border-slate-200 p-4">
-            <legend class="px-2 text-sm font-bold text-slate-800">YEAR {{ $tahun }}</legend>
+            <legend class="px-2 text-sm font-bold text-slate-800">Periode 1 (Tahun {{ $tahun }})</legend>
             <div class="grid gap-4 sm:grid-cols-3">
-                <label class="text-sm font-medium text-slate-700">Calibration Date<x-date-entry name="calibration_date" :value="old('calibration_date', isset($schedule) ? $schedule->calibration_date?->format('Y-m-d') : '')" input-class="mt-1 w-full rounded-lg border-slate-300 text-sm" /></label>
-                <label class="text-sm font-medium text-slate-700">Next Calibration Date<x-date-entry name="next_calibration_date" :value="old('next_calibration_date', isset($schedule) ? $schedule->next_calibration_date?->format('Y-m-d') : '')" input-class="mt-1 w-full rounded-lg border-slate-300 text-sm" /></label>
-                <label class="text-sm font-medium text-slate-700">JGM<input name="jgm" value="{{ old('jgm', $schedule->jgm ?? '') }}" maxlength="30" class="mt-1 w-full rounded-lg border-slate-300 text-sm" placeholder="Contoh: OK"></label>
+                <label class="text-sm font-medium text-slate-700">Calibration Date
+                    <x-date-entry name="calibration_date" :value="old('calibration_date', isset($schedule) ? $schedule->calibration_date?->format('Y-m-d') : '')" input-class="mt-1 w-full rounded-lg border-slate-300 text-sm" />
+                </label>
+                <label class="text-sm font-medium text-slate-700">Next Calibration Date
+                    <x-date-entry name="next_calibration_date" :value="old('next_calibration_date', isset($schedule) ? $schedule->next_calibration_date?->format('Y-m-d') : '')" input-class="mt-1 w-full rounded-lg border-slate-300 text-sm" />
+                </label>
+                <label class="text-sm font-medium text-slate-700">JGM
+                    <input name="jgm" value="{{ old('jgm', $schedule->jgm ?? '') }}" maxlength="30" class="mt-1 w-full rounded-lg border-slate-300 text-sm" placeholder="Contoh: OK">
+                </label>
             </div>
         </fieldset>
+
+        <!-- FIELD PERIODE 2 -->
+        <fieldset class="rounded-xl border border-slate-200 p-4">
+            <legend class="px-2 text-sm font-bold text-slate-800">Periode 2 (Tahun {{ $tahun }})</legend>
+            <div class="grid gap-4 sm:grid-cols-3">
+                <label class="text-sm font-medium text-slate-700">Calibration Date
+                    <x-date-entry name="period2_calibration_date" :value="old('period2_calibration_date', isset($schedule) ? $schedule->period2_calibration_date?->format('Y-m-d') : '')" input-class="mt-1 w-full rounded-lg border-slate-300 text-sm" />
+                </label>
+                <label class="text-sm font-medium text-slate-700">Next Calibration Date
+                    <x-date-entry name="period2_next_calibration_date" :value="old('period2_next_calibration_date', isset($schedule) ? $schedule->period2_next_calibration_date?->format('Y-m-d') : '')" input-class="mt-1 w-full rounded-lg border-slate-300 text-sm" />
+                </label>
+                <label class="text-sm font-medium text-slate-700">JGM
+                    <input name="period2_jgm" value="{{ old('period2_jgm', $schedule->period2_jgm ?? '') }}" maxlength="30" class="mt-1 w-full rounded-lg border-slate-300 text-sm" placeholder="Contoh: OK">
+                </label>
+            </div>
+        </fieldset>
+
         <div class="flex justify-end gap-2">
             <a href="{{ route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'kalibrasi']) }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Batal</a>
             <button type="submit" class="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Simpan</button>

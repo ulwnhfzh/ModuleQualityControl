@@ -20,7 +20,8 @@ class InternalController extends Controller
 
     public function index(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
+        $filters = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $tahun = $filters['tahun'] ?? date('Y');
 
         $schedules = Internal::where('tahun', $tahun)
             ->orderBy('tool_name', 'asc')
@@ -36,7 +37,8 @@ class InternalController extends Controller
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        $tahun = (int) $request->input('tahun', date('Y'));
+        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $tahun = (int) ($yearData['tahun'] ?? date('Y'));
         return view('internal.create', compact('tools', 'tahun'));
     }
 
@@ -44,10 +46,10 @@ class InternalController extends Controller
     {
         $data = $request->validate([
             'tool_name' => 'required|string|max:255',
-            'tahun' => 'required|digits:4',
-            'jan' => 'integer|min:0', 'feb' => 'integer|min:0', 'mar' => 'integer|min:0', 'apr' => 'integer|min:0',
-            'may' => 'integer|min:0', 'jun' => 'integer|min:0', 'jul' => 'integer|min:0', 'aug' => 'integer|min:0',
-            'sep' => 'integer|min:0', 'oct' => 'integer|min:0', 'nov' => 'integer|min:0', 'dec' => 'integer|min:0',
+            'tahun' => 'required|integer|between:2000,2100',
+            'jan' => 'integer|min:0|max:2147483647', 'feb' => 'integer|min:0|max:2147483647', 'mar' => 'integer|min:0|max:2147483647', 'apr' => 'integer|min:0|max:2147483647',
+            'may' => 'integer|min:0|max:2147483647', 'jun' => 'integer|min:0|max:2147483647', 'jul' => 'integer|min:0|max:2147483647', 'aug' => 'integer|min:0|max:2147483647',
+            'sep' => 'integer|min:0|max:2147483647', 'oct' => 'integer|min:0|max:2147483647', 'nov' => 'integer|min:0|max:2147483647', 'dec' => 'integer|min:0|max:2147483647',
         ]);
 
         $data['tool_name'] = strtoupper($data['tool_name']);
@@ -86,10 +88,10 @@ class InternalController extends Controller
 
         $data = $request->validate([
             'tool_name' => 'required|string|max:255',
-            'tahun' => 'required|digits:4',
-            'jan' => 'integer|min:0', 'feb' => 'integer|min:0', 'mar' => 'integer|min:0', 'apr' => 'integer|min:0',
-            'may' => 'integer|min:0', 'jun' => 'integer|min:0', 'jul' => 'integer|min:0', 'aug' => 'integer|min:0',
-            'sep' => 'integer|min:0', 'oct' => 'integer|min:0', 'nov' => 'integer|min:0', 'dec' => 'integer|min:0',
+            'tahun' => 'required|integer|between:2000,2100',
+            'jan' => 'integer|min:0|max:2147483647', 'feb' => 'integer|min:0|max:2147483647', 'mar' => 'integer|min:0|max:2147483647', 'apr' => 'integer|min:0|max:2147483647',
+            'may' => 'integer|min:0|max:2147483647', 'jun' => 'integer|min:0|max:2147483647', 'jul' => 'integer|min:0|max:2147483647', 'aug' => 'integer|min:0|max:2147483647',
+            'sep' => 'integer|min:0|max:2147483647', 'oct' => 'integer|min:0|max:2147483647', 'nov' => 'integer|min:0|max:2147483647', 'dec' => 'integer|min:0|max:2147483647',
         ]);
 
         $data['tool_name'] = strtoupper($data['tool_name']);
@@ -161,7 +163,8 @@ class InternalController extends Controller
     // ===== EXPORT =====
     public function exportExcel(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
+        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $tahun = $yearData['tahun'] ?? date('Y');
         $filename = 'internal-' . $tahun . '.xlsx';
 
         $this->logExport('internal', 'Export Excel Kalibrasi Internal tahun ' . $tahun);
@@ -174,7 +177,8 @@ class InternalController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
+        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $tahun = $yearData['tahun'] ?? date('Y');
 
         $data = Internal::where('tahun', $tahun)
             ->orderBy('tool_name', 'asc')

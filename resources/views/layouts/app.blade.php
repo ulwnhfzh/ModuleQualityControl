@@ -24,6 +24,9 @@
         }
         select::-ms-expand { display: none; }
 
+        /* =========================================
+           STYLING SIDEBAR
+           ========================================= */
         .sidebar-link {
             display: flex; align-items: center; gap: 12px;
             padding: 10px 12px; border-radius: 8px;
@@ -43,6 +46,7 @@
             display: flex; align-items: center; justify-content: center;
         }
         .sidebar-link .icon svg { width: 18px; height: 18px; stroke-width: 2; }
+        
         .sidebar-sublink {
             display: flex; align-items: center; gap: 10px;
             padding: 8px 12px; border-radius: 6px;
@@ -65,14 +69,113 @@
             background-color: #10b981;
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
         }
+        
         .chevron { transition: transform 0.2s ease; }
+        
         .sidebar-section {
             font-size: 10px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.08em; color: #475569; padding: 0 12px; margin: 12px 0 6px;
+            letter-spacing: 0.08em; color: #475569; padding: 0 12px; margin: 16px 0 6px;
         }
+        .sidebar-section:first-child { margin-top: 0; }
+
+        /* =========================================
+           STYLING TABEL GLOBAL (SINKRON)
+           ========================================= */
         .table-header { background-color: #1a202c; color: white; }
         .table-row-even { background-color: #f8fafc; }
         .table-row-odd { background-color: #ffffff; }
+        
+        .main-content table { border-collapse: collapse; }
+        .main-content table th,
+        .main-content table td { border: 1px solid #000000; }
+        
+        .main-content table thead tr:first-child th {
+            background-color: #a0a8b4;
+            color: #111827;
+        }
+        .main-content table thead tr:not(:first-child) th {
+            background-color: #ffffff;
+            color: #111827;
+        }
+        .main-content table tfoot th,
+        .main-content table tfoot td {
+            background-color: #a0a8b4;
+            color: #111827;
+            font-weight: 700;
+        }
+
+        .main-content form[enctype="multipart/form-data"] {
+            font-family: inherit;
+        }
+        .main-content div:has(> form[enctype="multipart/form-data"]) {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+            padding: 24px;
+        }
+        .main-content div:has(> form[enctype="multipart/form-data"]) > h1,
+        .main-content div:has(> form[enctype="multipart/form-data"]) > h2 {
+            color: #1f2937;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .main-content form[enctype="multipart/form-data"] input[type="file"],
+        .main-content form[enctype="multipart/form-data"] input[type="number"],
+        .main-content form[enctype="multipart/form-data"] select {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .main-content form[enctype="multipart/form-data"] input[type="file"] {
+            background-color: #ffffff;
+            padding: 8px 12px;
+        }
+        .main-content form[enctype="multipart/form-data"] button[type="submit"] {
+            background-color: #1f2937;
+            border-radius: 6px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 20px;
+        }
+        .main-content form[enctype="multipart/form-data"] button[type="submit"]:hover {
+            background-color: #374151;
+        }
+        .main-content div:has(> form[enctype="multipart/form-data"]) a[href]:not([href*="template"]) {
+            background-color: #f3f4f6;
+            border-radius: 6px;
+            color: #374151;
+            font-weight: 600;
+        }
+        .main-content a[href*="/import"] {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            color: #374151;
+            font-weight: 600;
+        }
+        .main-content button[onclick^="toggleExport"] {
+            background-color: #1f2937;
+            border-radius: 6px;
+            color: #ffffff;
+        }
+        .main-content a[href*="/export"]:not(div[id^="exportMenu"] a):not([href*="/pdf"]) {
+            background-color: #15803d;
+            border-color: #15803d;
+            color: #ffffff;
+        }
+        .main-content a[href*="/pdf"]:not(div[id^="exportMenu"] a) {
+            background-color: #b91c1c;
+            border-color: #b91c1c;
+            color: #ffffff;
+        }
+        @media (max-width: 639px) {
+            .main-content div:has(> form[enctype="multipart/form-data"]) { padding: 16px; }
+        }
+        
         .sidebar-scroll::-webkit-scrollbar { width: 4px; }
         .sidebar-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
         html, body { overflow-x: hidden; }
@@ -82,38 +185,62 @@
         details.user-menu[open] > summary .chevron-down { transform: rotate(180deg); }
         .chevron-down { transition: transform 0.15s ease; }
 
+        /* =========================================
+           LAYOUT RESPONSIF DESKTOP & MOBILE
+           ========================================= */
         .sidebar-desktop {
             position: fixed;
             top: 64px;
             left: 0;
             bottom: 0;
-            width: 256px;
+            width: 256px; /* Ukuran Sidebar Desktop */
             z-index: 40;
+            transition: transform 0.3s ease-in-out;
         }
-        @media (max-width: 1023px) {
-            .sidebar-desktop { display: none; }
+        
+        /* State ketika sidebar ditutup di desktop */
+        .sidebar-desktop.collapsed {
+            transform: translateX(-100%);
         }
 
-        .main-content { margin-left: 256px; }
+        .main-content { 
+            margin-left: 256px; 
+            transition: margin-left 0.3s ease-in-out;
+        }
+        
+        /* State ketika konten utama melebar penuh */
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
         @media (max-width: 1023px) {
-            .main-content { margin-left: 0; }
+            .sidebar-desktop { display: none; }
+            .main-content { margin-left: 0 !important; }
         }
     </style>
 </head>
-<body class="bg-slate-50 antialiased" x-data="{ sidebarOpen: false }">
+<body class="bg-slate-50 antialiased" x-data="{ sidebarOpen: false, sidebarDesktopOpen: true }">
 
     <!-- HEADER -->
     <header class="bg-white border-b border-slate-200 fixed top-0 left-0 right-0 z-50 h-16">
         <div class="h-full px-2 sm:px-4 lg:px-6 flex items-center gap-2 sm:gap-3">
 
             <div class="flex items-center gap-2 min-w-0 flex-1">
-                <button type="button" @click="sidebarOpen = !sidebarOpen"
-                        class="lg:hidden bg-slate-100 hover:bg-slate-200 rounded-lg p-2 shrink-0 transition">
-                    <svg x-show="!sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700"
+                <!-- TOMBOL HAMBURGER -->
+                <!-- Di Desktop: Toggle sidebarDesktopOpen -->
+                <!-- Di Mobile: Toggle sidebarOpen -->
+                <button type="button" 
+                        @click="if (window.innerWidth >= 1024) { sidebarDesktopOpen = !sidebarDesktopOpen } else { sidebarOpen = !sidebarOpen }"
+                        class="bg-slate-100 hover:bg-slate-200 rounded-lg p-2 shrink-0 transition">
+                    
+                    <!-- Icon Hamburger (Garis 3) - Muncul saat menu tertutup -->
+                    <svg x-show="!sidebarOpen && !sidebarDesktopOpen" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700"
                          fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
-                    <svg x-show="sidebarOpen" x-cloak xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700"
+
+                    <!-- Icon Close (X) - Muncul saat menu terbuka -->
+                    <svg x-show="sidebarOpen || sidebarDesktopOpen" x-cloak xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700"
                          fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -213,19 +340,22 @@
         </div>
     </header>
 
-    <!-- OVERLAY -->
+    <!-- OVERLAY (Hanya untuk Mobile) -->
     <div x-show="sidebarOpen" x-cloak x-transition.opacity @click="sidebarOpen = false"
          class="fixed left-0 right-0 bottom-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"
          style="top: 64px;"></div>
 
-    <!-- SIDEBAR DESKTOP -->
-    <aside class="sidebar-desktop hidden lg:flex flex-col bg-slate-900 border-r border-slate-800"
+    <!-- SIDEBAR DESKTOP (Bisa Collapse) -->
+    <aside :class="sidebarDesktopOpen ? '' : 'collapsed'"
+           class="sidebar-desktop hidden lg:flex flex-col bg-slate-900 border-r border-slate-800"
            x-data="{
                verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
                kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'true' : 'false' }}
            }">
-        <div class="flex-1 overflow-y-auto sidebar-scroll py-3">
+        <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
+            
+            {{-- MAIN MENU --}}
             <p class="sidebar-section">Main Menu</p>
             <nav class="px-3 space-y-1">
 
@@ -239,9 +369,24 @@
                     <span>Daftar Induk</span>
                 </a>
 
+                @if(Auth::check() && Auth::user()->role === 'admin')
+                <a href="{{ route('defects.index') }}" class="sidebar-link {{ request()->routeIs('defects.*') ? 'active' : '' }}">
+                    <span class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </span>
+                    <span>Data NG (Kerusakan)</span>
+                </a>
+                @endif
+            </nav>
+
+            {{-- QUALITY CONTROL --}}
+            <p class="sidebar-section">Quality Control</p>
+            <nav class="px-3 space-y-1">
                 <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
-                    <span class="flex-1 text-left">Jadwal Verifikasi Internal</span>
+                    <span class="flex-1 text-left">Jadwal Verifikasi</span>
                     <svg class="chevron w-4 h-4" :class="verifikasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div x-show="verifikasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
@@ -252,65 +397,65 @@
                         <span class="dot"></span><span>List Up Periode</span>
                     </a>
                 </div>
-                @if(Auth::check() && Auth::user()->role === 'admin')
-                <button type="button" @click="stockOpen = !stockOpen" class="sidebar-link {{ request()->routeIs('stock.*') ? 'active' : '' }}">
-                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 12 3l9 4.5M4.5 9v9L12 21l7.5-3V9M12 21v-9m9-4.5-9 4.5-9-4.5" /></svg></span>
-                    <span class="flex-1 text-left">Stok Alat Ukur</span>
-                    <svg class="chevron w-4 h-4" :class="stockOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                </button>
-                <div x-show="stockOpen" x-cloak class="pl-3 space-y-1 mt-1">
-                    <a href="{{ route('stock.index') }}" class="sidebar-sublink {{ request()->routeIs('stock.index', 'stock.import.form') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Data Stok</span>
-                    </a>
-                    <a href="{{ route('stock.summary') }}" class="sidebar-sublink {{ request()->routeIs('stock.summary') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Laporan Bulanan</span>
-                    </a>
-                </div>
-                @endif
 
                 <button type="button" @click="kalibrasiOpen = !kalibrasiOpen"
                         class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
-                    <span class="flex-1 text-left">Kalibrasi</span>
+                    <span class="flex-1 text-left">Kalibrasi Alat</span>
                     <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''"
                          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
-
                 <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
-                        <span class="dot"></span>
-                        <span>Eksternal</span>
+                        <span class="dot"></span><span>Eksternal</span>
                     </a>
-
                     <a href="{{ route('internal.index') }}" class="sidebar-sublink {{ request()->routeIs('internal.*') ? 'active' : '' }}">
-                        <span class="dot"></span>
-                        <span>Internal</span>
+                        <span class="dot"></span><span>Internal</span>
                     </a>
                 </div>
             </nav>
 
+            {{-- INVENTARIS --}}
             @if(Auth::check() && Auth::user()->role === 'admin')
-            <p class="sidebar-section mt-6">Lainnya</p>
+            <p class="sidebar-section">Inventaris</p>
             <nav class="px-3 space-y-1">
+                <button type="button" @click="stockOpen = !stockOpen" class="sidebar-link {{ request()->routeIs('stock.*') ? 'active' : '' }}">
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 12 3l9 4.5M4.5 9v9L12 21l7.5-3V9M12 21v-9m9-4.5-9 4.5-9-4.5" /></svg></span>
+                    <span class="flex-1 text-left">Manajemen Stok</span>
+                    <svg class="chevron w-4 h-4" :class="stockOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+                <div x-show="stockOpen" x-cloak class="pl-3 space-y-1 mt-1">
+                    <a href="{{ route('stock.index') }}" class="sidebar-sublink {{ request()->routeIs('stock.index', 'stock.import.form') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Daftar Stok</span>
+                    </a>
+                    <a href="{{ route('stock.summary') }}" class="sidebar-sublink {{ request()->routeIs('stock.summary') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Laporan Bulanan</span>
+                    </a>
+                </div>
+            </nav>
+            @endif
 
+            {{-- LAPORAN & PENGATURAN --}}
+            @if(Auth::check() && Auth::user()->role === 'admin')
+            <p class="sidebar-section">Laporan & Pengaturan</p>
+            <nav class="px-3 space-y-1">
                 <a href="{{ route('reports.index') }}" class="sidebar-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></span>
                     <span>Reports</span>
                 </a>
-
                 <a href="{{ route('laporan.harian.index') }}" class="sidebar-link {{ request()->routeIs('laporan.harian.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></span>
                     <span>Laporan Harian</span>
                 </a>
-
                 <a href="{{ route('settings.index') }}" class="sidebar-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
                     <span>Settings</span>
                 </a>
             </nav>
             @endif
+
         </div>
 
         <div class="p-4 border-t border-slate-800 shrink-0">
@@ -336,23 +481,33 @@
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
                kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'true' : 'false' }}
            }">
-        <div class="flex-1 overflow-y-auto sidebar-scroll py-3">
+        <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
+            
+            {{-- MAIN MENU --}}
             <p class="sidebar-section">Main Menu</p>
             <nav class="px-3 space-y-1">
-
                 <a href="{{ route('dashboard.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg></span>
                     <span>Dashboard</span>
                 </a>
-
                 <a href="{{ route('tools.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('tools.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg></span>
                     <span>Daftar Induk</span>
                 </a>
+                @if(Auth::check() && Auth::user()->role === 'admin')
+                <a href="{{ route('defects.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('defects.*') ? 'active' : '' }}">
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></span>
+                    <span>Data NG (Kerusakan)</span>
+                </a>
+                @endif
+            </nav>
 
+            {{-- QUALITY CONTROL --}}
+            <p class="sidebar-section">Quality Control</p>
+            <nav class="px-3 space-y-1">
                 <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
-                    <span class="flex-1 text-left">Jadwal Verifikasi Internal</span>
+                    <span class="flex-1 text-left">Jadwal Verifikasi</span>
                     <svg class="chevron w-4 h-4" :class="verifikasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div x-show="verifikasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
@@ -363,59 +518,58 @@
                         <span class="dot"></span><span>List Up Periode</span>
                     </a>
                 </div>
-                @if(Auth::check() && Auth::user()->role === 'admin')
-                <button type="button" @click="stockOpen = !stockOpen" class="sidebar-link {{ request()->routeIs('stock.*') ? 'active' : '' }}">
-                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 12 3l9 4.5M4.5 9v9L12 21l7.5-3V9M12 21v-9m9-4.5-9 4.5-9-4.5" /></svg></span>
-                    <span class="flex-1 text-left">Stok Alat Ukur</span>
-                    <svg class="chevron w-4 h-4" :class="stockOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                </button>
-                <div x-show="stockOpen" x-cloak class="pl-3 space-y-1 mt-1">
-                    <a href="{{ route('stock.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('stock.index', 'stock.import.form') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Data Stok</span>
-                    </a>
-                    <a href="{{ route('stock.summary') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('stock.summary') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Laporan Bulanan</span>
-                    </a>
-                </div>
-                @endif
 
                 <button type="button" @click="kalibrasiOpen = !kalibrasiOpen"
                         class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
-                    <span class="flex-1 text-left">Jadwal Kalibrasi</span>
+                    <span class="flex-1 text-left">Kalibrasi Alat</span>
                     <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''"
                          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
-
                 <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
-                        <span class="dot"></span>
-                        <span>Eksternal</span>
+                        <span class="dot"></span><span>Eksternal</span>
                     </a>
-
                     <a href="{{ route('internal.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('internal.*') ? 'active' : '' }}">
-                        <span class="dot"></span>
-                        <span>Internal</span>
+                        <span class="dot"></span><span>Internal</span>
                     </a>
                 </div>
             </nav>
 
+            {{-- INVENTARIS --}}
             @if(Auth::check() && Auth::user()->role === 'admin')
-            <p class="sidebar-section mt-6">Lainnya</p>
+            <p class="sidebar-section">Inventaris</p>
             <nav class="px-3 space-y-1">
+                <button type="button" @click="stockOpen = !stockOpen" class="sidebar-link {{ request()->routeIs('stock.*') ? 'active' : '' }}">
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 12 3l9 4.5M4.5 9v9L12 21l7.5-3V9M12 21v-9m9-4.5-9 4.5-9-4.5" /></svg></span>
+                    <span class="flex-1 text-left">Manajemen Stok</span>
+                    <svg class="chevron w-4 h-4" :class="stockOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+                <div x-show="stockOpen" x-cloak class="pl-3 space-y-1 mt-1">
+                    <a href="{{ route('stock.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('stock.index', 'stock.import.form') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Daftar Stok</span>
+                    </a>
+                    <a href="{{ route('stock.summary') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('stock.summary') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Laporan Bulanan</span>
+                    </a>
+                </div>
+            </nav>
+            @endif
 
+            {{-- LAPORAN & PENGATURAN --}}
+            @if(Auth::check() && Auth::user()->role === 'admin')
+            <p class="sidebar-section">Laporan & Pengaturan</p>
+            <nav class="px-3 space-y-1">
                 <a href="{{ route('reports.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></span>
                     <span>Reports</span>
                 </a>
-
                 <a href="{{ route('laporan.harian.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('laporan.harian.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></span>
                     <span>Laporan Harian</span>
                 </a>
-
                 <a href="{{ route('settings.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
                     <span>Settings</span>
@@ -432,7 +586,8 @@
     </aside>
 
     <!-- KONTEN UTAMA -->
-    <main class="main-content pt-16 min-h-screen">
+    <!-- Class 'expanded' ditambahkan secara dinamis berdasarkan status sidebarDesktopOpen -->
+    <main :class="sidebarDesktopOpen ? '' : 'expanded'" class="main-content pt-16 min-h-screen">
         <div class="p-4 sm:p-5 md:p-6">
             @yield('content')
         </div>

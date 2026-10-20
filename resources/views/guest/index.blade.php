@@ -129,10 +129,10 @@
 {{-- STYLE HEADER TABEL --}}
 {{-- ============================================ --}}
 @php
-    $thStyle = 'background-color:#065f46; color:#ffffff; font-weight:700; padding:10px 8px; font-size:10px; text-transform:uppercase; letter-spacing:0.05em; border-right:1px solid rgba(255,255,255,0.15);';
-    $thStyleTotal = 'background-color:#047857; color:#ffffff; font-weight:700; padding:10px 8px; font-size:10px; text-transform:uppercase; letter-spacing:0.05em;';
-    $tdStyle = 'padding:8px 8px; border-bottom:1px solid #f1f5f9;';
-    $tfootStyle = 'background-color:#d1fae5; color:#065f46; font-weight:700; padding:12px 8px; font-size:11px;';
+    $thStyle = 'background-color:#a0a8b4; color:#111827; font-weight:700; padding:10px 8px; font-size:10px; text-transform:uppercase; border:1px solid #000000;';
+    $thStyleTotal = 'background-color:#a0a8b4; color:#111827; font-weight:700; padding:10px 8px; font-size:10px; text-transform:uppercase; border:1px solid #000000;';
+    $tdStyle = 'padding:8px 8px; border:1px solid #000000;';
+    $tfootStyle = 'background-color:#a0a8b4; color:#111827; font-weight:700; padding:12px 8px; font-size:11px; border:1px solid #000000;';
 @endphp
 
 {{-- ============ TAB: INDUK ============ --}}
@@ -197,7 +197,7 @@
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->p7 ?: '-' }}</td>
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->p8 ?: '-' }}</td>
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->eng ?: '-' }}</td>
-                    <td style="{{ $tdStyle }}" class="text-center font-bold text-emerald-700 bg-emerald-50">{{ $row->total ?? 0 }}</td>
+                    <td style="{{ $tdStyle }}" class="text-center font-bold text-gray-900 bg-gray-100">{{ $row->total ?? 0 }}</td>
                 </tr>
                 @empty
                 <tr>
@@ -266,7 +266,7 @@
                     <td style="{{ $tdStyle }}" class="font-medium">{{ strtoupper($row->tool_name) }}</td>
                     <td style="{{ $tdStyle }}" class="text-slate-600">{{ ucfirst($row->tipe ?? '-') }}</td>
                     <td style="{{ $tdStyle }}" class="text-slate-600">{{ $row->tanggal ?? '-' }}</td>
-                    <td style="{{ $tdStyle }}" class="text-center font-bold text-emerald-700 bg-emerald-50">{{ $row->total ?? 0 }}</td>
+                    <td style="{{ $tdStyle }}" class="text-center font-bold text-gray-900 bg-gray-100">{{ $row->total ?? 0 }}</td>
                 </tr>
                 @empty
                 <tr>
@@ -340,7 +340,7 @@
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->oct ?: '-' }}</td>
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->nov ?: '-' }}</td>
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->dec ?: '-' }}</td>
-                    <td style="{{ $tdStyle }}" class="text-center font-bold text-emerald-700 bg-emerald-50">{{ $row->qty ?? 0 }}</td>
+                    <td style="{{ $tdStyle }}" class="text-center font-bold text-gray-900 bg-gray-100">{{ $row->qty ?? 0 }}</td>
                 </tr>
                 @empty
                 <tr>
@@ -425,7 +425,7 @@
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->oct ?: '-' }}</td>
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->nov ?: '-' }}</td>
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->dec ?: '-' }}</td>
-                    <td style="{{ $tdStyle }}" class="text-center font-bold text-emerald-700 bg-emerald-50">{{ $row->qty_set ?? 0 }}</td>
+                    <td style="{{ $tdStyle }}" class="text-center font-bold text-gray-900 bg-gray-100">{{ $row->qty_set ?? 0 }}</td>
                 </tr>
                 @empty
                 <tr>
@@ -527,7 +527,7 @@
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->oct ?: '-' }}</td>
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->nov ?: '-' }}</td>
                     <td style="{{ $tdStyle }}" class="text-center">{{ $row->dec ?: '-' }}</td>
-                    <td style="{{ $tdStyle }}" class="text-center font-bold text-emerald-700 bg-emerald-50">{{ $row->qty_set ?? 0 }}</td>
+                    <td style="{{ $tdStyle }}" class="text-center font-bold text-gray-900 bg-gray-100">{{ $row->qty_set ?? 0 }}</td>
                 </tr>
                 @empty
                 <tr>

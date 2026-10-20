@@ -60,7 +60,7 @@
             </div>
             <div>
                 <label class="block text-xs md:text-sm font-semibold mb-1">Stok Awal *</label>
-                <input type="number" name="opening_stock" min="0" required value="{{ old('opening_stock', 0) }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="number" name="opening_stock" min="0" max="2147483647" step="1" required value="{{ old('opening_stock', 0) }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
         </div>
 
@@ -79,7 +79,7 @@
             @foreach($fields as $name => $label)
             <div>
                 <label class="block text-[10px] md:text-xs font-semibold mb-1 text-gray-600">{{ $label }}</label>
-                <input type="number" name="{{ $name }}" value="{{ old($name, 0) }}" min="0"
+                <input type="number" name="{{ $name }}" value="{{ old($name, 0) }}" min="0" max="2147483647" step="1" inputmode="numeric"
                        class="w-full border border-gray-300 rounded px-2 py-2 text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
             @endforeach

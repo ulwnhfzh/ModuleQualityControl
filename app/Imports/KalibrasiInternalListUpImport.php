@@ -3,12 +3,10 @@
 namespace App\Imports;
 
 use App\Models\KalibrasiInternalListUp;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class KalibrasiInternalListUpImport implements ToCollection, WithHeadingRow
 {
@@ -34,9 +32,12 @@ class KalibrasiInternalListUpImport implements ToCollection, WithHeadingRow
                     'specification' => $this->value($data, ['specification', 'spesifikasi']),
                     'registration_number' => $this->value($data, ['registration_number', 'number_registration', 'nomor_registrasi']),
                     'shop' => $this->value($data, ['shop', 'bagian']),
-                    'calibration_date' => $this->dateValue($this->value($data, ['calibration_date', 'tanggal_kalibrasi'])),
-                    'next_calibration_date' => $this->dateValue($this->value($data, ['next_calibration_date', 'next_calibration', 'tanggal_kalibrasi_berikutnya'])),
+                    'calibration_date' => SpreadsheetInput::date($this->value($data, ['calibration_date', 'tanggal_kalibrasi']), "{$name} / calibration_date"),
+                    'next_calibration_date' => SpreadsheetInput::date($this->value($data, ['next_calibration_date', 'next_calibration', 'tanggal_kalibrasi_berikutnya']), "{$name} / next_calibration_date"),
                     'jgm' => $this->value($data, ['jgm']),
+                    'period2_calibration_date' => SpreadsheetInput::date($this->value($data, ['period2_calibration_date']), "{$name} / period2_calibration_date"),
+                    'period2_next_calibration_date' => SpreadsheetInput::date($this->value($data, ['period2_next_calibration_date']), "{$name} / period2_next_calibration_date"),
+                    'period2_jgm' => $this->value($data, ['period2_jgm']),
                 ]);
             }
         });
@@ -49,12 +50,5 @@ class KalibrasiInternalListUpImport implements ToCollection, WithHeadingRow
             if ($value !== '') return $value;
         }
         return null;
-    }
-
-    private function dateValue(?string $value): ?string
-    {
-        if ($value === null) return null;
-        if (is_numeric($value)) return ExcelDate::excelToDateTimeObject((float) $value)->format('Y-m-d');
-        try { return Carbon::parse($value)->format('Y-m-d'); } catch (\Throwable) { return null; }
     }
 }

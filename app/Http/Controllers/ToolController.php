@@ -20,8 +20,12 @@ class ToolController extends Controller
 
     public function index(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
-        $kategori = $request->input('kategori', 'Small Tool');
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'kategori' => 'nullable|string|max:100',
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $kategori = $filters['kategori'] ?? 'Small Tool';
         $categories = Tool::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category');
 
         $query = Tool::query();
@@ -51,12 +55,12 @@ class ToolController extends Controller
             'category_new' => 'required_if:category,__new|nullable|string|max:100',
             'order_number' => 'nullable|string|max:255',
             'specification' => 'nullable|string|max:255',
-            'opening_stock' => 'required|integer|min:0',
-            'qa_1' => 'integer|min:0', 'qa_1_2' => 'integer|min:0', 'qa_inc' => 'integer|min:0', 'qa_insp' => 'integer|min:0',
-            'ppic_1' => 'integer|min:0', 'ppic_2' => 'integer|min:0', 'line_scc' => 'integer|min:0',
-            'p1' => 'integer|min:0', 'p2' => 'integer|min:0', 'p3' => 'integer|min:0', 'p5' => 'integer|min:0',
-            'p6' => 'integer|min:0', 'p7' => 'integer|min:0', 'p8' => 'integer|min:0', 'eng' => 'integer|min:0',
-            'qa_2' => 'integer|min:0',
+            'opening_stock' => 'required|integer|min:0|max:2147483647',
+            'qa_1' => 'integer|min:0|max:2147483647', 'qa_1_2' => 'integer|min:0|max:2147483647', 'qa_inc' => 'integer|min:0|max:2147483647', 'qa_insp' => 'integer|min:0|max:2147483647',
+            'ppic_1' => 'integer|min:0|max:2147483647', 'ppic_2' => 'integer|min:0|max:2147483647', 'line_scc' => 'integer|min:0|max:2147483647',
+            'p1' => 'integer|min:0|max:2147483647', 'p2' => 'integer|min:0|max:2147483647', 'p3' => 'integer|min:0|max:2147483647', 'p5' => 'integer|min:0|max:2147483647',
+            'p6' => 'integer|min:0|max:2147483647', 'p7' => 'integer|min:0|max:2147483647', 'p8' => 'integer|min:0|max:2147483647', 'eng' => 'integer|min:0|max:2147483647',
+            'qa_2' => 'integer|min:0|max:2147483647',
         ]);
 
         if ($data['category'] === '__new') {
@@ -115,12 +119,12 @@ class ToolController extends Controller
             'category_new' => 'required_if:category,__new|nullable|string|max:100',
             'order_number' => 'nullable|string|max:255',
             'specification' => 'nullable|string|max:255',
-            'opening_stock' => 'required|integer|min:0',
-            'qa_1' => 'integer|min:0', 'qa_1_2' => 'integer|min:0', 'qa_inc' => 'integer|min:0', 'qa_insp' => 'integer|min:0',
-            'ppic_1' => 'integer|min:0', 'ppic_2' => 'integer|min:0', 'line_scc' => 'integer|min:0',
-            'p1' => 'integer|min:0', 'p2' => 'integer|min:0', 'p3' => 'integer|min:0', 'p5' => 'integer|min:0',
-            'p6' => 'integer|min:0', 'p7' => 'integer|min:0', 'p8' => 'integer|min:0', 'eng' => 'integer|min:0',
-            'qa_2' => 'integer|min:0',
+            'opening_stock' => 'required|integer|min:0|max:2147483647',
+            'qa_1' => 'integer|min:0|max:2147483647', 'qa_1_2' => 'integer|min:0|max:2147483647', 'qa_inc' => 'integer|min:0|max:2147483647', 'qa_insp' => 'integer|min:0|max:2147483647',
+            'ppic_1' => 'integer|min:0|max:2147483647', 'ppic_2' => 'integer|min:0|max:2147483647', 'line_scc' => 'integer|min:0|max:2147483647',
+            'p1' => 'integer|min:0|max:2147483647', 'p2' => 'integer|min:0|max:2147483647', 'p3' => 'integer|min:0|max:2147483647', 'p5' => 'integer|min:0|max:2147483647',
+            'p6' => 'integer|min:0|max:2147483647', 'p7' => 'integer|min:0|max:2147483647', 'p8' => 'integer|min:0|max:2147483647', 'eng' => 'integer|min:0|max:2147483647',
+            'qa_2' => 'integer|min:0|max:2147483647',
         ]);
 
         if ($data['category'] === '__new') {
@@ -216,8 +220,12 @@ class ToolController extends Controller
     // ==========================================
     public function exportCsv(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
-        $kategori = $request->input('kategori', 'Small Tool');
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'kategori' => 'nullable|string|max:100',
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $kategori = $filters['kategori'] ?? 'Small Tool';
         $filename = 'daftar-induk-' . strtolower(str_replace(' ', '-', $kategori)) . '-' . $tahun . '.xlsx';
 
         $this->logExport('tools', 'Export Excel - ' . $kategori . ' tahun ' . $tahun);
@@ -230,8 +238,12 @@ class ToolController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
-        $kategori = $request->input('kategori', 'Small Tool');
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'kategori' => 'nullable|string|max:100',
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $kategori = $filters['kategori'] ?? 'Small Tool';
 
         $tools = Tool::where('tahun', $tahun)
             ->where('category', $kategori)

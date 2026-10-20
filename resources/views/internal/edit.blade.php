@@ -26,7 +26,7 @@
             </div>
             <div>
                 <label class="block text-sm font-semibold mb-1">Tahun</label>
-                <input type="number" name="tahun" value="{{ $internal->tahun }}" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="number" name="tahun" value="{{ $internal->tahun }}" min="2000" max="2100" step="1" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
         </div>
 
@@ -42,7 +42,7 @@
             @foreach($bulan as $name => $label)
             <div>
                 <label class="block text-xs font-semibold mb-1 text-gray-600">{{ $label }}</label>
-                <input type="number" name="{{ $name }}" value="{{ $internal->$name }}" min="0" class="w-full border border-gray-300 p-2 rounded text-center focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="number" name="{{ $name }}" value="{{ $internal->$name }}" min="0" max="2147483647" step="1" inputmode="numeric" class="w-full border border-gray-300 p-2 rounded text-center focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
             @endforeach
         </div>

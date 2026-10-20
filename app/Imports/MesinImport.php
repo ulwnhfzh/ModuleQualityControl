@@ -33,22 +33,13 @@ class MesinImport implements ToModel, WithHeadingRow
             'maker'          => $row['maker'] ?? null,
             'no_machine'     => $row['no_machine'] ?? null,
             'retension'      => $row['retension'] ?? null,
-            'start_date'     => $row['start_date'] ?? null,
-            'next_date'      => $row['next_date'] ?? null,
+            'start_date'     => SpreadsheetInput::date($row['start_date'] ?? null, "{$row['tool_name']} / start_date"),
+            'next_date'      => SpreadsheetInput::date($row['next_date'] ?? null, "{$row['tool_name']} / next_date"),
             'tahun'          => $this->tahun,
-            'jan' => $row['jan'] ?? 0,
-            'feb' => $row['feb'] ?? 0,
-            'mar' => $row['mar'] ?? 0,
-            'apr' => $row['apr'] ?? 0,
-            'may' => $row['may'] ?? 0,
-            'jun' => $row['jun'] ?? 0,
-            'jul' => $row['jul'] ?? 0,
-            'aug' => $row['aug'] ?? 0,
-            'sep' => $row['sep'] ?? 0,
-            'oct' => $row['oct'] ?? 0,
-            'nov' => $row['nov'] ?? 0,
-            'dec' => $row['dec'] ?? 0,
         ];
+        foreach (SpreadsheetInput::MONTH_FIELDS as $month) {
+            $data[$month] = SpreadsheetInput::integer($row[$month] ?? null, "{$row['tool_name']} / {$month}");
+        }
 
         $data['total'] = array_sum([
             $data['jan'], $data['feb'], $data['mar'], $data['apr'],

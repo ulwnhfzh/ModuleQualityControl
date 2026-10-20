@@ -57,15 +57,17 @@
 
                     @if(Auth::check() && Auth::user()->role === 'admin')
 
+                        <!-- Tombol Import -->
                         <a href="{{ route('verifikasi.import.form', ['mode' => $mode]) }}"
                            class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap
                                   px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
                             📥 Import
                         </a>
 
+                        <!-- Tombol Export Dropdown -->
                         <div class="relative inline-block" id="exportDropdownVerif">
                             <button type="button" onclick="toggleExportVerif()"
-                                    class="bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition inline-flex items-center gap-1 whitespace-nowrap
+                                    class="bg-slate-800 text-white rounded font-semibold hover:bg-slate-900 transition inline-flex items-center gap-1 whitespace-nowrap
                                            px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
                                 📤 Export
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
@@ -97,6 +99,7 @@
                             </div>
                         </div>
 
+                        <!-- Tombol Tambah -->
                         <a href="{{ route('verifikasi.create', ['mode' => $mode, 'tahun' => $tahun]) }}"
                            class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
                                   px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">

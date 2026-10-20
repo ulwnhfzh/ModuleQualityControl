@@ -75,7 +75,7 @@
                     <input name="entries[0][specification]" value="{{ old('entries.0.specification') }}" placeholder="Contoh: Ø 2.5" class="mt-1 block w-full rounded border-gray-300 text-sm">
                 </label>
                 <label class="text-xs font-semibold text-gray-600">Stock Awal
-                    <input type="number" min="0" step="1" name="entries[0][opening_stock]" value="{{ old('entries.0.opening_stock', 0) }}" class="mt-1 block w-full rounded border-gray-300 text-sm">
+                    <input type="number" min="0" max="2147483647" step="1" name="entries[0][opening_stock]" value="{{ old('entries.0.opening_stock', 0) }}" class="mt-1 block w-full rounded border-gray-300 text-sm">
                 </label>
             </div>
             <div class="px-4 pt-3">
@@ -108,7 +108,7 @@
                                             <td class="border-b border-gray-100 px-1 py-1 text-center text-gray-500">{{ $slot }}</td>
                                             @foreach(['in', 'out'] as $direction)
                                                 <td class="border-b border-gray-100 px-1 py-1">
-                                                    <input type="number" min="0" step="1" inputmode="numeric" name="entries[0][months][{{ $monthNumber }}][{{ $direction }}][{{ $slot }}][quantity]" value="{{ old("entries.0.months.$monthNumber.$direction.$slot.quantity") }}" aria-label="{{ strtoupper($direction) }} QTY {{ $monthName }} slot {{ $slot }}" class="w-14 rounded border-gray-300 px-1 py-1.5 text-center">
+                                                    <input type="number" min="0" max="2147483647" step="1" inputmode="numeric" name="entries[0][months][{{ $monthNumber }}][{{ $direction }}][{{ $slot }}][quantity]" value="{{ old("entries.0.months.$monthNumber.$direction.$slot.quantity") }}" aria-label="{{ strtoupper($direction) }} QTY {{ $monthName }} slot {{ $slot }}" class="w-14 rounded border-gray-300 px-1 py-1.5 text-center">
                                                 </td>
                                                 <td class="border-b border-gray-100 px-1 py-1">
                                                     <x-date-entry name="entries[0][months][{{ $monthNumber }}][{{ $direction }}][{{ $slot }}][date]" :value="old("entries.0.months.$monthNumber.$direction.$slot.date")" aria-label="Tanggal {{ strtoupper($direction) }} {{ $monthName }} slot {{ $slot }}" input-class="w-32 rounded border-gray-300 px-1 py-1.5 text-xs" />
