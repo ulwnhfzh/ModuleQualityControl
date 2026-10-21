@@ -10,6 +10,7 @@
     <style>
         body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 
+        main table { border-collapse: collapse; }
         .table-scroll::-webkit-scrollbar { height: 8px; }
         .table-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .table-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }

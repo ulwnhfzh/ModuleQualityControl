@@ -12,6 +12,7 @@
         table.data tfoot td { background-color: #d1fae5; font-weight: bold; }
         table.data tr:nth-child(even) { background-color: #f8fafc; }
     </style>
+    @include('pdf.table-theme')
 </head>
 <body>
 

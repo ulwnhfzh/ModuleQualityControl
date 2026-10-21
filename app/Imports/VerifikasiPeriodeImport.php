@@ -3,12 +3,10 @@
 namespace App\Imports;
 
 use App\Models\VerifikasiInternalSchedule;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class VerifikasiPeriodeImport implements ToCollection, WithHeadingRow
 {
@@ -42,11 +40,11 @@ class VerifikasiPeriodeImport implements ToCollection, WithHeadingRow
                 'serial_number' => $serial,
                 'registration_number' => $this->nullableString($data['registration_number'] ?? $data['number_registration'] ?? null),
                 'shop' => $this->nullableString($data['shop'] ?? null),
-                'period1_verification_date' => $this->dateValue($data['period1_verification_date'] ?? $data['period_1_verification_date'] ?? $data['periode_1_verification_date'] ?? null),
-                'period1_next_verification_date' => $this->dateValue($data['period1_next_verification_date'] ?? $data['period_1_next_verification_date'] ?? $data['periode_1_next_verification_date'] ?? null),
+                'period1_verification_date' => SpreadsheetInput::date($data['period1_verification_date'] ?? $data['period_1_verification_date'] ?? $data['periode_1_verification_date'] ?? null, "{$name} / period1_verification_date"),
+                'period1_next_verification_date' => SpreadsheetInput::date($data['period1_next_verification_date'] ?? $data['period_1_next_verification_date'] ?? $data['periode_1_next_verification_date'] ?? null, "{$name} / period1_next_verification_date"),
                 'period1_jgm' => $this->nullableString($data['period1_jgm'] ?? $data['period_1_jgm'] ?? $data['periode_1_jgm'] ?? null),
-                'period2_verification_date' => $this->dateValue($data['period2_verification_date'] ?? $data['period_2_verification_date'] ?? $data['periode_2_verification_date'] ?? null),
-                'period2_next_verification_date' => $this->dateValue($data['period2_next_verification_date'] ?? $data['period_2_next_verification_date'] ?? $data['periode_2_next_verification_date'] ?? null),
+                'period2_verification_date' => SpreadsheetInput::date($data['period2_verification_date'] ?? $data['period_2_verification_date'] ?? $data['periode_2_verification_date'] ?? null, "{$name} / period2_verification_date"),
+                'period2_next_verification_date' => SpreadsheetInput::date($data['period2_next_verification_date'] ?? $data['period_2_next_verification_date'] ?? $data['periode_2_next_verification_date'] ?? null, "{$name} / period2_next_verification_date"),
                 'period2_jgm' => $this->nullableString($data['period2_jgm'] ?? $data['period_2_jgm'] ?? $data['periode_2_jgm'] ?? null),
                 'tool_id' => null,
                 ]);
@@ -58,20 +56,5 @@ class VerifikasiPeriodeImport implements ToCollection, WithHeadingRow
     {
         $value = trim((string) ($value ?? ''));
         return $value === '' ? null : $value;
-    }
-
-    private function dateValue(mixed $value): ?string
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-        if (is_numeric($value)) {
-            return ExcelDate::excelToDateTimeObject((float) $value)->format('Y-m-d');
-        }
-        try {
-            return Carbon::parse($value)->format('Y-m-d');
-        } catch (\Throwable) {
-            return null;
-        }
     }
 }

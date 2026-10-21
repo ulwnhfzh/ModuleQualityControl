@@ -164,7 +164,7 @@ class StockController extends Controller
             'stock_id' => 'required|exists:tool_stocks,id',
             'movement_date' => 'required|date',
             'direction' => 'required|in:in,out',
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'required|integer|min:1|max:2147483647',
             'note' => 'nullable|string|max:255',
         ]);
 
@@ -207,11 +207,11 @@ class StockController extends Controller
             'entries.*.type' => 'nullable|string|max:100',
             'entries.*.order_number' => 'nullable|string|max:100',
             'entries.*.specification' => 'nullable|string|max:255',
-            'entries.*.opening_stock' => 'nullable|integer|min:0',
+            'entries.*.opening_stock' => 'nullable|integer|min:0|max:2147483647',
             'entries.*.months' => 'nullable|array',
-            'entries.*.months.*.in.*.quantity' => 'nullable|integer|min:0',
+            'entries.*.months.*.in.*.quantity' => 'nullable|integer|min:0|max:2147483647',
             'entries.*.months.*.in.*.date' => 'nullable|date',
-            'entries.*.months.*.out.*.quantity' => 'nullable|integer|min:0',
+            'entries.*.months.*.out.*.quantity' => 'nullable|integer|min:0|max:2147483647',
             'entries.*.months.*.out.*.date' => 'nullable|date',
         ]);
 
@@ -318,7 +318,7 @@ class StockController extends Controller
             'type' => 'required|string|max:100',
             'order_number' => 'nullable|string|max:100',
             'specification' => 'nullable|string|max:255',
-            'opening_stock' => 'required|integer|min:0',
+            'opening_stock' => 'required|integer|min:0|max:2147483647',
         ]);
 
         $duplicate = ToolStock::where('category', $data['kategori'])

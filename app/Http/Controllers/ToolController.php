@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Tool;
 use App\Models\ToolStock;
 use App\Models\DokumenCounter;
+use App\Models\User; // Tambahan untuk ambil email admin
+use App\Notifications\AlatJatuhTempoNotification; // Tambahan
 use App\Support\DocumentPdfLayout;
 use Illuminate\Http\Request;
 use App\Imports\ToolsImport;
@@ -13,6 +15,8 @@ use App\Traits\LogsActivity;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
+use Carbon\Carbon; // Tambahan untuk hitung selisih hari
 
 class ToolController extends Controller
 {
@@ -20,8 +24,12 @@ class ToolController extends Controller
 
     public function index(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
-        $kategori = $request->input('kategori', 'Small Tool');
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'kategori' => 'nullable|string|max:100',
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $kategori = $filters['kategori'] ?? 'Small Tool';
         $categories = Tool::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category');
 
         $query = Tool::query();
@@ -51,12 +59,17 @@ class ToolController extends Controller
             'category_new' => 'required_if:category,__new|nullable|string|max:100',
             'order_number' => 'nullable|string|max:255',
             'specification' => 'nullable|string|max:255',
-            'opening_stock' => 'required|integer|min:0',
-            'qa_1' => 'integer|min:0', 'qa_1_2' => 'integer|min:0', 'qa_inc' => 'integer|min:0', 'qa_insp' => 'integer|min:0',
-            'ppic_1' => 'integer|min:0', 'ppic_2' => 'integer|min:0', 'line_scc' => 'integer|min:0',
-            'p1' => 'integer|min:0', 'p2' => 'integer|min:0', 'p3' => 'integer|min:0', 'p5' => 'integer|min:0',
-            'p6' => 'integer|min:0', 'p7' => 'integer|min:0', 'p8' => 'integer|min:0', 'eng' => 'integer|min:0',
-            'qa_2' => 'integer|min:0',
+            'opening_stock' => 'required|integer|min:0|max:2147483647',
+            
+            // TAMBAHAN VALIDASI TANGGAL
+            'start_date' => 'nullable|date',
+            'next_date' => 'nullable|date|after:start_date',
+
+            'qa_1' => 'integer|min:0|max:2147483647', 'qa_1_2' => 'integer|min:0|max:2147483647', 'qa_inc' => 'integer|min:0|max:2147483647', 'qa_insp' => 'integer|min:0|max:2147483647',
+            'ppic_1' => 'integer|min:0|max:2147483647', 'ppic_2' => 'integer|min:0|max:2147483647', 'line_scc' => 'integer|min:0|max:2147483647',
+            'p1' => 'integer|min:0|max:2147483647', 'p2' => 'integer|min:0|max:2147483647', 'p3' => 'integer|min:0|max:2147483647', 'p5' => 'integer|min:0|max:2147483647',
+            'p6' => 'integer|min:0|max:2147483647', 'p7' => 'integer|min:0|max:2147483647', 'p8' => 'integer|min:0|max:2147483647', 'eng' => 'integer|min:0|max:2147483647',
+            'qa_2' => 'integer|min:0|max:2147483647',
         ]);
 
         if ($data['category'] === '__new') {
@@ -80,6 +93,7 @@ class ToolController extends Controller
             'opening_stock' => $data['opening_stock'],
         ];
         unset($data['order_number'], $data['specification'], $data['opening_stock']);
+        
         $tool = Tool::create($data);
         $tool->stockInfo()->create($stockData);
 
@@ -90,12 +104,34 @@ class ToolController extends Controller
             $tool->toArray()
         );
 
-        if ($request->input('save_mode') === 'another') {
-            return redirect()->route('tools.create', ['kategori' => $tool->category])
-                ->with('success', 'Alat berhasil disimpan. Lanjutkan input alat berikutnya.');
+        // ==========================================
+        // LOGIKA PENGECEKAN JATUH TEMPO (ALERT & EMAIL)
+        // ==========================================
+        $warningMessage = null;
+        if ($tool->next_date) {
+            $sisaHari = now()->startOfDay()->diffInDays(Carbon::parse($tool->next_date)->startOfDay(), false);
+            
+            // Jika sisa hari <= 7 (mendekati) atau < 0 (terlambat)
+            if ($sisaHari <= 7) {
+                $warningMessage = "⚠️ Perhatian: Alat '{$tool->tool_name}' akan jatuh tempo pada " . Carbon::parse($tool->next_date)->format('d M Y') . " (Sisa {$sisaHari} hari).";
+                
+                // Kirim Email ke Admin
+                $admins = User::where('role', 'admin')->get();
+                if ($admins->count() > 0) {
+                    Notification::send($admins, new AlatJatuhTempoNotification($tool, $sisaHari));
+                }
+            }
         }
 
-        return redirect()->route('tools.index')->with('success', 'Alat ukur berhasil ditambahkan!');
+        if ($request->input('save_mode') === 'another') {
+            return redirect()->route('tools.create', ['kategori' => $tool->category])
+                ->with('success', 'Alat berhasil disimpan. Lanjutkan input alat berikutnya.')
+                ->with('warning_alert', $warningMessage);
+        }
+
+        return redirect()->route('tools.index')
+            ->with('success', 'Alat ukur berhasil ditambahkan!')
+            ->with('warning_alert', $warningMessage);
     }
 
     public function edit(Tool $tool)
@@ -115,12 +151,17 @@ class ToolController extends Controller
             'category_new' => 'required_if:category,__new|nullable|string|max:100',
             'order_number' => 'nullable|string|max:255',
             'specification' => 'nullable|string|max:255',
-            'opening_stock' => 'required|integer|min:0',
-            'qa_1' => 'integer|min:0', 'qa_1_2' => 'integer|min:0', 'qa_inc' => 'integer|min:0', 'qa_insp' => 'integer|min:0',
-            'ppic_1' => 'integer|min:0', 'ppic_2' => 'integer|min:0', 'line_scc' => 'integer|min:0',
-            'p1' => 'integer|min:0', 'p2' => 'integer|min:0', 'p3' => 'integer|min:0', 'p5' => 'integer|min:0',
-            'p6' => 'integer|min:0', 'p7' => 'integer|min:0', 'p8' => 'integer|min:0', 'eng' => 'integer|min:0',
-            'qa_2' => 'integer|min:0',
+            'opening_stock' => 'required|integer|min:0|max:2147483647',
+            
+            // TAMBAHAN VALIDASI TANGGAL
+            'start_date' => 'nullable|date',
+            'next_date' => 'nullable|date|after:start_date',
+
+            'qa_1' => 'integer|min:0|max:2147483647', 'qa_1_2' => 'integer|min:0|max:2147483647', 'qa_inc' => 'integer|min:0|max:2147483647', 'qa_insp' => 'integer|min:0|max:2147483647',
+            'ppic_1' => 'integer|min:0|max:2147483647', 'ppic_2' => 'integer|min:0|max:2147483647', 'line_scc' => 'integer|min:0|max:2147483647',
+            'p1' => 'integer|min:0|max:2147483647', 'p2' => 'integer|min:0|max:2147483647', 'p3' => 'integer|min:0|max:2147483647', 'p5' => 'integer|min:0|max:2147483647',
+            'p6' => 'integer|min:0|max:2147483647', 'p7' => 'integer|min:0|max:2147483647', 'p8' => 'integer|min:0|max:2147483647', 'eng' => 'integer|min:0|max:2147483647',
+            'qa_2' => 'integer|min:0|max:2147483647',
         ]);
 
         if ($data['category'] === '__new') {
@@ -143,6 +184,7 @@ class ToolController extends Controller
             'opening_stock' => $data['opening_stock'],
         ];
         unset($data['order_number'], $data['specification'], $data['opening_stock']);
+        
         $tool->update($data);
         ToolStock::updateOrCreate(['tool_id' => $tool->id], $stockData);
 
@@ -154,7 +196,25 @@ class ToolController extends Controller
             $tool->fresh()->toArray()
         );
 
-        return redirect()->route('tools.index')->with('success', 'Data alat ukur berhasil diperbarui!');
+        // ==========================================
+        // LOGIKA PENGECEKAN JATUH TEMPO SAAT UPDATE
+        // ==========================================
+        $warningMessage = null;
+        if ($tool->next_date) {
+            $sisaHari = now()->startOfDay()->diffInDays(Carbon::parse($tool->next_date)->startOfDay(), false);
+            if ($sisaHari <= 7) {
+                $warningMessage = "⚠️ Perhatian: Alat '{$tool->tool_name}' akan jatuh tempo pada " . Carbon::parse($tool->next_date)->format('d M Y') . " (Sisa {$sisaHari} hari).";
+                
+                $admins = User::where('role', 'admin')->get();
+                if ($admins->count() > 0) {
+                    Notification::send($admins, new AlatJatuhTempoNotification($tool, $sisaHari));
+                }
+            }
+        }
+
+        return redirect()->route('tools.index')
+            ->with('success', 'Data alat ukur berhasil diperbarui!')
+            ->with('warning_alert', $warningMessage);
     }
 
     public function destroy(Tool $tool)
@@ -216,8 +276,12 @@ class ToolController extends Controller
     // ==========================================
     public function exportCsv(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
-        $kategori = $request->input('kategori', 'Small Tool');
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'kategori' => 'nullable|string|max:100',
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $kategori = $filters['kategori'] ?? 'Small Tool';
         $filename = 'daftar-induk-' . strtolower(str_replace(' ', '-', $kategori)) . '-' . $tahun . '.xlsx';
 
         $this->logExport('tools', 'Export Excel - ' . $kategori . ' tahun ' . $tahun);
@@ -225,26 +289,24 @@ class ToolController extends Controller
         return Excel::download(new ToolsExport($tahun, $kategori), $filename);
     }
 
-    /**
-     * Export PDF dengan nomor dokumen otomatis
-     */
     public function exportPdf(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
-        $kategori = $request->input('kategori', 'Small Tool');
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'kategori' => 'nullable|string|max:100',
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $kategori = $filters['kategori'] ?? 'Small Tool';
 
         $tools = Tool::where('tahun', $tahun)
             ->where('category', $kategori)
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        // ===== GENERATE NOMOR DOKUMEN =====
         $nomorDokumen = DokumenCounter::generateNomor('DIN', $tahun, 'QC');
 
-        // ===== LOG ACTIVITY =====
         $this->logExport('tools', 'Export PDF Daftar Induk - ' . $kategori . ' - Nomor: ' . $nomorDokumen);
 
-        // ===== GENERATE PDF =====
         $pdf = Pdf::loadView('tools.pdf', compact('tools', 'tahun', 'kategori', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
 

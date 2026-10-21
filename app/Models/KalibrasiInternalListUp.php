@@ -9,10 +9,13 @@ class KalibrasiInternalListUp extends Model
     protected $fillable = [
         'tahun', 'tool_name', 'tool_type', 'specification', 'serial_number',
         'registration_number', 'shop', 'calibration_date', 'next_calibration_date', 'jgm',
+        'period2_calibration_date', 'period2_next_calibration_date', 'period2_jgm',
     ];
 
     protected $casts = [
         'calibration_date' => 'date',
         'next_calibration_date' => 'date',
+        'period2_calibration_date' => 'date',
+        'period2_next_calibration_date' => 'date',
     ];
 }

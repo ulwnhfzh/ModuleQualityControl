@@ -23,8 +23,12 @@ class VerifikasiController extends Controller
     // ==========================================
     public function index(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
-        $mode = $request->input('mode', 'bulanan');
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'mode' => 'nullable|in:bulanan,harian',
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $mode = $filters['mode'] ?? 'bulanan';
 
         if ($mode == 'harian') {
             $schedules = Verifikasi::where('tahun', $tahun)
@@ -46,8 +50,12 @@ class VerifikasiController extends Controller
     // ==========================================
     public function create(Request $request)
     {
-        $mode = $request->input('mode', 'bulanan');
-        $tahun = (int) $request->input('tahun', date('Y'));
+        $filters = $request->validate([
+            'mode' => 'nullable|in:bulanan,harian',
+            'tahun' => 'nullable|integer|between:2000,2100',
+        ]);
+        $mode = $filters['mode'] ?? 'bulanan';
+        $tahun = (int) ($filters['tahun'] ?? date('Y'));
 
         $tools = Tool::select('tool_name')
             ->distinct()
@@ -62,7 +70,8 @@ class VerifikasiController extends Controller
     // ==========================================
     public function store(Request $request)
     {
-        $mode = $request->input('tipe', 'bulanan');
+        $modeData = $request->validate(['tipe' => 'required|in:bulanan,harian']);
+        $mode = $modeData['tipe'];
         $data['tool_name'] = strtoupper($request->tool_name);
         $data['tahun'] = $request->tahun;
         $data['tipe'] = $mode;
@@ -70,12 +79,12 @@ class VerifikasiController extends Controller
         if ($mode == 'harian') {
             $request->validate([
                 'tool_name' => 'required|string|max:255',
-                'tahun' => 'required|digits:4',
+                'tahun' => 'required|integer|between:2000,2100',
                 'tanggal' => 'required|date',
-                'qa_1' => 'integer|min:0', 'qa_1_2' => 'integer|min:0', 'qa_inc' => 'integer|min:0', 'qa_insp' => 'integer|min:0',
-                'ppic_1' => 'integer|min:0', 'ppic_2' => 'integer|min:0', 'line_scc' => 'integer|min:0',
-                'p1' => 'integer|min:0', 'p2' => 'integer|min:0', 'p3' => 'integer|min:0', 'p5' => 'integer|min:0',
-                'p6' => 'integer|min:0', 'p7' => 'integer|min:0', 'p8' => 'integer|min:0', 'eng' => 'integer|min:0',
+                'qa_1' => 'integer|min:0|max:2147483647', 'qa_1_2' => 'integer|min:0|max:2147483647', 'qa_inc' => 'integer|min:0|max:2147483647', 'qa_insp' => 'integer|min:0|max:2147483647',
+                'ppic_1' => 'integer|min:0|max:2147483647', 'ppic_2' => 'integer|min:0|max:2147483647', 'line_scc' => 'integer|min:0|max:2147483647',
+                'p1' => 'integer|min:0|max:2147483647', 'p2' => 'integer|min:0|max:2147483647', 'p3' => 'integer|min:0|max:2147483647', 'p5' => 'integer|min:0|max:2147483647',
+                'p6' => 'integer|min:0|max:2147483647', 'p7' => 'integer|min:0|max:2147483647', 'p8' => 'integer|min:0|max:2147483647', 'eng' => 'integer|min:0|max:2147483647',
             ]);
 
             $data['tanggal'] = $request->tanggal;
@@ -103,10 +112,10 @@ class VerifikasiController extends Controller
         } else {
             $request->validate([
                 'tool_name' => 'required|string|max:255',
-                'tahun' => 'required|digits:4',
-                'jan' => 'integer|min:0', 'feb' => 'integer|min:0', 'mar' => 'integer|min:0', 'apr' => 'integer|min:0',
-                'may' => 'integer|min:0', 'jun' => 'integer|min:0', 'jul' => 'integer|min:0', 'aug' => 'integer|min:0',
-                'sep' => 'integer|min:0', 'oct' => 'integer|min:0', 'nov' => 'integer|min:0', 'dec' => 'integer|min:0',
+                'tahun' => 'required|integer|between:2000,2100',
+                'jan' => 'integer|min:0|max:2147483647', 'feb' => 'integer|min:0|max:2147483647', 'mar' => 'integer|min:0|max:2147483647', 'apr' => 'integer|min:0|max:2147483647',
+                'may' => 'integer|min:0|max:2147483647', 'jun' => 'integer|min:0|max:2147483647', 'jul' => 'integer|min:0|max:2147483647', 'aug' => 'integer|min:0|max:2147483647',
+                'sep' => 'integer|min:0|max:2147483647', 'oct' => 'integer|min:0|max:2147483647', 'nov' => 'integer|min:0|max:2147483647', 'dec' => 'integer|min:0|max:2147483647',
             ]);
 
             $data['jan'] = $request->jan ?? 0;
@@ -160,12 +169,12 @@ class VerifikasiController extends Controller
         if ($verifikasi->tipe == 'harian') {
             $request->validate([
                 'tool_name' => 'required|string|max:255',
-                'tahun' => 'required|digits:4',
+                'tahun' => 'required|integer|between:2000,2100',
                 'tanggal' => 'required|date',
-                'qa_1' => 'integer|min:0', 'qa_1_2' => 'integer|min:0', 'qa_inc' => 'integer|min:0', 'qa_insp' => 'integer|min:0',
-                'ppic_1' => 'integer|min:0', 'ppic_2' => 'integer|min:0', 'line_scc' => 'integer|min:0',
-                'p1' => 'integer|min:0', 'p2' => 'integer|min:0', 'p3' => 'integer|min:0', 'p5' => 'integer|min:0',
-                'p6' => 'integer|min:0', 'p7' => 'integer|min:0', 'p8' => 'integer|min:0', 'eng' => 'integer|min:0',
+                'qa_1' => 'integer|min:0|max:2147483647', 'qa_1_2' => 'integer|min:0|max:2147483647', 'qa_inc' => 'integer|min:0|max:2147483647', 'qa_insp' => 'integer|min:0|max:2147483647',
+                'ppic_1' => 'integer|min:0|max:2147483647', 'ppic_2' => 'integer|min:0|max:2147483647', 'line_scc' => 'integer|min:0|max:2147483647',
+                'p1' => 'integer|min:0|max:2147483647', 'p2' => 'integer|min:0|max:2147483647', 'p3' => 'integer|min:0|max:2147483647', 'p5' => 'integer|min:0|max:2147483647',
+                'p6' => 'integer|min:0|max:2147483647', 'p7' => 'integer|min:0|max:2147483647', 'p8' => 'integer|min:0|max:2147483647', 'eng' => 'integer|min:0|max:2147483647',
             ]);
 
             $data['tanggal'] = $request->tanggal;
@@ -193,10 +202,10 @@ class VerifikasiController extends Controller
         } else {
             $request->validate([
                 'tool_name' => 'required|string|max:255',
-                'tahun' => 'required|digits:4',
-                'jan' => 'integer|min:0', 'feb' => 'integer|min:0', 'mar' => 'integer|min:0', 'apr' => 'integer|min:0',
-                'may' => 'integer|min:0', 'jun' => 'integer|min:0', 'jul' => 'integer|min:0', 'aug' => 'integer|min:0',
-                'sep' => 'integer|min:0', 'oct' => 'integer|min:0', 'nov' => 'integer|min:0', 'dec' => 'integer|min:0',
+                'tahun' => 'required|integer|between:2000,2100',
+                'jan' => 'integer|min:0|max:2147483647', 'feb' => 'integer|min:0|max:2147483647', 'mar' => 'integer|min:0|max:2147483647', 'apr' => 'integer|min:0|max:2147483647',
+                'may' => 'integer|min:0|max:2147483647', 'jun' => 'integer|min:0|max:2147483647', 'jul' => 'integer|min:0|max:2147483647', 'aug' => 'integer|min:0|max:2147483647',
+                'sep' => 'integer|min:0|max:2147483647', 'oct' => 'integer|min:0|max:2147483647', 'nov' => 'integer|min:0|max:2147483647', 'dec' => 'integer|min:0|max:2147483647',
             ]);
 
             $data['jan'] = $request->jan ?? 0;
@@ -251,7 +260,8 @@ class VerifikasiController extends Controller
     // ==========================================
     public function importForm(Request $request)
     {
-        $mode = $request->input('mode', 'bulanan');
+        $filters = $request->validate(['mode' => 'nullable|in:bulanan,harian']);
+        $mode = $filters['mode'] ?? 'bulanan';
         return view('verifikasi.import', compact('mode'));
     }
 
@@ -296,8 +306,12 @@ class VerifikasiController extends Controller
     // ==========================================
     public function exportExcel(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
-        $mode = $request->input('mode', 'bulanan');
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'mode' => 'nullable|in:bulanan,harian',
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $mode = $filters['mode'] ?? 'bulanan';
 
         $labelMode = $mode === 'bulanan' ? 'tahunan' : 'bulanan';
         $filename = 'verifikasi-' . $labelMode . '-' . $tahun . '.xlsx';
@@ -312,8 +326,12 @@ class VerifikasiController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
-        $mode = $request->input('mode', 'bulanan');
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'mode' => 'nullable|in:bulanan,harian',
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $mode = $filters['mode'] ?? 'bulanan';
 
         $data = Verifikasi::where('tahun', $tahun)
             ->where('tipe', $mode)
@@ -338,7 +356,8 @@ class VerifikasiController extends Controller
 
     public function downloadTemplate(Request $request)
     {
-        $mode = $request->input('mode', 'bulanan');
+        $filters = $request->validate(['mode' => 'nullable|in:bulanan,harian']);
+        $mode = $filters['mode'] ?? 'bulanan';
 
         $labelMode = $mode === 'bulanan' ? 'tahunan' : 'bulanan';
         $filename = 'template-import-verifikasi-' . $labelMode . '.csv';

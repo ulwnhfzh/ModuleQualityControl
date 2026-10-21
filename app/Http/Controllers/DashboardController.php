@@ -14,7 +14,8 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $tahun = $request->input('tahun', date('Y'));
+        $filters = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $tahun = $filters['tahun'] ?? date('Y');
 
         // ===== KARTU RINGKASAN =====
         $totalTools       = Tool::where('tahun', $tahun)->count();

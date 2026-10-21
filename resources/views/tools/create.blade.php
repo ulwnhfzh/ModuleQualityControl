@@ -48,8 +48,8 @@
             </div>
         </div>
 
-        <h3 class="font-semibold text-gray-700 mb-3 border-b pb-2 text-sm md:text-base">Informasi Stok</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6">
+        <h3 class="font-semibold text-gray-700 mb-3 border-b pb-2 text-sm md:text-base">Informasi Stok & Tanggal</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
             <div>
                 <label class="block text-xs md:text-sm font-semibold mb-1">Nomor Order</label>
                 <input type="text" name="order_number" value="{{ old('order_number') }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
@@ -60,7 +60,16 @@
             </div>
             <div>
                 <label class="block text-xs md:text-sm font-semibold mb-1">Stok Awal *</label>
-                <input type="number" name="opening_stock" min="0" required value="{{ old('opening_stock', 0) }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="number" name="opening_stock" min="0" max="2147483647" step="1" required value="{{ old('opening_stock', 0) }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <!-- TAMBAHAN INPUT TANGGAL -->
+            <div>
+                <label class="block text-xs md:text-sm font-semibold mb-1">Tanggal Mulai</label>
+                <x-date-entry name="start_date" :value="old('start_date')" input-class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div>
+                <label class="block text-xs md:text-sm font-semibold mb-1">Jatuh Tempo Berikutnya</label>
+                <x-date-entry name="next_date" :value="old('next_date')" input-class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
         </div>
 
@@ -79,7 +88,7 @@
             @foreach($fields as $name => $label)
             <div>
                 <label class="block text-[10px] md:text-xs font-semibold mb-1 text-gray-600">{{ $label }}</label>
-                <input type="number" name="{{ $name }}" value="{{ old($name, 0) }}" min="0"
+                <input type="number" name="{{ $name }}" value="{{ old($name, 0) }}" min="0" max="2147483647" step="1" inputmode="numeric"
                        class="w-full border border-gray-300 rounded px-2 py-2 text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
             @endforeach

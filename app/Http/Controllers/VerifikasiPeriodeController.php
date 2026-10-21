@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\VerifikasiInternalSchedule;
 use App\Models\KalibrasiInternalListUp;
+use App\Models\VerifikasiQc2; // <-- WAJIB DITAMBAHKAN
 use App\Exports\VerifikasiPeriodeExport;
 use App\Exports\KalibrasiInternalListUpExport;
 use App\Imports\VerifikasiPeriodeImport;
@@ -16,15 +17,28 @@ class VerifikasiPeriodeController extends Controller
 {
     public function index(Request $request)
     {
-        $tahun = (int) $request->input('tahun', date('Y'));
-        $jenis = $request->input('jenis', 'verifikasi');
-        if (!in_array($jenis, ['kalibrasi', 'verifikasi'], true)) $jenis = 'verifikasi';
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            // TAMBAHKAN verifikasi_qc2 DI SINI
+            'jenis' => 'nullable|in:kalibrasi,verifikasi,verifikasi_qc2',
+        ]);
+        $tahun = (int) ($filters['tahun'] ?? date('Y'));
+        $jenis = $filters['jenis'] ?? 'verifikasi';
 
+        // 1. Kalibrasi Internal
         if ($jenis === 'kalibrasi') {
             $schedules = KalibrasiInternalListUp::where('tahun', $tahun)->orderBy('tool_name')->get();
             return view('verifikasi.periode.kalibrasi', compact('schedules', 'tahun', 'jenis'));
         }
 
+        // 2. Verifikasi QC2 (1 Periode)
+        if ($jenis === 'verifikasi_qc2') {
+            $schedules = VerifikasiQc2::where('tahun', $tahun)->orderBy('tool_name')->get();
+            // Arahkan ke view verifikasi-qc2
+            return view('verifikasi.periode.verifikasi-qc2', compact('schedules', 'tahun', 'jenis'));
+        }
+
+        // 3. Verifikasi Internal (Default, 2 Periode)
         $schedules = VerifikasiInternalSchedule::query()
             ->where('tahun', $tahun)
             ->orderBy('tool_name')
@@ -38,9 +52,13 @@ class VerifikasiPeriodeController extends Controller
         return view('verifikasi.periode.index', compact('schedules', 'tahun', 'types', 'jenis'));
     }
 
+    // ==========================================
+    // METHOD KALIBRASI INTERNAL
+    // ==========================================
+
     public function internalCalibrationCreate(Request $request)
     {
-        $tahun = (int) $request->input('tahun', date('Y'));
+        $tahun = $this->validatedYear($request);
         return view('verifikasi.periode.kalibrasi-form', compact('tahun'));
     }
 
@@ -79,14 +97,14 @@ class VerifikasiPeriodeController extends Controller
 
     public function internalCalibrationImportForm(Request $request)
     {
-        $tahun = (int) $request->input('tahun', date('Y'));
+        $tahun = $this->validatedYear($request);
         return view('verifikasi.periode.kalibrasi-import', compact('tahun'));
     }
 
     public function internalCalibrationImport(Request $request)
     {
         $data = $request->validate([
-            'tahun' => 'required|digits:4',
+            'tahun' => 'required|integer|between:2000,2100',
             'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
         try {
@@ -101,13 +119,17 @@ class VerifikasiPeriodeController extends Controller
 
     public function internalCalibrationExport(Request $request)
     {
-        $tahun = (int) $request->input('tahun', date('Y'));
+        $tahun = $this->validatedYear($request);
         return Excel::download(new KalibrasiInternalListUpExport($tahun), "list-up-kalibrasi-internal-{$tahun}.xlsx");
     }
 
+    // ==========================================
+    // METHOD VERIFIKASI INTERNAL
+    // ==========================================
+
     public function create(Request $request)
     {
-        $tahun = (int) $request->input('tahun', date('Y'));
+        $tahun = $this->validatedYear($request);
         $types = VerifikasiInternalSchedule::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
         return view('verifikasi.periode.form', compact('tahun', 'types'));
@@ -154,14 +176,14 @@ class VerifikasiPeriodeController extends Controller
 
     public function importForm(Request $request)
     {
-        $tahun = (int) $request->input('tahun', date('Y'));
+        $tahun = $this->validatedYear($request);
         return view('verifikasi.periode.import', compact('tahun'));
     }
 
     public function import(Request $request)
     {
         $data = $request->validate([
-            'tahun' => 'required|digits:4',
+            'tahun' => 'required|integer|between:2000,2100',
             'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
         try {
@@ -178,14 +200,18 @@ class VerifikasiPeriodeController extends Controller
 
     public function export(Request $request)
     {
-        $tahun = (int) $request->input('tahun', date('Y'));
+        $tahun = $this->validatedYear($request);
         return Excel::download(new VerifikasiPeriodeExport($tahun), "list-up-verifikasi-{$tahun}.xlsx");
     }
+
+    // ==========================================
+    // METHOD PRIVATE UNTUK VALIDASI
+    // ==========================================
 
     private function validatedData(Request $request, ?VerifikasiInternalSchedule $schedule = null): array
     {
         $validated = $request->validate([
-            'tahun' => 'required|digits:4',
+            'tahun' => 'required|integer|between:2000,2100',
             'tool_name' => 'required|string|max:255',
             'tool_type' => 'required|string|max:100',
             'specification' => 'nullable|string|max:255',
@@ -205,6 +231,12 @@ class VerifikasiPeriodeController extends Controller
         return $validated;
     }
 
+    private function validatedYear(Request $request): int
+    {
+        $data = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        return (int) ($data['tahun'] ?? date('Y'));
+    }
+
     private function validatedCalibrationData(Request $request): array
     {
         $data = $request->validate([
@@ -218,6 +250,9 @@ class VerifikasiPeriodeController extends Controller
             'calibration_date' => 'nullable|date',
             'next_calibration_date' => 'nullable|date|after_or_equal:calibration_date',
             'jgm' => 'nullable|string|max:30',
+            'period2_calibration_date' => 'nullable|date',
+            'period2_next_calibration_date' => 'nullable|date|after_or_equal:period2_calibration_date',
+            'period2_jgm' => 'nullable|string|max:30',
         ]);
         $data['tool_name'] = mb_strtoupper(trim($data['tool_name']), 'UTF-8');
         $data['tool_type'] = mb_strtoupper(trim($data['tool_type']), 'UTF-8');

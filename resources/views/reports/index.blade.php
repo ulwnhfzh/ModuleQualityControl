@@ -289,14 +289,21 @@
 </div>
 @endif
 
-{{-- ===== TAB: GRAFIK (PARETO) - DIPERBAIKI ===== --}}
+{{-- ===== TAB: GRAFIK (PARETO) - MANDIRI ===== --}}
 @if($tab == 'grafik')
 
 {{-- PARETO 1: TOTAL DATA PER FITUR --}}
 <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-4">
-    <div class="mb-4">
-        <h3 class="font-bold text-slate-800 text-base">📊 Total Data per Fitur</h3>
-        <p class="text-xs text-slate-500 mt-0.5">Distribusi jumlah data berdasarkan fitur QC - Tahun {{ $tahun }}</p>
+    <div class="flex justify-between items-start mb-4">
+        <div>
+            <h3 class="font-bold text-slate-800 text-base">📊 Total Data per Fitur</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Distribusi jumlah data berdasarkan fitur QC</p>
+        </div>
+        <select id="filterTahunFitur" class="border border-gray-300 rounded text-xs px-2 py-1.5 focus:ring-2 focus:ring-blue-500">
+            @for($y = date('Y'); $y >= date('Y') - 5; $y--)
+                <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
+            @endfor
+        </select>
     </div>
     <div class="h-96">
         <canvas id="chartParetoFitur"></canvas>
@@ -307,9 +314,16 @@
 
     {{-- PARETO 2: DISTRIBUSI KATEGORI ALAT --}}
     <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <div class="mb-4">
-            <h3 class="font-bold text-slate-800 text-sm">📊 Distribusi Kategori Alat</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Kategori dari Daftar Induk - {{ $tahun }}</p>
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h3 class="font-bold text-slate-800 text-sm">📊 Distribusi Kategori Alat</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Kategori dari Daftar Induk</p>
+            </div>
+            <select id="filterTahunKategori" class="border border-gray-300 rounded text-xs px-2 py-1.5 focus:ring-2 focus:ring-blue-500">
+                @for($y = date('Y'); $y >= date('Y') - 5; $y--)
+                    <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
+                @endfor
+            </select>
         </div>
         <div class="h-80">
             <canvas id="chartParetoKategori"></canvas>
@@ -318,9 +332,16 @@
 
     {{-- PARETO 3: AKTIVITAS PER BULAN --}}
     <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <div class="mb-4">
-            <h3 class="font-bold text-slate-800 text-sm">📊 Aktivitas per Bulan</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Total aktivitas kalibrasi & verifikasi per bulan - {{ $tahun }}</p>
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h3 class="font-bold text-slate-800 text-sm">📊 Aktivitas per Bulan</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Total aktivitas kalibrasi & verifikasi per bulan</p>
+            </div>
+            <select id="filterTahunBulan" class="border border-gray-300 rounded text-xs px-2 py-1.5 focus:ring-2 focus:ring-blue-500">
+                @for($y = date('Y'); $y >= date('Y') - 5; $y--)
+                    <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
+                @endfor
+            </select>
         </div>
         <div class="h-80">
             <canvas id="chartParetoBulan"></canvas>
@@ -332,9 +353,16 @@
 
     {{-- PARETO 4: DISTRIBUSI DATA PER DEPARTEMEN --}}
     <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <div class="mb-4">
-            <h3 class="font-bold text-slate-800 text-sm">📊 Distribusi Data per Departemen</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Jumlah data dari tabel Verifikasi per departemen - {{ $tahun }}</p>
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h3 class="font-bold text-slate-800 text-sm">📊 Distribusi Data per Departemen</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Jumlah data dari tabel Verifikasi per departemen</p>
+            </div>
+            <select id="filterTahunDepartemen" class="border border-gray-300 rounded text-xs px-2 py-1.5 focus:ring-2 focus:ring-blue-500">
+                @for($y = date('Y'); $y >= date('Y') - 5; $y--)
+                    <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
+                @endfor
+            </select>
         </div>
         <div class="h-96">
             <canvas id="chartParetoDepartemen"></canvas>
@@ -354,252 +382,109 @@ document.addEventListener('DOMContentLoaded', function() {
     // FUNGSI UTAMA: PARETO CHART
     // ========================================
     function buatParetoChart(canvasId, labels, values, warnaBar = '#3b82f6') {
-        // Sortir descending
         const combined = labels.map((label, i) => ({ label, value: values[i] }));
         combined.sort((a, b) => b.value - a.value);
-
         const sortedLabels = combined.map(c => c.label);
         const sortedValues = combined.map(c => c.value);
-
         const total = sortedValues.reduce((a, b) => a + b, 0);
-
-        // Hitung % kumulatif
         let cumulative = 0;
         const cumulativePercentages = sortedValues.map(v => {
             cumulative += v;
             return total > 0 ? (cumulative / total) * 100 : 0;
         });
-
-        // Hitung max Y
         const maxValue = Math.max(...sortedValues, 1);
         const maxY = Math.ceil(maxValue * 1.2);
 
         const ctx = document.getElementById(canvasId).getContext('2d');
-        new Chart(ctx, {
+        
+        // Hapus chart lama jika ada (Anti Memory Leak saat ganti filter)
+        const existingChart = Chart.getChart(canvasId);
+        if (existingChart) existingChart.destroy();
+
+        return new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: sortedLabels,
                 datasets: [
                     {
-                        type: 'bar',
-                        label: 'Jumlah',
-                        data: sortedValues,
-                        backgroundColor: warnaBar,
-                        borderColor: warnaBar,
-                        borderWidth: 0,
-                        borderRadius: 6,
-                        borderSkipped: false,
-                        yAxisID: 'y',
-                        order: 2,
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'end',
-                            color: '#1e40af',
-                            font: { size: 11, weight: 'bold' },
-                            formatter: function(value) {
-                                return value > 0 ? value : '';
-                            },
-                            offset: 4
-                        }
+                        type: 'bar', label: 'Jumlah', data: sortedValues, backgroundColor: warnaBar,
+                        borderColor: warnaBar, borderWidth: 0, borderRadius: 6, borderSkipped: false, yAxisID: 'y', order: 2,
+                        datalabels: { anchor: 'end', align: 'end', color: '#1e40af', font: { size: 11, weight: 'bold' },
+                            formatter: v => v > 0 ? v : '', offset: 4 }
                     },
                     {
-                        type: 'line',
-                        label: '% Kumulatif',
-                        data: cumulativePercentages,
-                        borderColor: '#dc2626',
-                        backgroundColor: '#dc2626',
-                        borderWidth: 2.5,
-                        pointBackgroundColor: '#dc2626',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 8,
-                        tension: 0.2,
-                        yAxisID: 'y1',
-                        order: 1,
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            color: '#dc2626',
-                            font: { size: 10, weight: 'bold' },
-                            formatter: function(value) {
-                                return value.toFixed(0) + '%';
-                            },
-                            offset: 6
-                        }
+                        type: 'line', label: '% Kumulatif', data: cumulativePercentages, borderColor: '#dc2626',
+                        backgroundColor: '#dc2626', borderWidth: 2.5, pointBackgroundColor: '#dc2626', pointBorderColor: '#fff',
+                        pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 8, tension: 0.2, yAxisID: 'y1', order: 1,
+                        datalabels: { anchor: 'end', align: 'top', color: '#dc2626', font: { size: 10, weight: 'bold' },
+                            formatter: v => v.toFixed(0) + '%', offset: 6 }
                     }
                 ]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                layout: {
-                    padding: { top: 30, right: 20, left: 10, bottom: 10 }
-                },
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
+                responsive: true, maintainAspectRatio: false,
+                layout: { padding: { top: 30, right: 20, left: 10, bottom: 10 } },
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        align: 'end',
-                        labels: {
-                            boxWidth: 14,
-                            boxHeight: 14,
-                            padding: 12,
-                            font: { size: 11, weight: '600' },
-                            usePointStyle: true,
-                        }
+                    legend: { display: true, position: 'top', align: 'end',
+                        labels: { boxWidth: 14, boxHeight: 14, padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true }
                     },
-                    tooltip: {
-                        backgroundColor: '#1e293b',
-                        padding: 12,
-                        titleFont: { size: 12, weight: 'bold' },
-                        bodyFont: { size: 11 },
-                        callbacks: {
-                            label: function(context) {
-                                if (context.dataset.type === 'line') {
-                                    return '  ' + context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
-                                }
-                                return '  ' + context.dataset.label + ': ' + context.parsed.y;
-                            }
-                        }
+                    tooltip: { backgroundColor: '#1e293b', padding: 12, titleFont: { size: 12, weight: 'bold' }, bodyFont: { size: 11 },
+                        callbacks: { label: function(context) {
+                            if (context.dataset.type === 'line') return '  ' + context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                            return '  ' + context.dataset.label + ': ' + context.parsed.y;
+                        }}
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: maxY,
-                        position: 'left',
-                        title: {
-                            display: true,
-                            text: 'Jumlah',
-                            font: { size: 11, weight: 'bold' },
-                            color: '#1e40af'
-                        },
-                        ticks: {
-                            stepSize: maxY <= 10 ? 1 : Math.ceil(maxY / 10),
-                            font: { size: 10 },
-                            color: '#1e40af'
-                        },
-                        grid: {
-                            color: 'rgba(30, 64, 175, 0.08)',
-                            drawBorder: false
-                        }
+                    y: { beginAtZero: true, max: maxY, position: 'left',
+                        title: { display: true, text: 'Jumlah', font: { size: 11, weight: 'bold' }, color: '#1e40af' },
+                        ticks: { stepSize: maxY <= 10 ? 1 : Math.ceil(maxY / 10), font: { size: 10 }, color: '#1e40af' },
+                        grid: { color: 'rgba(30, 64, 175, 0.08)', drawBorder: false }
                     },
-                    y1: {
-                        beginAtZero: true,
-                        max: 100,
-                        position: 'right',
-                        title: {
-                            display: true,
-                            text: '% Kumulatif',
-                            font: { size: 11, weight: 'bold' },
-                            color: '#dc2626'
-                        },
-                        ticks: {
-                            stepSize: 20,
-                            font: { size: 10 },
-                            color: '#dc2626',
-                            callback: function(value) { return value + '%'; }
-                        },
-                        grid: {
-                            display: false,
-                            drawBorder: false
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            font: { size: 10, weight: '600' },
-                            maxRotation: 0,
-                            minRotation: 0,
-                            autoSkip: false
-                        },
+                    y1: { beginAtZero: true, max: 100, position: 'right',
+                        title: { display: true, text: '% Kumulatif', font: { size: 11, weight: 'bold' }, color: '#dc2626' },
+                        ticks: { stepSize: 20, font: { size: 10 }, color: '#dc2626', callback: v => v + '%' },
                         grid: { display: false, drawBorder: false }
-                    }
+                    },
+                    x: { ticks: { font: { size: 10, weight: '600' }, maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false, drawBorder: false } }
                 }
             }
         });
     }
 
     // ========================================
-    // CHART 1: TOTAL DATA PER FITUR
+    // FETCH DATA & RENDER (VIA AJAX)
     // ========================================
-    buatParetoChart('chartParetoFitur',
-        ['Daftar Induk', 'Verifikasi', 'Kalibrasi Internal', 'Kalibrasi Eksternal', 'Kalibrasi Mesin'],
-        [
-            {{ $totalTools }},
-            {{ $totalVerifikasi }},
-            {{ $totalInternal }},
-            {{ $totalEksternal }},
-            {{ $totalMesin }}
-        ],
-        '#3b82f6'
-    );
-
-    // ========================================
-    // CHART 2: DISTRIBUSI KATEGORI ALAT
-    // ========================================
-    buatParetoChart('chartParetoKategori',
-        ['Small Tool', 'Machine', 'Jig'],
-        [
-            {{ $toolsSmallTool }},
-            {{ $toolsMachine }},
-            {{ $toolsJig }}
-        ],
-        '#10b981'
-    );
-
-    // ========================================
-    // CHART 3: AKTIVITAS PER BULAN
-    // ========================================
-    const totalPerBulan = [
-        @json($verifikasiPerBulan),
-        @json($internalPerBulan),
-        @json($eksternalPerBulan),
-        @json($mesinPerBulan)
-    ];
-    const dataBulanan = [];
-    for (let i = 0; i < 12; i++) {
-        dataBulanan.push(
-            (totalPerBulan[0][i] || 0) +
-            (totalPerBulan[1][i] || 0) +
-            (totalPerBulan[2][i] || 0) +
-            (totalPerBulan[3][i] || 0)
-        );
+    function fetchAndRender(url, canvasId, warna) {
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                buatParetoChart(canvasId, data.labels, data.values, warna);
+            })
+            .catch(err => console.error("Gagal load data grafik:", err));
     }
-    buatParetoChart('chartParetoBulan',
-        @json($bulanLabels),
-        dataBulanan,
-        '#8b5cf6'
-    );
 
-    // ========================================
-    // CHART 4: DISTRIBUSI DATA PER DEPARTEMEN
-    // ========================================
-    buatParetoChart('chartParetoDepartemen',
-        ['QA 1', 'QA 1.2', 'QA INC', 'QA INSP', 'PPIC 1', 'PPIC 2', 'LINE SCC', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'ENG'],
-        [
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('qa_1') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('qa_1_2') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('qa_inc') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('qa_insp') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('ppic_1') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('ppic_2') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('line_scc') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p1') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p2') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p3') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p5') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p6') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p7') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('p8') }},
-            {{ \App\Models\Verifikasi::where('tahun', $tahun)->sum('eng') }}
-        ],
-        '#f59e0b'
-    );
+    // Initial Load
+    const currentYear = '{{ $tahun }}';
+    fetchAndRender(`{{ route('reports.api.pareto.fitur') }}?tahun=${currentYear}`, 'chartParetoFitur', '#3b82f6');
+    fetchAndRender(`{{ route('reports.api.pareto.kategori') }}?tahun=${currentYear}`, 'chartParetoKategori', '#10b981');
+    fetchAndRender(`{{ route('reports.api.pareto.bulanan') }}?tahun=${currentYear}`, 'chartParetoBulan', '#8b5cf6');
+    fetchAndRender(`{{ route('reports.api.pareto.departemen') }}?tahun=${currentYear}`, 'chartParetoDepartemen', '#f59e0b');
+
+    // Event Listener Filter Mandiri
+    document.getElementById('filterTahunFitur').addEventListener('change', function() {
+        fetchAndRender(`{{ route('reports.api.pareto.fitur') }}?tahun=${this.value}`, 'chartParetoFitur', '#3b82f6');
+    });
+    document.getElementById('filterTahunKategori').addEventListener('change', function() {
+        fetchAndRender(`{{ route('reports.api.pareto.kategori') }}?tahun=${this.value}`, 'chartParetoKategori', '#10b981');
+    });
+    document.getElementById('filterTahunBulan').addEventListener('change', function() {
+        fetchAndRender(`{{ route('reports.api.pareto.bulanan') }}?tahun=${this.value}`, 'chartParetoBulan', '#8b5cf6');
+    });
+    document.getElementById('filterTahunDepartemen').addEventListener('change', function() {
+        fetchAndRender(`{{ route('reports.api.pareto.departemen') }}?tahun=${this.value}`, 'chartParetoDepartemen', '#f59e0b');
+    });
 
 });
 </script>

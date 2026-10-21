@@ -87,7 +87,7 @@
             @foreach($bulan as $name => $label)
             <div>
                 <label class="block text-xs font-semibold mb-1 text-gray-600">{{ $label }}</label>
-                <input type="number" name="{{ $name }}" value="{{ old($name, 0) }}" min="0" class="w-full border border-gray-300 p-2 rounded text-center focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="number" name="{{ $name }}" value="{{ old($name, 0) }}" min="0" max="2147483647" step="1" inputmode="numeric" class="w-full border border-gray-300 p-2 rounded text-center focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
             @endforeach
         </div>

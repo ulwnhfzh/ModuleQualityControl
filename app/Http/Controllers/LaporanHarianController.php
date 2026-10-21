@@ -10,8 +10,10 @@ use App\Models\Eksternal;
 use App\Models\EksternalMesin;
 use App\Models\DokumenCounter;
 use App\Models\User;
+use App\Exports\ActivityLogExport;
 use App\Traits\LogsActivity;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +25,7 @@ class LaporanHarianController extends Controller
 
     public function index(Request $request)
     {
-        $tanggal = $request->input('tanggal', date('Y-m-d'));
+        $tanggal = $this->validatedDate($request);
         $tanggalCarbon = Carbon::parse($tanggal)->startOfDay();
 
         // ===== STATISTIK =====
@@ -90,7 +92,7 @@ class LaporanHarianController extends Controller
 
     public function previewNomor(Request $request)
     {
-        $tanggal = $request->input('tanggal', date('Y-m-d'));
+        $tanggal = $this->validatedDate($request);
         $tahun = Carbon::parse($tanggal)->year;
 
         $counter = DokumenCounter::where('jenis', 'LAP')
@@ -107,7 +109,7 @@ class LaporanHarianController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $tanggal = $request->input('tanggal', date('Y-m-d'));
+        $tanggal = $this->validatedDate($request);
         $tanggalCarbon = Carbon::parse($tanggal)->startOfDay();
         $tahun = $tanggalCarbon->year;
 
@@ -159,7 +161,7 @@ class LaporanHarianController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $tanggal = $request->input('tanggal', date('Y-m-d'));
+        $tanggal = $this->validatedDate($request);
         $tanggalCarbon = Carbon::parse($tanggal)->startOfDay();
         $tahun = $tanggalCarbon->year;
 
@@ -170,38 +172,21 @@ class LaporanHarianController extends Controller
 
         $this->logExport('laporan', 'Cetak Excel Laporan Harian tanggal ' . $tanggalCarbon->format('d/m/Y') . ' - Nomor: ' . $nomorDokumen);
 
-        $filename = 'laporan-harian-' . $tanggalCarbon->format('Y-m-d') . '.csv';
+        $filename = 'laporan-harian-' . $tanggalCarbon->format('Y-m-d') . '.xlsx';
+        $details = 'Tanggal: ' . $tanggalCarbon->format('d F Y')
+            . ' | Nomor: ' . $nomorDokumen
+            . ' | Pencetak: ' . (Auth::user()->name ?? '-')
+            . ' | Dicetak: ' . now()->format('d/m/Y H:i:s');
 
-        $callback = function () use ($logs, $nomorDokumen, $tanggalCarbon) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        return Excel::download(
+            new ActivityLogExport($logs, 'LAPORAN HARIAN QC', $details, 'H:i:s'),
+            $filename
+        );
+    }
 
-            fputcsv($file, ['LAPORAN HARIAN QC']);
-            fputcsv($file, ['PT. Hamatetsu Indonesia']);
-            fputcsv($file, ['Nomor Dokumen:', $nomorDokumen]);
-            fputcsv($file, ['Tanggal:', $tanggalCarbon->format('d F Y')]);
-            fputcsv($file, ['Pencetak:', Auth::user()->name ?? '-']);
-            fputcsv($file, ['Dicetak:', now()->format('d/m/Y H:i:s')]);
-            fputcsv($file, []);
-            fputcsv($file, ['No', 'Waktu', 'User', 'Aksi', 'Jenis Data', 'Keterangan', 'IP Address']);
-
-            foreach ($logs as $index => $log) {
-                fputcsv($file, [
-                    $index + 1,
-                    $log->created_at->format('H:i:s'),
-                    $log->user_name ?? '-',
-                    $log->aksi,
-                    $log->label_jenis ?? '-',
-                    $log->keterangan ?? '-',
-                    $log->ip_address ?? '-',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->streamDownload($callback, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-        ]);
+    private function validatedDate(Request $request): string
+    {
+        $data = $request->validate(['tanggal' => 'nullable|date_format:Y-m-d']);
+        return $data['tanggal'] ?? date('Y-m-d');
     }
 }

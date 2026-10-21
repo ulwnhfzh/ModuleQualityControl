@@ -62,7 +62,7 @@ class ToolsImport implements ToCollection
                 'tahun' => $this->tahun,
             ];
             foreach ($fields as $field) {
-                $data[$field] = $this->toInteger($rowByHeader[$field] ?? 0);
+                $data[$field] = SpreadsheetInput::integer($rowByHeader[$field] ?? null, "{$toolName} / {$field}");
             }
             $data['total'] = array_sum(array_map(fn ($field) => $data[$field], $fields));
 
@@ -79,16 +79,6 @@ class ToolsImport implements ToCollection
     public function getImportedCount(): int
     {
         return $this->importedCount;
-    }
-
-    private function toInteger(mixed $value): int
-    {
-        if (is_int($value) || is_float($value) || (is_string($value) && is_numeric(trim($value)))) {
-            return (int) $value;
-        }
-
-        $digits = preg_replace('/[^0-9-]/', '', (string) $value);
-        return $digits === '' || $digits === '-' ? 0 : (int) $digits;
     }
 
     private function normalizeHeader(mixed $value): string

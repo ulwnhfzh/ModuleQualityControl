@@ -15,6 +15,12 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <!-- Tambahan Link Data NG (Opsional, jika ingin tampil di bar atas) -->
+                    @if(Auth::check() && Auth::user()->role === 'admin')
+                    <x-nav-link :href="route('defects.index')" :active="request()->routeIs('defects.*')">
+                        {{ __('Data NG') }}
+                    </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -34,6 +40,13 @@
                     </x-slot>
 
                     <x-slot name="content">
+                        <!-- Tambahan Link Data NG di Dropdown -->
+                        @if(Auth::check() && Auth::user()->role === 'admin')
+                            <x-dropdown-link :href="route('defects.index')">
+                                ⚠️ Data NG (Kerusakan)
+                            </x-dropdown-link>
+                        @endif
+
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
@@ -70,6 +83,13 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            
+            <!-- Tambahan Link Responsive Data NG -->
+            @if(Auth::check() && Auth::user()->role === 'admin')
+                <x-responsive-nav-link :href="route('defects.index')" :active="request()->routeIs('defects.*')">
+                    {{ __('Data NG (Kerusakan)') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

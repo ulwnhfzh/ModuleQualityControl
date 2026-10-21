@@ -102,15 +102,23 @@ class DocumentExportLayout
         $tableHeaderRow = 8;
         $lastRow = $sheet->getHighestRow();
         $tableStartColumn = Coordinate::stringFromColumnIndex($tableStartColumnIndex);
+        $sheet->getStyle("A1:{$lastColumn}{$lastRow}")->getFont()->setName('Arial');
         $sheet->getStyle("{$tableStartColumn}{$tableHeaderRow}:{$lastColumn}{$tableHeaderRow}")->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '1E40AF']],
+            'font' => ['bold' => true, 'color' => ['rgb' => '111827']],
+            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => 'A0A8B4']],
             'alignment' => ['horizontal' => 'center', 'vertical' => 'center', 'wrapText' => true],
-            'borders' => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => '333333']]],
+            'borders' => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => '000000']]],
         ]);
         if ($lastRow > $tableHeaderRow) {
             $sheet->getStyle("{$tableStartColumn}{$tableHeaderRow}:{$lastColumn}{$lastRow}")->applyFromArray([
-                'borders' => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'B7C0CC']]],
+                'borders' => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => '000000']]],
+            ]);
+        }
+        if (strtoupper((string) $sheet->getCell("{$tableStartColumn}{$lastRow}")->getValue()) === 'TOTAL') {
+            $sheet->getStyle("{$tableStartColumn}{$lastRow}:{$lastColumn}{$lastRow}")->applyFromArray([
+                'font' => ['bold' => true, 'color' => ['rgb' => '111827']],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => 'A0A8B4']],
+                'borders' => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => '000000']]],
             ]);
         }
         $sheet->getPageSetup()->setRowsToRepeatAtTopByStartAndEnd(1, $tableHeaderRow);
@@ -144,6 +152,7 @@ class DocumentExportLayout
         for ($row = $signatureRow + 1; $row <= $signatureRow + 4; $row++) {
             $sheet->getRowDimension($row)->setRowHeight(16);
         }
+        $sheet->getStyle('A1:' . $lastColumn . ($signatureRow + 4))->getFont()->setName('Arial');
         $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4)
             ->setOrientation(PageSetup::ORIENTATION_LANDSCAPE)
             ->setFitToWidth(1)

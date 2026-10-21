@@ -14,6 +14,7 @@ use App\Http\Controllers\LaporanHarianController;
 use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\ToolDefectController; // <-- Tambahan Data NG
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,7 @@ Route::middleware('auth')->group(function () {
 */
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
+    // ===== STOCK =====
     Route::post('/stock/movements', [StockController::class, 'store'])->name('stock.movements.store');
     Route::post('/stock/grid', [StockController::class, 'storeGrid'])->name('stock.grid.store');
     Route::post('/stock/items', [StockController::class, 'storeItem'])->name('stock.items.store');
@@ -78,6 +80,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/tools/export/csv', [ToolController::class, 'exportCsv'])->name('tools.export.csv');
     Route::get('/tools/export/pdf', [ToolController::class, 'exportPdf'])->name('tools.export.pdf');
     Route::get('/tools/download-template', [ToolController::class, 'downloadTemplate'])->name('tools.template');
+
+    // ===== DATA NG (KERUSAKAN) =====
+    Route::get('/defects', [ToolDefectController::class, 'index'])->name('defects.index');
+    Route::get('/defects/create', [ToolDefectController::class, 'create'])->name('defects.create');
+    Route::post('/defects', [ToolDefectController::class, 'store'])->name('defects.store');
+    // Import & Export Data NG
+    Route::get('/defects/import', [ToolDefectController::class, 'importForm'])->name('defects.import.form');
+    Route::post('/defects/import', [ToolDefectController::class, 'importStore'])->name('defects.import.store');
+    Route::get('/defects/export/excel', [ToolDefectController::class, 'exportExcel'])->name('defects.export.excel');
+    Route::get('/defects/export/pdf', [ToolDefectController::class, 'exportPdf'])->name('defects.export.pdf');
 
     // ===== JADWAL VERIFIKASI =====
     Route::get('/verifikasi/create', [VerifikasiController::class, 'create'])->name('verifikasi.create');
@@ -145,6 +157,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // ===== REPORTS =====
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    
+    // --- API GRAFIK PARETO MANDIRI ---
+    Route::get('/reports/api/pareto-fitur', [ReportController::class, 'apiParetoFitur'])->name('reports.api.pareto.fitur');
+    Route::get('/reports/api/pareto-kategori', [ReportController::class, 'apiParetoKategori'])->name('reports.api.pareto.kategori');
+    Route::get('/reports/api/pareto-bulanan', [ReportController::class, 'apiParetoBulanan'])->name('reports.api.pareto.bulanan');
+    Route::get('/reports/api/pareto-departemen', [ReportController::class, 'apiParetoDepartemen'])->name('reports.api.pareto.departemen');
+
     Route::post('/reports/export-all/excel', [ReportController::class, 'exportAllExcel'])->name('reports.export.all.excel');
     Route::post('/reports/export-all/pdf', [ReportController::class, 'exportAllPdf'])->name('reports.export.all.pdf');
     Route::get('/reports/export-log/excel', [ReportController::class, 'exportLogExcel'])->name('reports.export.log.excel');

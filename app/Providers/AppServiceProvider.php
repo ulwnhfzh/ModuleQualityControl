@@ -5,8 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use App\Models\EksternalMesin;
-use App\Models\Verifikasi;
 use App\Models\Pengaturan;
 use Carbon\Carbon;
 
@@ -25,29 +25,30 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
-            $warningCepat = Pengaturan::warningCepat();
             $hariIni = Carbon::today()->startOfDay();
-            $batasCepat = $hariIni->copy()->addDays($warningCepat)->startOfDay();
-            $tahunIni = Carbon::now()->year;
+            $total = Cache::remember(
+                'global-notifikasi:' . $hariIni->toDateString(),
+                now()->addMinute(),
+                function () use ($hariIni) {
+                    $batasCepat = $hariIni->copy()
+                        ->addDays(Pengaturan::warningCepat())
+                        ->startOfDay();
+                    $tahunIni = $hariIni->year;
 
-            // Nama alat yang sudah diverifikasi tahun ini
-            $alatSudahDiverifikasi = Verifikasi::where('tahun', $tahunIni)
-                ->pluck('tool_name')
-                ->map(function ($name) {
-                    return strtoupper(trim($name));
-                })
-                ->unique()
-                ->toArray();
-
-            // Hitung notifikasi
-            $total = EksternalMesin::whereNotNull('next_date')
-                ->where('next_date', '<=', $batasCepat)
-                ->get()
-                ->filter(function ($item) use ($alatSudahDiverifikasi) {
-                    $namaAlat = strtoupper(trim($item->tool_name));
-                    return !in_array($namaAlat, $alatSudahDiverifikasi);
-                })
-                ->count();
+                    return EksternalMesin::query()
+                        ->whereNotNull('next_date')
+                        ->where('next_date', '<=', $batasCepat)
+                        ->whereNotExists(function ($query) use ($tahunIni) {
+                            $query->selectRaw('1')
+                                ->from('verifikasis')
+                                ->where('verifikasis.tahun', $tahunIni)
+                                ->whereRaw(
+                                    'UPPER(TRIM(verifikasis.tool_name)) = UPPER(TRIM(eksternal_mesins.tool_name))'
+                                );
+                        })
+                        ->count();
+                }
+            );
 
             $view->with('globalNotifikasi', $total);
         });

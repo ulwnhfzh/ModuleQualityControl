@@ -210,17 +210,32 @@
     </div>
 </div>
 
+{{-- ========================================== --}}
+{{-- SCRIPT SWEETALERT UNTUK ALERT JATUH TEMPO --}}
+{{-- ========================================== --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-function toggleExport() {
-    document.getElementById('exportMenu').classList.toggle('hidden');
-}
-document.addEventListener('click', function(event) {
-    const dropdown = document.getElementById('exportDropdown');
-    const menu = document.getElementById('exportMenu');
-    if (dropdown && !dropdown.contains(event.target)) {
-        menu.classList.add('hidden');
+    // Cek jika ada session 'warning_alert'
+    @if(session('warning_alert'))
+        Swal.fire({
+            icon: 'warning',
+            title: 'Peringatan Jatuh Tempo!',
+            text: "{{ session('warning_alert') }}",
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Mengerti'
+        });
+    @endif
+
+    function toggleExport() {
+        document.getElementById('exportMenu').classList.toggle('hidden');
     }
-});
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('exportDropdown');
+        const menu = document.getElementById('exportMenu');
+        if (dropdown && !dropdown.contains(event.target)) {
+            menu.classList.add('hidden');
+        }
+    });
 </script>
 
 @endsection

@@ -28,19 +28,10 @@ class EksternalImport implements ToModel, WithHeadingRow
         $data = [
             'tool_name' => strtoupper($row['tool_name']),
             'tahun'     => $this->tahun,
-            'jan'       => $row['jan'] ?? 0,
-            'feb'       => $row['feb'] ?? 0,
-            'mar'       => $row['mar'] ?? 0,
-            'apr'       => $row['apr'] ?? 0,
-            'may'       => $row['may'] ?? 0,
-            'jun'       => $row['jun'] ?? 0,
-            'jul'       => $row['jul'] ?? 0,
-            'aug'       => $row['aug'] ?? 0,
-            'sep'       => $row['sep'] ?? 0,
-            'oct'       => $row['oct'] ?? 0,
-            'nov'       => $row['nov'] ?? 0,
-            'dec'       => $row['dec'] ?? 0,
         ];
+        foreach (SpreadsheetInput::MONTH_FIELDS as $month) {
+            $data[$month] = SpreadsheetInput::integer($row[$month] ?? null, "{$row['tool_name']} / {$month}");
+        }
 
         $data['qty_set'] = array_sum([
             $data['jan'], $data['feb'], $data['mar'], $data['apr'],
