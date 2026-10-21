@@ -60,16 +60,7 @@
             </div>
             <div>
                 <label class="block text-xs md:text-sm font-semibold mb-1">Stok Awal *</label>
-                <input type="number" name="opening_stock" min="0" max="2147483647" step="1" required value="{{ old('opening_stock', 0) }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <!-- TAMBAHAN INPUT TANGGAL -->
-            <div>
-                <label class="block text-xs md:text-sm font-semibold mb-1">Tanggal Mulai</label>
-                <x-date-entry name="start_date" :value="old('start_date')" input-class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-            </div>
-            <div>
-                <label class="block text-xs md:text-sm font-semibold mb-1">Jatuh Tempo Berikutnya</label>
-                <x-date-entry name="next_date" :value="old('next_date')" input-class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                <input type="number" name="opening_stock" min="0" required value="{{ old('opening_stock', 0) }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
         </div>
 

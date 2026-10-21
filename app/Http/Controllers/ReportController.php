@@ -41,7 +41,7 @@ class ReportController extends Controller
 
         $users = User::orderBy('name')->get();
 
-        // ===== TAB GRAFIK =====
+        // ===== TAB GRAFIK (DATA AWAL) =====
         $bulanLabels  = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         $bulanColumns = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
         $tahunRange = range(date('Y'), date('Y') - 4);

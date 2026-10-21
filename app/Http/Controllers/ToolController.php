@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Tool;
 use App\Models\ToolStock;
 use App\Models\DokumenCounter;
-use App\Models\User; // Tambahan untuk ambil email admin
-use App\Notifications\AlatJatuhTempoNotification; // Tambahan
+use App\Models\User;
+use App\Notifications\AlatJatuhTempoNotification;
 use App\Support\DocumentPdfLayout;
 use Illuminate\Http\Request;
 use App\Imports\ToolsImport;
@@ -16,7 +16,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
-use Carbon\Carbon; // Tambahan untuk hitung selisih hari
+use Carbon\Carbon;
 
 class ToolController extends Controller
 {

@@ -49,6 +49,7 @@
                             </svg>
                             <span class="font-medium">Export Excel</span>
                         </a>
+                        <!-- Sesuaikan route PDF jika ada, atau biarkan -->
                         <a href="{{ route('verifikasi.periode.kalibrasi.export', ['tahun' => $tahun, 'format' => 'pdf']) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                 <path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
