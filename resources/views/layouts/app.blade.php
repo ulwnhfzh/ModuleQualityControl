@@ -593,5 +593,30 @@
         </div>
     </main>
 
+    <!-- ========================================== -->
+    <!-- SCRIPT CAPSLOCK OTOMATIS UNTUK SEMUA INPUT -->
+    <!-- ========================================== -->
+    <script>
+        document.addEventListener('input', function(e) {
+            // Hanya berlaku untuk input tipe teks (bukan number, date, password, dll)
+            if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
+                // Pengecualian: jangan ubah input yang punya class 'no-caps'
+                if (e.target.classList.contains('no-caps')) {
+                    return;
+                }
+                
+                // Simpan posisi kursor
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                
+                // Ubah nilai ke huruf besar
+                e.target.value = e.target.value.toUpperCase();
+                
+                // Kembalikan posisi kursor agar tidak melompat ke akhir
+                e.target.setSelectionRange(start, end);
+            }
+        });
+    </script>
+
 </body>
 </html>
