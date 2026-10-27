@@ -22,11 +22,14 @@ class VerifikasiPeriodeController extends Controller
     {
         $filters = $request->validate([
             'tahun' => 'nullable|integer|between:2000,2100',
+            // PERBAIKAN: Kembalikan 'kalibrasi' di sini agar tidak error saat redirect
             'jenis' => 'nullable|in:kalibrasi,verifikasi,verifikasi_qc2',
         ]);
         $tahun = (int) ($filters['tahun'] ?? date('Y'));
         $jenis = $filters['jenis'] ?? 'verifikasi';
 
+        // Blok ini WAJIB ADA agar saat URL ?jenis=kalibrasi, 
+        // sistem memunculkan view kalibrasi, bukan view verifikasi.
         if ($jenis === 'kalibrasi') {
             $schedules = KalibrasiInternalListUp::where('tahun', $tahun)->orderBy('tool_name')->get();
             return view('verifikasi.periode.kalibrasi', compact('schedules', 'tahun', 'jenis'));

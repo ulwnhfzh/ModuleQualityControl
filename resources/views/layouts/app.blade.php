@@ -53,6 +53,7 @@
             font-size: 13px; font-weight: 500;
             color: #94a3b8; transition: all 0.15s ease;
             width: 100%; text-align: left;
+            background: transparent; border: none; cursor: pointer;
         }
         .sidebar-sublink:hover { background-color: rgba(255,255,255,0.05); color: #e2e8f0; }
         .sidebar-sublink.active {
@@ -345,13 +346,15 @@
          class="fixed left-0 right-0 bottom-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"
          style="top: 64px;"></div>
 
+    <!-- ========================================== -->
     <!-- SIDEBAR DESKTOP (Bisa Collapse) -->
+    <!-- ========================================== -->
     <aside :class="sidebarDesktopOpen ? '' : 'collapsed'"
            class="sidebar-desktop hidden lg:flex flex-col bg-slate-900 border-r border-slate-800"
            x-data="{
                verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
-               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'true' : 'false' }}
+               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'true' : 'false' }}
            }">
         <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
             
@@ -362,6 +365,21 @@
                 <a href="{{ route('dashboard.index') }}" class="sidebar-link {{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg></span>
                     <span>Dashboard</span>
+                </a>
+
+                <!-- MENU BARU: DATA ALL PRODUKSI -->
+                <a href="{{ route('data-all-produksi.index') }}" class="sidebar-link {{ request()->routeIs('data-all-produksi.*') ? 'active' : '' }}">
+                    <span class="icon">
+                        <!-- IKON BARU DARI LUCIDE -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>
+                            <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
+                            <path d="M10 9H8"/>
+                            <path d="M16 13H8"/>
+                            <path d="M16 17H8"/>
+                        </svg>
+                    </span>
+                    <span>Data All Produksi</span>
                 </a>
 
                 <a href="{{ route('tools.index') }}" class="sidebar-link {{ request()->routeIs('tools.*') ? 'active' : '' }}">
@@ -393,13 +411,13 @@
                     <a href="{{ route('verifikasi.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}">
                         <span class="dot"></span><span>Jadwal Tahunan/Bulanan</span>
                     </a>
-                    <a href="{{ route('verifikasi.periode.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') ? 'active' : '' }}">
+                    <a href="{{ route('verifikasi.periode.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit') ? 'active' : '' }}">
                         <span class="dot"></span><span>List Up Periode</span>
                     </a>
                 </div>
 
                 <button type="button" @click="kalibrasiOpen = !kalibrasiOpen"
-                        class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
+                        class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
                     <span class="flex-1 text-left">Kalibrasi Alat</span>
                     <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''"
@@ -407,12 +425,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
+                
                 <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
                         <span class="dot"></span><span>Eksternal</span>
                     </a>
-                    <a href="{{ route('internal.index') }}" class="sidebar-sublink {{ request()->routeIs('internal.*') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Internal</span>
+                    
+                    <!-- HANYA KALIBRASI INTERNAL YANG DIPINDAHKAN KE SINI -->
+                    <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi' ? 'active' : '' }}">
+                        <span class="dot"></span><span>List Up Kalibrasi Internal</span>
                     </a>
                 </div>
             </nav>
@@ -466,7 +487,9 @@
         </div>
     </aside>
 
+    <!-- ========================================== -->
     <!-- SIDEBAR MOBILE -->
+    <!-- ========================================== -->
     <aside x-show="sidebarOpen" x-cloak
            x-transition:enter="transition ease-out duration-200"
            x-transition:enter-start="-translate-x-full"
@@ -479,7 +502,7 @@
            x-data="{
                verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
-               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'true' : 'false' }}
+               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'true' : 'false' }}
            }">
         <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
             
@@ -490,6 +513,22 @@
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg></span>
                     <span>Dashboard</span>
                 </a>
+
+                <!-- MENU BARU: DATA ALL PRODUKSI (MOBILE) -->
+                <a href="{{ route('data-all-produksi.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('data-all-produksi.*') ? 'active' : '' }}">
+                    <span class="icon">
+                        <!-- IKON BARU DARI LUCIDE -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>
+                            <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
+                            <path d="M10 9H8"/>
+                            <path d="M16 13H8"/>
+                            <path d="M16 17H8"/>
+                        </svg>
+                    </span>
+                    <span>Data All Produksi</span>
+                </a>
+
                 <a href="{{ route('tools.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('tools.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg></span>
                     <span>Daftar Induk</span>
@@ -514,13 +553,13 @@
                     <a href="{{ route('verifikasi.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}">
                         <span class="dot"></span><span>Jadwal Tahunan/Bulanan</span>
                     </a>
-                    <a href="{{ route('verifikasi.periode.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') ? 'active' : '' }}">
+                    <a href="{{ route('verifikasi.periode.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit') ? 'active' : '' }}">
                         <span class="dot"></span><span>List Up Periode</span>
                     </a>
                 </div>
 
                 <button type="button" @click="kalibrasiOpen = !kalibrasiOpen"
-                        class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
+                        class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
                     <span class="flex-1 text-left">Kalibrasi Alat</span>
                     <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''"
@@ -528,12 +567,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
+                
                 <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
                         <span class="dot"></span><span>Eksternal</span>
                     </a>
-                    <a href="{{ route('internal.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('internal.*') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Internal</span>
+                    
+                    <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi' ? 'active' : '' }}">
+                        <span class="dot"></span><span>List Up Kalibrasi Internal</span>
                     </a>
                 </div>
             </nav>

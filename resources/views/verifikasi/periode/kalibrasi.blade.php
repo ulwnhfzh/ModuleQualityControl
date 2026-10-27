@@ -4,16 +4,13 @@
 <div class="feature-toolbar mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 lg:px-5">
     @if(session('success'))<div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('success') }}</div>@endif
     @if($errors->any())<div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ $errors->first() }}</div>@endif
+    
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <!-- FILTER TAHUN (DROPDOWN JENIS DIHAPUS) -->
         <form method="GET" action="{{ route('verifikasi.periode.index') }}" class="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3 gap-y-3 sm:flex sm:flex-wrap">
             
-            <label for="jenis-list-up" class="text-xs font-semibold text-slate-500">JENIS LIST UP</label>
-            <select id="jenis-list-up" name="jenis" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
-                <option value="kalibrasi" {{ $jenis === 'kalibrasi' ? 'selected' : '' }}>Kalibrasi Internal</option>
-                <option value="verifikasi" {{ $jenis === 'verifikasi' ? 'selected' : '' }}>Verifikasi Internal</option>
-                <!-- TAMBAHAN OPSI QC2 -->
-                <option value="verifikasi_qc2" {{ $jenis === 'verifikasi_qc2' ? 'selected' : '' }}>Verifikasi Internal QC2</option>
-            </select>
+            <!-- Hidden input agar saat ganti tahun, jenis tetap 'kalibrasi' -->
+            <input type="hidden" name="jenis" value="kalibrasi">
 
             <label for="tahun" class="text-xs font-semibold text-slate-500">TAHUN</label>
             <select id="tahun" name="tahun" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
@@ -49,7 +46,6 @@
                             </svg>
                             <span class="font-medium">Export Excel</span>
                         </a>
-                        <!-- Sesuaikan route PDF jika ada, atau biarkan -->
                         <a href="{{ route('verifikasi.periode.kalibrasi.export', ['tahun' => $tahun, 'format' => 'pdf']) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                 <path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>

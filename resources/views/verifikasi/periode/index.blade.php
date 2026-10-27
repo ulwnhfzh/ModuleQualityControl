@@ -13,7 +13,6 @@
             
             <label for="jenis-list-up" class="text-xs font-semibold text-slate-500">JENIS LIST UP</label>
             <select id="jenis-list-up" name="jenis" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
-                <option value="kalibrasi" {{ $jenis === 'kalibrasi' ? 'selected' : '' }}>Kalibrasi Internal</option>
                 <option value="verifikasi" {{ $jenis === 'verifikasi' ? 'selected' : '' }}>Verifikasi Internal</option>
                 <option value="verifikasi_qc2" {{ $jenis === 'verifikasi_qc2' ? 'selected' : '' }}>Verifikasi Internal QC2</option>
             </select>

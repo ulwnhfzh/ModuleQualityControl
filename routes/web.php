@@ -15,6 +15,7 @@ use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\ToolDefectController;
+use App\Http\Controllers\DataAllProduksiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,6 +58,15 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin'])->group(function () {
+
+    // ===== DATA ALL PRODUKSI (FITUR BARU) =====
+    // Route custom diletakkan SEBELUM resource agar tidak bentrok dengan {id}
+    Route::get('/data-all-produksi/get-tools', [DataAllProduksiController::class, 'getToolsByDivision'])->name('data-all-produksi.get-tools');
+    Route::get('/data-all-produksi/export', [DataAllProduksiController::class, 'export'])->name('data-all-produksi.export');
+    Route::get('/data-all-produksi/import/form', [DataAllProduksiController::class, 'importForm'])->name('data-all-produksi.import.form');
+    Route::post('/data-all-produksi/import', [DataAllProduksiController::class, 'importStore'])->name('data-all-produksi.import.store');
+    
+    Route::resource('data-all-produksi', DataAllProduksiController::class);
 
     // ===== STOCK =====
     Route::post('/stock/movements', [StockController::class, 'store'])->name('stock.movements.store');
