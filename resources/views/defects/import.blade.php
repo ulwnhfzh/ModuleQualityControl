@@ -14,31 +14,12 @@
         <div class="mb-4">
             <label class="block text-sm font-semibold mb-1">File Excel (.xlsx, .csv)</label>
             <input type="file" name="file" class="w-full border border-gray-300 rounded p-2 text-sm" required>
-            <p class="text-xs text-gray-500 mt-1">Pastikan header kolom: Division, Aus, Erorr, Gompal, Hilang, Karat, Macet, Min Std, Over Std, Patah, Rusak, Seret, Lain-lain.</p>
+            <p class="text-xs text-gray-500 mt-1">Pastikan format Excel sesuai standar tahunan (Header Bulan di baris ke-2, Header Defect di baris ke-3).</p>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div>
-                <label class="block text-sm font-semibold mb-1">Tahun</label>
-                <input type="number" name="tahun" value="{{ date('Y') }}" min="2000" max="2100" step="1" class="w-full border rounded p-2 text-sm" required>
-            </div>
-            <div>
-                <label class="block text-sm font-semibold mb-1">Bulan</label>
-                <select name="bulan" class="w-full border rounded p-2 text-sm" required>
-                    <option value="JAN">JANUARI</option>
-                    <option value="FEB">FEBRUARI</option>
-                    <option value="MAR">MARET</option>
-                    <option value="APR">APRIL</option>
-                    <option value="MAY">MEI</option>
-                    <option value="JUN">JUNI</option>
-                    <option value="JUL">JULI</option>
-                    <option value="AUG">AGUSTUS</option>
-                    <option value="SEP">SEPTEMBER</option>
-                    <option value="OCT">OKTOBER</option>
-                    <option value="NOV">NOVEMBER</option>
-                    <option value="DEC">DESEMBER</option>
-                </select>
-            </div>
+        <div class="mb-6">
+            <label class="block text-sm font-semibold mb-1">Tahun</label>
+            <input type="number" name="tahun" value="{{ date('Y') }}" min="2000" max="2100" step="1" class="w-full border rounded p-2 text-sm" required>
         </div>
 
         <div class="flex gap-2">

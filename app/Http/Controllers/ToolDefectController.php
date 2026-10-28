@@ -105,6 +105,47 @@ class ToolDefectController extends Controller
         return redirect()->route('defects.index')->with('success', 'Data NG berhasil ditambahkan!');
     }
 
+    // ===== FUNGSI BARU: EDIT =====
+    public function edit(Request $request, ToolDefect $defect)
+    {
+        $tahun = $request->get('tahun', $defect->tahun);
+        $bulan = $request->get('bulan', $defect->bulan);
+        return view('defects.edit', compact('defect', 'tahun', 'bulan'));
+    }
+
+    // ===== FUNGSI BARU: UPDATE =====
+    public function update(Request $request, ToolDefect $defect)
+    {
+        $rules = [
+            'tahun' => 'required|integer|between:2000,2100',
+            'bulan' => 'required|in:' . implode(',', ToolDefect::MONTHS),
+            'division' => 'required|in:' . implode(',', ToolDefect::DIVISIONS),
+        ];
+        foreach (ToolDefect::COUNT_FIELDS as $field) {
+            $rules[$field] = 'nullable|integer|min:0|max:2147483647';
+        }
+        $data = $request->validate($rules);
+
+        foreach (['aus', 'erorr', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'] as $col) {
+            $data[$col] = $data[$col] ?? 0;
+        }
+
+        $defect->update($data);
+        return redirect()->route('defects.index', ['tahun' => $data['tahun'], 'bulan' => $data['bulan']])
+            ->with('success', 'Data NG berhasil diperbarui!');
+    }
+
+    // ===== FUNGSI BARU: DESTROY (HAPUS) =====
+    public function destroy(Request $request, ToolDefect $defect)
+    {
+        $tahun = $defect->tahun;
+        $bulan = $defect->bulan;
+        $defect->delete();
+
+        return redirect()->route('defects.index', ['tahun' => $tahun, 'bulan' => $bulan])
+            ->with('success', 'Data NG berhasil dihapus!');
+    }
+
     public function importForm()
     {
         return view('defects.import');
@@ -113,15 +154,17 @@ class ToolDefectController extends Controller
     public function importStore(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:2048',
+            'file' => 'required|mimes:xlsx,xls,csv|max:5120',
             'tahun' => 'required|integer|between:2000,2100',
-            'bulan' => 'required|in:' . implode(',', ToolDefect::MONTHS),
         ]);
 
         try {
-            Excel::import(new ToolDefectsImport($request->tahun, $request->bulan), $request->file('file'));
-            return redirect()->route('defects.index', ['tahun' => $request->tahun, 'bulan' => $request->bulan])
-                ->with('success', 'Data NG berhasil di-import untuk bulan ' . $request->bulan . ' tahun ' . $request->tahun);
+            $filePath = $request->file('file')->getRealPath();
+            $import = new ToolDefectsImport((int) $request->tahun);
+            $import->import($filePath);
+
+            return redirect()->route('defects.index', ['tahun' => $request->tahun])
+                ->with('success', 'Data NG berhasil di-import otomatis dari semua bulan!');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal import: ' . $e->getMessage());
         }

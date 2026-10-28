@@ -12,7 +12,11 @@
         [x-cloak] { display: none !important; }
         body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 
-        select {
+        /* =========================================
+           PERUBAHAN PENTING DI SINI
+           Mengecualikan Select2 agar kotak pencariannya muncul
+           ========================================= */
+        select:not(.select2-hidden-accessible) {
             appearance: none !important;
             -webkit-appearance: none !important;
             -moz-appearance: none !important;

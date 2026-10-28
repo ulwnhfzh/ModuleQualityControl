@@ -80,6 +80,8 @@
                     <th class="border border-gray-500 p-1" colspan="12">{{ $bulanFilter }}</th>
                     <th class="border border-gray-500 p-1" rowspan="2">TOTAL</th>
                     <th class="border border-gray-500 p-1 bg-gray-300" rowspan="2">GRAND TOTAL</th>
+                    <!-- KOLOM BARU: AKSI -->
+                    <th class="border border-gray-500 p-1 bg-gray-300" rowspan="2">AKSI</th>
                 </tr>
                 <tr class="bg-gray-300 text-gray-800 font-semibold uppercase">
                     <th class="border border-gray-500 p-1">AUS</th>
@@ -109,6 +111,30 @@
                     
                     <td class="border border-gray-400 p-1 font-bold">{{ $data['total'] ?: '' }}</td>
                     <td class="border border-gray-400 p-1 font-bold bg-gray-100">{{ $data['grand_total'] ?: '' }}</td>
+                    
+                    <!-- KOLOM BARU: TOMBOL EDIT & HAPUS -->
+                    <td class="border border-gray-400 p-1 text-center whitespace-nowrap">
+                        @php
+                            // Cari ID asli dari database berdasarkan filter yang sedang aktif
+                            $dbData = \App\Models\ToolDefect::where('tahun', $tahun)
+                                        ->where('bulan', $bulanFilter)
+                                        ->where('division', $division)
+                                        ->first();
+                        @endphp
+
+                        @if($dbData)
+                            <div class="flex justify-center gap-1">
+                                <a href="{{ route('defects.edit', $dbData->id) }}?tahun={{ $tahun }}&bulan={{ $bulanFilter }}" class="bg-amber-400 text-white px-1.5 py-0.5 rounded text-[10px] font-bold hover:bg-amber-500">EDIT</a>
+                                <form action="{{ route('defects.destroy', $dbData->id) }}" method="POST" onsubmit="return confirm('Hapus data untuk divisi {{ $division }} bulan {{ $bulanFilter }}?')" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="bg-rose-500 text-white px-1.5 py-0.5 rounded text-[10px] font-bold hover:bg-rose-600">HAPUS</button>
+                                </form>
+                            </div>
+                        @else
+                            <span class="text-[10px] text-gray-400 italic">-</span>
+                        @endif
+                    </td>
                 </tr>
                 @endforeach
             </tbody>
@@ -120,6 +146,8 @@
                     @endforeach
                     <td class="border border-gray-500 p-1">{{ $footerTotals['total'] ?: '' }}</td>
                     <td class="border border-gray-500 p-1 bg-gray-300">{{ $footerTotals['grand_total'] ?: '' }}</td>
+                    <!-- Kolom Aksi di Footer (Kosong) -->
+                    <td class="border border-gray-500 p-1 bg-gray-300"></td>
                 </tr>
             </tfoot>
         </table>

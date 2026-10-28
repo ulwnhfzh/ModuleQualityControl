@@ -60,7 +60,6 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // ===== DATA ALL PRODUKSI (FITUR BARU) =====
-    // Route custom diletakkan SEBELUM resource agar tidak bentrok dengan {id}
     Route::get('/data-all-produksi/get-tools', [DataAllProduksiController::class, 'getToolsByDivision'])->name('data-all-produksi.get-tools');
     Route::get('/data-all-produksi/export', [DataAllProduksiController::class, 'export'])->name('data-all-produksi.export');
     Route::get('/data-all-produksi/import/form', [DataAllProduksiController::class, 'importForm'])->name('data-all-produksi.import.form');
@@ -96,6 +95,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/defects/import', [ToolDefectController::class, 'importStore'])->name('defects.import.store');
     Route::get('/defects/export/excel', [ToolDefectController::class, 'exportExcel'])->name('defects.export.excel');
     Route::get('/defects/export/pdf', [ToolDefectController::class, 'exportPdf'])->name('defects.export.pdf');
+
+    // TAMBAHAN BARU: ROUTE EDIT, UPDATE, DAN HAPUS DATA NG
+    Route::get('/defects/{defect}/edit', [ToolDefectController::class, 'edit'])->name('defects.edit');
+    Route::put('/defects/{defect}', [ToolDefectController::class, 'update'])->name('defects.update');
+    Route::delete('/defects/{defect}', [ToolDefectController::class, 'destroy'])->name('defects.destroy');
 
     // ===== JADWAL VERIFIKASI (Tahunan/Bulanan) =====
     Route::get('/verifikasi/create', [VerifikasiController::class, 'create'])->name('verifikasi.create');
