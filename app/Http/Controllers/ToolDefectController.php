@@ -21,7 +21,7 @@ class ToolDefectController extends Controller
         $tahun = $filters['tahun'] ?? date('Y');
         $bulanFilter = $filters['bulan'] ?? 'DEC';
 
-        $jenisKerusakan = ['aus', 'erorr', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'];
+        $jenisKerusakan = ['aus', 'error', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'];
 
         $rawData = ToolDefect::where('tahun', $tahun)->where('bulan', $bulanFilter)->get();
 
@@ -41,7 +41,7 @@ class ToolDefectController extends Controller
         foreach ($dataPerDivisi as $divisi => &$data) {
             $grandTotal = ToolDefect::where('tahun', $tahun)
                 ->where('division', $divisi)
-                ->sum(DB::raw('aus + erorr + gompal + hilang + karat + macet + min_std + over_std + patah + rusak + seret + lain_lain'));
+                ->sum(DB::raw('aus + error + gompal + hilang + karat + macet + min_std + over_std + patah + rusak + seret + lain_lain'));
             $data['grand_total'] = $grandTotal;
         }
 
@@ -97,7 +97,7 @@ class ToolDefectController extends Controller
         }
         $data = $request->validate($rules);
 
-        foreach (['aus', 'erorr', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'] as $col) {
+        foreach (['aus', 'error', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'] as $col) {
             $data[$col] = $data[$col] ?? 0;
         }
 
@@ -126,7 +126,7 @@ class ToolDefectController extends Controller
         }
         $data = $request->validate($rules);
 
-        foreach (['aus', 'erorr', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'] as $col) {
+        foreach (['aus', 'error', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'] as $col) {
             $data[$col] = $data[$col] ?? 0;
         }
 
@@ -189,7 +189,7 @@ class ToolDefectController extends Controller
         $tahun = $filters['tahun'] ?? date('Y');
         $bulan = $filters['bulan'] ?? 'DEC';
         
-        $jenisKerusakan = ['aus', 'erorr', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'];
+        $jenisKerusakan = ['aus', 'error', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'];
         $rawData = ToolDefect::where('tahun', $tahun)->where('bulan', $bulan)->get();
         
         $dataPerDivisi = [];

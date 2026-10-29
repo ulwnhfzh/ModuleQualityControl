@@ -17,18 +17,9 @@
                 <label class="flex items-center gap-1.5 text-[10px] font-semibold text-gray-500 sm:text-xs">
                     BULAN
                     <select name="bulan" onchange="this.form.submit()" class="rounded border border-gray-300 bg-white px-2 py-1 text-xs sm:px-2.5 sm:py-1.5 sm:text-sm">
-                        <option value="JAN" {{ $bulanFilter == 'JAN' ? 'selected' : '' }}>JANUARI</option>
-                        <option value="FEB" {{ $bulanFilter == 'FEB' ? 'selected' : '' }}>FEBRUARI</option>
-                        <option value="MAR" {{ $bulanFilter == 'MAR' ? 'selected' : '' }}>MARET</option>
-                        <option value="APR" {{ $bulanFilter == 'APR' ? 'selected' : '' }}>APRIL</option>
-                        <option value="MAY" {{ $bulanFilter == 'MAY' ? 'selected' : '' }}>MEI</option>
-                        <option value="JUN" {{ $bulanFilter == 'JUN' ? 'selected' : '' }}>JUNI</option>
-                        <option value="JUL" {{ $bulanFilter == 'JUL' ? 'selected' : '' }}>JULI</option>
-                        <option value="AUG" {{ $bulanFilter == 'AUG' ? 'selected' : '' }}>AGUSTUS</option>
-                        <option value="SEP" {{ $bulanFilter == 'SEP' ? 'selected' : '' }}>SEPTEMBER</option>
-                        <option value="OCT" {{ $bulanFilter == 'OCT' ? 'selected' : '' }}>OKTOBER</option>
-                        <option value="NOV" {{ $bulanFilter == 'NOV' ? 'selected' : '' }}>NOVEMBER</option>
-                        <option value="DEC" {{ $bulanFilter == 'DEC' ? 'selected' : '' }}>DESEMBER</option>
+                        @foreach(['JAN'=>'JANUARI','FEB'=>'FEBRUARI','MAR'=>'MARET','APR'=>'APRIL','MAY'=>'MEI','JUN'=>'JUNI','JUL'=>'JULI','AUG'=>'AGUSTUS','SEP'=>'SEPTEMBER','OCT'=>'OKTOBER','NOV'=>'NOVEMBER','DEC'=>'DESEMBER'] as $k => $v)
+                            <option value="{{ $k }}" {{ $bulanFilter == $k ? 'selected' : '' }}>{{ $v }}</option>
+                        @endforeach
                     </select>
                 </label>
             </form>
@@ -69,6 +60,9 @@
     @if(session('success'))
         <div class="bg-green-100 text-green-700 p-3 rounded mb-4 text-sm">{{ session('success') }}</div>
     @endif
+    @if(session('error'))
+        <div class="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">{{ session('error') }}</div>
+    @endif
 
     <!-- TABEL REKAPITULASI -->
     <div class="overflow-x-auto border border-gray-400">
@@ -80,62 +74,49 @@
                     <th class="border border-gray-500 p-1" colspan="12">{{ $bulanFilter }}</th>
                     <th class="border border-gray-500 p-1" rowspan="2">TOTAL</th>
                     <th class="border border-gray-500 p-1 bg-gray-300" rowspan="2">GRAND TOTAL</th>
-                    <!-- KOLOM BARU: AKSI -->
                     <th class="border border-gray-500 p-1 bg-gray-300" rowspan="2">AKSI</th>
                 </tr>
                 <tr class="bg-gray-300 text-gray-800 font-semibold uppercase">
-                    <th class="border border-gray-500 p-1">AUS</th>
-                    <th class="border border-gray-500 p-1">ERORR</th>
-                    <th class="border border-gray-500 p-1">GOMPAL</th>
-                    <th class="border border-gray-500 p-1">HILANG</th>
-                    <th class="border border-gray-500 p-1">KARAT</th>
-                    <th class="border border-gray-500 p-1">MACET</th>
-                    <th class="border border-gray-500 p-1">MIN STD</th>
-                    <th class="border border-gray-500 p-1">OVER STD</th>
-                    <th class="border border-gray-500 p-1">PATAH</th>
-                    <th class="border border-gray-500 p-1">RUSAK</th>
-                    <th class="border border-gray-500 p-1">SERET</th>
-                    <th class="border border-gray-500 p-1">LAIN-LAIN</th>
+                    @foreach($jenisKerusakan as $jenis)
+                        <th class="border border-gray-500 p-1">{{ strtoupper(str_replace('_', ' ', $jenis)) }}</th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
                 @php $no = 1; @endphp
                 @foreach($sortedData as $division => $data)
-                <tr class="hover:bg-gray-100">
-                    <td class="border border-gray-400 p-1 font-semibold bg-gray-50">{{ $no++ }}</td>
-                    <td class="border border-gray-400 p-1 text-left font-semibold bg-gray-50 whitespace-nowrap">{{ $division }}</td>
-                    
-                    @foreach($jenisKerusakan as $jenis)
-                        <td class="border border-gray-400 p-1">{{ $data[$jenis] ?: '' }}</td>
-                    @endforeach
-                    
-                    <td class="border border-gray-400 p-1 font-bold">{{ $data['total'] ?: '' }}</td>
-                    <td class="border border-gray-400 p-1 font-bold bg-gray-100">{{ $data['grand_total'] ?: '' }}</td>
-                    
-                    <!-- KOLOM BARU: TOMBOL EDIT & HAPUS -->
-                    <td class="border border-gray-400 p-1 text-center whitespace-nowrap">
-                        @php
-                            // Cari ID asli dari database berdasarkan filter yang sedang aktif
-                            $dbData = \App\Models\ToolDefect::where('tahun', $tahun)
-                                        ->where('bulan', $bulanFilter)
-                                        ->where('division', $division)
-                                        ->first();
-                        @endphp
+                    @php
+                        // Ambil record DB sekali saja per divisi (hindari N+1 di dalam loop sel)
+                        $dbData = $existingDefects[$division] ?? null;
+                    @endphp
+                    <tr class="hover:bg-gray-100">
+                        <td class="border border-gray-400 p-1 font-semibold bg-gray-50">{{ $no++ }}</td>
+                        <td class="border border-gray-400 p-1 text-left font-semibold bg-gray-50 whitespace-nowrap">{{ $division }}</td>
 
-                        @if($dbData)
-                            <div class="flex justify-center gap-1">
-                                <a href="{{ route('defects.edit', $dbData->id) }}?tahun={{ $tahun }}&bulan={{ $bulanFilter }}" class="bg-amber-400 text-white px-1.5 py-0.5 rounded text-[10px] font-bold hover:bg-amber-500">EDIT</a>
-                                <form action="{{ route('defects.destroy', $dbData->id) }}" method="POST" onsubmit="return confirm('Hapus data untuk divisi {{ $division }} bulan {{ $bulanFilter }}?')" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="bg-rose-500 text-white px-1.5 py-0.5 rounded text-[10px] font-bold hover:bg-rose-600">HAPUS</button>
-                                </form>
-                            </div>
-                        @else
-                            <span class="text-[10px] text-gray-400 italic">-</span>
-                        @endif
-                    </td>
-                </tr>
+                        @foreach($jenisKerusakan as $jenis)
+                            <td class="border border-gray-400 p-1">{{ $data[$jenis] ?: '' }}</td>
+                        @endforeach
+
+                        <td class="border border-gray-400 p-1 font-bold">{{ $data['total'] ?: '' }}</td>
+                        <td class="border border-gray-400 p-1 font-bold bg-gray-100">{{ $data['grand_total'] ?: '' }}</td>
+
+                        <td class="border border-gray-400 p-1 text-center whitespace-nowrap">
+                            @if($dbData)
+                                <div class="flex justify-center gap-1">
+                                    <a href="{{ route('defects.edit', $dbData->id) }}?tahun={{ $tahun }}&bulan={{ $bulanFilter }}"
+                                       class="bg-amber-400 text-white px-1.5 py-0.5 rounded text-[10px] font-bold hover:bg-amber-500">EDIT</a>
+                                    <form action="{{ route('defects.destroy', $dbData->id) }}" method="POST"
+                                          onsubmit="return confirm('Hapus data untuk divisi {{ $division }} bulan {{ $bulanFilter }}?')" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="bg-rose-500 text-white px-1.5 py-0.5 rounded text-[10px] font-bold hover:bg-rose-600">HAPUS</button>
+                                    </form>
+                                </div>
+                            @else
+                                <span class="text-[10px] text-gray-400 italic">-</span>
+                            @endif
+                        </td>
+                    </tr>
                 @endforeach
             </tbody>
             <tfoot>
@@ -146,7 +127,6 @@
                     @endforeach
                     <td class="border border-gray-500 p-1">{{ $footerTotals['total'] ?: '' }}</td>
                     <td class="border border-gray-500 p-1 bg-gray-300">{{ $footerTotals['grand_total'] ?: '' }}</td>
-                    <!-- Kolom Aksi di Footer (Kosong) -->
                     <td class="border border-gray-500 p-1 bg-gray-300"></td>
                 </tr>
             </tfoot>
