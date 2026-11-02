@@ -13,7 +13,7 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
             <h1 class="text-base font-bold text-gray-800">Reports</h1>
-            <p class="text-xs text-gray-500 mt-0.5">Ringkasan, log aktivitas & grafik QC Measurement Tools</p>
+            <p class="text-xs text-gray-500 mt-0.5">Grafik operasional dan log aktivitas QC Measurement Tools</p>
         </div>
 
         <form method="GET" action="{{ route('reports.index') }}" class="flex items-center gap-2">
@@ -32,11 +32,6 @@
 {{-- ===== TAB NAVIGATION ===== --}}
 <div class="bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-2">
     <div class="flex gap-2 border-b border-gray-200 overflow-x-auto">
-        <a href="{{ route('reports.index', ['tab' => 'ringkasan', 'tahun' => $tahun]) }}"
-           class="px-4 py-2 text-sm font-semibold transition whitespace-nowrap
-                  {{ $tab == 'ringkasan' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800' }}">
-            📊 Ringkasan
-        </a>
         <a href="{{ route('reports.index', ['tab' => 'log', 'tahun' => $tahun]) }}"
            class="px-4 py-2 text-sm font-semibold transition whitespace-nowrap
                   {{ $tab == 'log' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800' }}">
@@ -49,107 +44,6 @@
         </a>
     </div>
 </div>
-
-{{-- ===== TAB: RINGKASAN ===== --}}
-@if($tab == 'ringkasan')
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-4">
-    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Daftar Induk</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ $totalTools }}</p>
-            </div>
-            <div class="bg-blue-100 text-blue-600 rounded-lg p-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Verifikasi</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ $totalVerifikasi }}</p>
-            </div>
-            <div class="bg-emerald-100 text-emerald-600 rounded-lg p-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Internal</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ $totalInternal }}</p>
-            </div>
-            <div class="bg-purple-100 text-purple-600 rounded-lg p-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Eksternal</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ $totalEksternal }}</p>
-            </div>
-            <div class="bg-amber-100 text-amber-600 rounded-lg p-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-                </svg>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Mesin</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ $totalMesin }}</p>
-            </div>
-            <div class="bg-rose-100 text-rose-600 rounded-lg p-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
-    <div class="px-4 py-3 border-b border-gray-200">
-        <h3 class="font-semibold text-gray-800 text-sm">Detail Kategori Daftar Induk</h3>
-    </div>
-    <table class="w-full text-xs text-left">
-        <thead class="bg-gray-50 text-gray-700 uppercase">
-            <tr>
-                <th class="px-4 py-3 font-semibold">Kategori</th>
-                <th class="px-4 py-3 font-semibold text-center">Jumlah</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="border-b hover:bg-gray-50">
-                <td class="px-4 py-2.5">Small Tool</td>
-                <td class="px-4 py-2.5 text-center font-semibold">{{ $toolsSmallTool }}</td>
-            </tr>
-            <tr class="border-b hover:bg-gray-50">
-                <td class="px-4 py-2.5">Machine</td>
-                <td class="px-4 py-2.5 text-center font-semibold">{{ $toolsMachine }}</td>
-            </tr>
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-2.5">Jig</td>
-                <td class="px-4 py-2.5 text-center font-semibold">{{ $toolsJig }}</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-@endif
 
 {{-- ===== TAB: LOG AKTIVITAS ===== --}}
 @if($tab == 'log')
@@ -224,12 +118,12 @@
     </div>
     <div class="flex gap-2">
         <a href="{{ route('reports.export.log.excel', request()->query()) }}"
-           class="flex items-center gap-2.5 px-3 py-2 text-xs text-white bg-green-600 rounded-lg hover:bg-green-700 transition font-semibold">
-            Excel
+           class="flex items-center gap-2.5 rounded bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700">
+            @include('components.icons.export') Excel
         </a>
         <a href="{{ route('reports.export.log.pdf', request()->query()) }}"
-           class="flex items-center gap-2.5 px-3 py-2 text-xs text-white bg-red-600 rounded-lg hover:bg-red-700 transition font-semibold">
-            PDF
+           class="flex items-center gap-2.5 rounded bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700">
+            @include('components.icons.export') PDF
         </a>
     </div>
 </div>
@@ -289,205 +183,194 @@
 </div>
 @endif
 
-{{-- ===== TAB: GRAFIK (PARETO) - MANDIRI ===== --}}
+{{-- ===== TAB: GRAFIK ===== --}}
 @if($tab == 'grafik')
-
-{{-- PARETO 1: TOTAL DATA PER FITUR --}}
-<div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-4">
-    <div class="flex justify-between items-start mb-4">
+<div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <h3 class="font-bold text-slate-800 text-base">📊 Total Data per Fitur</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Distribusi jumlah data berdasarkan fitur QC</p>
+            <h2 id="chartTitle" class="text-base font-bold text-slate-800">Total Data per Fitur</h2>
+            <p id="chartDescription" class="mt-1 text-xs text-slate-500">Jumlah data tersimpan di setiap fitur QC.</p>
         </div>
-        <select id="filterTahunFitur" class="border border-gray-300 rounded text-xs px-2 py-1.5 focus:ring-2 focus:ring-blue-500">
-            @for($y = date('Y'); $y >= date('Y') - 5; $y--)
-                <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
-            @endfor
-        </select>
+        <label class="flex flex-col gap-1 text-xs font-semibold text-slate-600 sm:min-w-64">
+            PILIH GRAFIK
+            <select id="chartFilter" class="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-700 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                <option value="{{ route('reports.api.pareto.fitur') }}" data-title="Total Data per Fitur" data-description="Jumlah data tersimpan di setiap fitur QC." data-axis="Fitur">Total Data per Fitur</option>
+                <option value="{{ route('reports.api.pareto.kategori') }}" data-title="Distribusi Kategori Alat" data-description="Jumlah alat pada setiap kategori Daftar Induk." data-axis="Alat">Distribusi Kategori Alat</option>
+                <option value="{{ route('reports.api.pareto.bulanan') }}" data-title="Aktivitas per Bulan" data-description="Total aktivitas kalibrasi dan verifikasi per bulan." data-axis="Aktivitas">Aktivitas per Bulan</option>
+                <option value="{{ route('reports.api.pareto.departemen') }}" data-title="Distribusi Data per Departemen" data-description="Jumlah data verifikasi untuk setiap departemen." data-axis="Data">Distribusi Data per Departemen</option>
+                <option value="{{ route('reports.api.chart', 'verifikasi-bulanan') }}" data-title="Verifikasi per Bulan" data-description="Jumlah verifikasi tersimpan pada setiap bulan." data-axis="Verifikasi">Verifikasi per Bulan</option>
+                <option value="{{ route('reports.api.chart', 'internal-bulanan') }}" data-title="Kalibrasi Internal per Bulan" data-description="Jumlah kalibrasi internal tersimpan pada setiap bulan." data-axis="Alat">Kalibrasi Internal per Bulan</option>
+                <option value="{{ route('reports.api.chart', 'eksternal-bulanan') }}" data-title="Kalibrasi Eksternal per Bulan" data-description="Jumlah kalibrasi eksternal Small Tool tersimpan pada setiap bulan." data-axis="Alat">Kalibrasi Eksternal per Bulan</option>
+                <option value="{{ route('reports.api.chart', 'mesin-bulanan') }}" data-title="Kalibrasi Mesin per Bulan" data-description="Jumlah kalibrasi mesin tersimpan pada setiap bulan." data-axis="Mesin">Kalibrasi Mesin per Bulan</option>
+                <option value="{{ route('reports.api.chart', 'verifikasi-periode') }}" data-title="Hasil Verifikasi Periode" data-description="Distribusi hasil kedua periode verifikasi internal." data-axis="Periode">Hasil Verifikasi Periode</option>
+                <option value="{{ route('reports.api.chart', 'kalibrasi-periode') }}" data-title="Hasil Kalibrasi Internal" data-description="Distribusi hasil kalibrasi internal per periode." data-axis="Periode">Hasil Kalibrasi Internal</option>
+                <option value="{{ route('reports.api.chart', 'verifikasi-qc2') }}" data-title="Hasil Verifikasi QC2" data-description="Distribusi hasil verifikasi QC2." data-axis="Alat">Hasil Verifikasi QC2</option>
+                <option value="{{ route('reports.api.chart', 'data-ng') }}" data-title="Jenis Kerusakan Data NG" data-description="Total tiap jenis kerusakan untuk tahun yang dipilih." data-axis="Jumlah">Jenis Kerusakan Data NG</option>
+                <option value="{{ route('reports.api.chart', 'stock-bulanan') }}" data-title="Pergerakan Stock per Bulan" data-description="Jumlah unit yang masuk dan keluar dari persediaan setiap bulan." data-axis="Unit">Pergerakan Stock per Bulan</option>
+                <option value="{{ route('reports.api.chart', 'produksi-bulanan') }}" data-title="Data Produksi per Bulan" data-description="Jumlah data bulanan pada Data All Produksi. Tabel ini belum menyimpan tahun." data-axis="Jumlah">Data Produksi per Bulan</option>
+                <option value="{{ route('reports.api.chart', 'daily-report') }}" data-title="Laporan Harian per Jenis Data" data-description="Jumlah aktivitas tahunan yang diringkas dalam laporan harian, dikelompokkan berdasarkan fitur." data-axis="Aktivitas">Laporan Harian per Jenis Data</option>
+            </select>
+        </label>
     </div>
-    <div class="h-96">
-        <canvas id="chartParetoFitur"></canvas>
+    <div id="chartStatus" class="mb-3 hidden rounded border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800" role="status" aria-live="polite"></div>
+    <div id="chartContainer" class="relative h-[360px] sm:h-[440px]">
+        <canvas id="reportChart" role="img" aria-label="Grafik laporan QC"></canvas>
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-
-    {{-- PARETO 2: DISTRIBUSI KATEGORI ALAT --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <div class="flex justify-between items-start mb-4">
-            <div>
-                <h3 class="font-bold text-slate-800 text-sm">📊 Distribusi Kategori Alat</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Kategori dari Daftar Induk</p>
-            </div>
-            <select id="filterTahunKategori" class="border border-gray-300 rounded text-xs px-2 py-1.5 focus:ring-2 focus:ring-blue-500">
-                @for($y = date('Y'); $y >= date('Y') - 5; $y--)
-                    <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
-                @endfor
-            </select>
-        </div>
-        <div class="h-80">
-            <canvas id="chartParetoKategori"></canvas>
-        </div>
-    </div>
-
-    {{-- PARETO 3: AKTIVITAS PER BULAN --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <div class="flex justify-between items-start mb-4">
-            <div>
-                <h3 class="font-bold text-slate-800 text-sm">📊 Aktivitas per Bulan</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Total aktivitas kalibrasi & verifikasi per bulan</p>
-            </div>
-            <select id="filterTahunBulan" class="border border-gray-300 rounded text-xs px-2 py-1.5 focus:ring-2 focus:ring-blue-500">
-                @for($y = date('Y'); $y >= date('Y') - 5; $y--)
-                    <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
-                @endfor
-            </select>
-        </div>
-        <div class="h-80">
-            <canvas id="chartParetoBulan"></canvas>
-        </div>
-    </div>
-</div>
-
-<div class="grid grid-cols-1 gap-4">
-
-    {{-- PARETO 4: DISTRIBUSI DATA PER DEPARTEMEN --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <div class="flex justify-between items-start mb-4">
-            <div>
-                <h3 class="font-bold text-slate-800 text-sm">📊 Distribusi Data per Departemen</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Jumlah data dari tabel Verifikasi per departemen</p>
-            </div>
-            <select id="filterTahunDepartemen" class="border border-gray-300 rounded text-xs px-2 py-1.5 focus:ring-2 focus:ring-blue-500">
-                @for($y = date('Y'); $y >= date('Y') - 5; $y--)
-                    <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
-                @endfor
-            </select>
-        </div>
-        <div class="h-96">
-            <canvas id="chartParetoDepartemen"></canvas>
-        </div>
-    </div>
-</div>
-
-{{-- Chart.js + Plugin --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    Chart.register(ChartDataLabels);
+document.addEventListener('DOMContentLoaded', function () {
+    const chartFilter = document.getElementById('chartFilter');
+    const chartCanvas = document.getElementById('reportChart');
+    const chartTitle = document.getElementById('chartTitle');
+    const chartDescription = document.getElementById('chartDescription');
+    const chartStatus = document.getElementById('chartStatus');
+    const chartContainer = document.getElementById('chartContainer');
+    const yearFilter = document.querySelector('form[action="{{ route('reports.index') }}"] select[name="tahun"]');
+    let reportChart = null;
+    let activeRequest = 0;
 
-    // ========================================
-    // FUNGSI UTAMA: PARETO CHART
-    // ========================================
-    function buatParetoChart(canvasId, labels, values, warnaBar = '#3b82f6') {
-        const combined = labels.map((label, i) => ({ label, value: values[i] }));
-        combined.sort((a, b) => b.value - a.value);
-        const sortedLabels = combined.map(c => c.label);
-        const sortedValues = combined.map(c => c.value);
-        const total = sortedValues.reduce((a, b) => a + b, 0);
-        let cumulative = 0;
-        const cumulativePercentages = sortedValues.map(v => {
-            cumulative += v;
-            return total > 0 ? (cumulative / total) * 100 : 0;
-        });
-        const maxValue = Math.max(...sortedValues, 1);
-        const maxY = Math.ceil(maxValue * 1.2);
+    async function renderSelectedChart() {
+        const requestId = ++activeRequest;
+        const option = chartFilter.selectedOptions[0];
+        chartTitle.textContent = option.dataset.title;
+        chartDescription.textContent = option.dataset.description;
+        chartStatus.classList.remove('hidden', 'border-rose-200', 'bg-rose-50', 'text-rose-800');
+        chartStatus.classList.add('border-blue-200', 'bg-blue-50', 'text-blue-800');
+        chartStatus.textContent = 'Memuat grafik...';
 
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        
-        // Hapus chart lama jika ada (Anti Memory Leak saat ganti filter)
-        const existingChart = Chart.getChart(canvasId);
-        if (existingChart) existingChart.destroy();
-
-        return new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: sortedLabels,
-                datasets: [
-                    {
-                        type: 'bar', label: 'Jumlah', data: sortedValues, backgroundColor: warnaBar,
-                        borderColor: warnaBar, borderWidth: 0, borderRadius: 6, borderSkipped: false, yAxisID: 'y', order: 2,
-                        datalabels: { anchor: 'end', align: 'end', color: '#1e40af', font: { size: 11, weight: 'bold' },
-                            formatter: v => v > 0 ? v : '', offset: 4 }
-                    },
-                    {
-                        type: 'line', label: '% Kumulatif', data: cumulativePercentages, borderColor: '#dc2626',
-                        backgroundColor: '#dc2626', borderWidth: 2.5, pointBackgroundColor: '#dc2626', pointBorderColor: '#fff',
-                        pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 8, tension: 0.2, yAxisID: 'y1', order: 1,
-                        datalabels: { anchor: 'end', align: 'top', color: '#dc2626', font: { size: 10, weight: 'bold' },
-                            formatter: v => v.toFixed(0) + '%', offset: 6 }
-                    }
-                ]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                layout: { padding: { top: 30, right: 20, left: 10, bottom: 10 } },
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    legend: { display: true, position: 'top', align: 'end',
-                        labels: { boxWidth: 14, boxHeight: 14, padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true }
-                    },
-                    tooltip: { backgroundColor: '#1e293b', padding: 12, titleFont: { size: 12, weight: 'bold' }, bodyFont: { size: 11 },
-                        callbacks: { label: function(context) {
-                            if (context.dataset.type === 'line') return '  ' + context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
-                            return '  ' + context.dataset.label + ': ' + context.parsed.y;
-                        }}
-                    }
-                },
-                scales: {
-                    y: { beginAtZero: true, max: maxY, position: 'left',
-                        title: { display: true, text: 'Jumlah', font: { size: 11, weight: 'bold' }, color: '#1e40af' },
-                        ticks: { stepSize: maxY <= 10 ? 1 : Math.ceil(maxY / 10), font: { size: 10 }, color: '#1e40af' },
-                        grid: { color: 'rgba(30, 64, 175, 0.08)', drawBorder: false }
-                    },
-                    y1: { beginAtZero: true, max: 100, position: 'right',
-                        title: { display: true, text: '% Kumulatif', font: { size: 11, weight: 'bold' }, color: '#dc2626' },
-                        ticks: { stepSize: 20, font: { size: 10 }, color: '#dc2626', callback: v => v + '%' },
-                        grid: { display: false, drawBorder: false }
-                    },
-                    x: { ticks: { font: { size: 10, weight: '600' }, maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false, drawBorder: false } }
-                }
+        try {
+            const url = new URL(option.value, window.location.origin);
+            url.searchParams.set('tahun', yearFilter.value);
+            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!response.ok) {
+                throw new Error(`Permintaan grafik gagal (HTTP ${response.status}).`);
             }
-        });
+
+            const data = await response.json();
+            if (requestId !== activeRequest) {
+                return;
+            }
+            if (!Array.isArray(data.labels) || !Array.isArray(data.values) || data.labels.length !== data.values.length) {
+                throw new Error('Data grafik dari server tidak valid.');
+            }
+            if (data.labels.length === 0 || data.values.every(value => Number(value) === 0)) {
+                if (reportChart) {
+                    reportChart.destroy();
+                    reportChart = null;
+                }
+                chartStatus.classList.remove('hidden', 'border-rose-200', 'bg-rose-50', 'text-rose-800');
+                chartStatus.classList.add('border-blue-200', 'bg-blue-50', 'text-blue-800');
+                chartStatus.textContent = 'Belum ada data untuk grafik ini pada tahun yang dipilih.';
+                return;
+            }
+
+            const combined = data.labels.map((label, index) => ({
+                label,
+                value: Number(data.values[index]) || 0,
+            })).sort((a, b) => b.value - a.value);
+            const labels = combined.map(item => item.label);
+            const values = combined.map(item => item.value);
+            const total = values.reduce((sum, value) => sum + value, 0);
+            let cumulative = 0;
+            const cumulativeValues = values.map(value => {
+                cumulative += value;
+                return total > 0 ? (cumulative / total) * 100 : 0;
+            });
+
+            if (reportChart) {
+                reportChart.destroy();
+            }
+
+            chartContainer.style.height = '440px';
+            Chart.register(ChartDataLabels);
+
+            reportChart = new Chart(chartCanvas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        type: 'bar',
+                        label: option.dataset.axis,
+                        data: values,
+                        backgroundColor: '#0070f2',
+                        hoverBackgroundColor: '#0054b5',
+                        borderRadius: 4,
+                        maxBarThickness: 28,
+                        yAxisID: 'y',
+                        order: 2,
+                        datalabels: {
+                            display: context => labels.length <= 12 && context.dataset.data[context.dataIndex] > 0,
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#334155',
+                            font: { size: 10, weight: 'bold' },
+                            formatter: value => value,
+                            clip: true,
+                        },
+                    }, {
+                        type: 'line',
+                        label: '% Kumulatif',
+                        data: cumulativeValues,
+                        borderColor: '#dc2626',
+                        backgroundColor: '#dc2626',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#dc2626',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 1.5,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        tension: 0.15,
+                        yAxisID: 'y1',
+                        order: 1,
+                        datalabels: { display: false },
+                    }],
+                },
+                options: {
+                    indexAxis: 'x',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: { boxWidth: 12, boxHeight: 12, font: { size: 10 }, usePointStyle: true },
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 10,
+                            callbacks: {
+                                label: context => context.dataset.type === 'line'
+                                    ? ` % Kumulatif: ${context.parsed.y.toFixed(1)}%`
+                                    : ` ${option.dataset.axis}: ${context.parsed.y}`,
+                            },
+                        },
+                    },
+                    scales: {
+                        y: { beginAtZero: true, position: 'left', title: { display: true, text: option.dataset.axis }, ticks: { precision: 0 } },
+                        y1: { beginAtZero: true, max: 120, position: 'right', title: { display: true, text: '% Kumulatif' }, ticks: { callback: value => value <= 100 ? `${value}%` : '', stepSize: 20 }, grid: { drawOnChartArea: false } },
+                        x: { grid: { display: false }, ticks: { maxRotation: labels.length > 8 ? 45 : 0, minRotation: 0 } },
+                    },
+                },
+            });
+            chartStatus.classList.add('hidden');
+        } catch (error) {
+            if (requestId !== activeRequest) {
+                return;
+            }
+            chartStatus.classList.remove('border-blue-200', 'bg-blue-50', 'text-blue-800', 'hidden');
+            chartStatus.classList.add('border-rose-200', 'bg-rose-50', 'text-rose-800');
+            chartStatus.textContent = error.message || 'Grafik tidak dapat dimuat. Silakan coba lagi.';
+        }
     }
 
-    // ========================================
-    // FETCH DATA & RENDER (VIA AJAX)
-    // ========================================
-    function fetchAndRender(url, canvasId, warna) {
-        fetch(url)
-            .then(res => res.json())
-            .then(data => {
-                buatParetoChart(canvasId, data.labels, data.values, warna);
-            })
-            .catch(err => console.error("Gagal load data grafik:", err));
-    }
-
-    // Initial Load
-    const currentYear = '{{ $tahun }}';
-    fetchAndRender(`{{ route('reports.api.pareto.fitur') }}?tahun=${currentYear}`, 'chartParetoFitur', '#3b82f6');
-    fetchAndRender(`{{ route('reports.api.pareto.kategori') }}?tahun=${currentYear}`, 'chartParetoKategori', '#10b981');
-    fetchAndRender(`{{ route('reports.api.pareto.bulanan') }}?tahun=${currentYear}`, 'chartParetoBulan', '#8b5cf6');
-    fetchAndRender(`{{ route('reports.api.pareto.departemen') }}?tahun=${currentYear}`, 'chartParetoDepartemen', '#f59e0b');
-
-    // Event Listener Filter Mandiri
-    document.getElementById('filterTahunFitur').addEventListener('change', function() {
-        fetchAndRender(`{{ route('reports.api.pareto.fitur') }}?tahun=${this.value}`, 'chartParetoFitur', '#3b82f6');
-    });
-    document.getElementById('filterTahunKategori').addEventListener('change', function() {
-        fetchAndRender(`{{ route('reports.api.pareto.kategori') }}?tahun=${this.value}`, 'chartParetoKategori', '#10b981');
-    });
-    document.getElementById('filterTahunBulan').addEventListener('change', function() {
-        fetchAndRender(`{{ route('reports.api.pareto.bulanan') }}?tahun=${this.value}`, 'chartParetoBulan', '#8b5cf6');
-    });
-    document.getElementById('filterTahunDepartemen').addEventListener('change', function() {
-        fetchAndRender(`{{ route('reports.api.pareto.departemen') }}?tahun=${this.value}`, 'chartParetoDepartemen', '#f59e0b');
-    });
-
+    chartFilter.addEventListener('change', renderSelectedChart);
+    renderSelectedChart();
 });
 </script>
 @endif
-
 @endsection

@@ -13,6 +13,7 @@ use App\Imports\KalibrasiInternalListUpImport;
 use App\Imports\VerifikasiQc2Import;
 use App\Exports\VerifikasiQc2Export;
 use App\Imports\SpreadsheetHeaderRowDetector;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -22,14 +23,11 @@ class VerifikasiPeriodeController extends Controller
     {
         $filters = $request->validate([
             'tahun' => 'nullable|integer|between:2000,2100',
-            // PERBAIKAN: Kembalikan 'kalibrasi' di sini agar tidak error saat redirect
             'jenis' => 'nullable|in:kalibrasi,verifikasi,verifikasi_qc2',
         ]);
         $tahun = (int) ($filters['tahun'] ?? date('Y'));
         $jenis = $filters['jenis'] ?? 'verifikasi';
 
-        // Blok ini WAJIB ADA agar saat URL ?jenis=kalibrasi, 
-        // sistem memunculkan view kalibrasi, bukan view verifikasi.
         if ($jenis === 'kalibrasi') {
             $schedules = KalibrasiInternalListUp::where('tahun', $tahun)->orderBy('tool_name')->get();
             return view('verifikasi.periode.kalibrasi', compact('schedules', 'tahun', 'jenis'));
@@ -66,7 +64,6 @@ class VerifikasiPeriodeController extends Controller
         $shops = KalibrasiInternalListUp::whereNotNull('shop')->where('shop', '<>', '')
             ->distinct()->orderBy('shop')->pluck('shop');
             
-        // TAMBAHAN: Mapping Tool -> Types
         $toolsWithTypes = $this->getToolsWithTypes('kalibrasi_internal_list_ups');
 
         return view('verifikasi.periode.kalibrasi-form', compact('tahun', 'tools', 'types', 'shops', 'toolsWithTypes'));
@@ -139,6 +136,24 @@ class VerifikasiPeriodeController extends Controller
     {
         $tahun = $this->validatedYear($request);
         return Excel::download(new KalibrasiInternalListUpExport($tahun), "list-up-kalibrasi-internal-{$tahun}.xlsx");
+    }
+
+    public function internalCalibrationExportPdf(Request $request)
+    {
+        return $this->downloadPeriodPdf($request, KalibrasiInternalListUp::class, 'Jadwal Kalibrasi Internal', [
+            ['label' => 'Tool Name', 'key' => 'tool_name'],
+            ['label' => 'Type', 'key' => 'tool_type'],
+            ['label' => 'Specification', 'key' => 'specification'],
+            ['label' => 'Serial No.', 'key' => 'serial_number'],
+            ['label' => 'Registration No.', 'key' => 'registration_number'],
+            ['label' => 'Shop', 'key' => 'shop'],
+            ['label' => 'Calibration Date', 'key' => 'calibration_date'],
+            ['label' => 'Next Calibration Date', 'key' => 'next_calibration_date'],
+            ['label' => 'JGM', 'key' => 'jgm'],
+            ['label' => 'Period 2 Calibration Date', 'key' => 'period2_calibration_date'],
+            ['label' => 'Period 2 Next Calibration Date', 'key' => 'period2_next_calibration_date'],
+            ['label' => 'Period 2 JGM', 'key' => 'period2_jgm'],
+        ], 'list-up-kalibrasi-internal');
     }
 
     // ==========================================
@@ -232,6 +247,24 @@ class VerifikasiPeriodeController extends Controller
         return Excel::download(new VerifikasiPeriodeExport($tahun), "list-up-verifikasi-{$tahun}.xlsx");
     }
 
+    public function exportPdf(Request $request)
+    {
+        return $this->downloadPeriodPdf($request, VerifikasiInternalSchedule::class, 'Jadwal Verifikasi Internal', [
+            ['label' => 'Tool Name', 'key' => 'tool_name'],
+            ['label' => 'Type', 'key' => 'tool_type'],
+            ['label' => 'Specification', 'key' => 'specification'],
+            ['label' => 'Serial No.', 'key' => 'serial_number'],
+            ['label' => 'Registration No.', 'key' => 'registration_number'],
+            ['label' => 'Shop', 'key' => 'shop'],
+            ['label' => 'Period 1 Verification Date', 'key' => 'period1_verification_date'],
+            ['label' => 'Period 1 Next Verification Date', 'key' => 'period1_next_verification_date'],
+            ['label' => 'Period 1 JGM', 'key' => 'period1_jgm'],
+            ['label' => 'Period 2 Verification Date', 'key' => 'period2_verification_date'],
+            ['label' => 'Period 2 Next Verification Date', 'key' => 'period2_next_verification_date'],
+            ['label' => 'Period 2 JGM', 'key' => 'period2_jgm'],
+        ], 'list-up-verifikasi');
+    }
+
     // ==========================================
     // METHOD VERIFIKASI QC2
     // ==========================================
@@ -321,13 +354,35 @@ class VerifikasiPeriodeController extends Controller
         return Excel::download(new VerifikasiQc2Export($tahun), "list-up-qc2-{$tahun}.xlsx");
     }
 
+    public function qc2ExportPdf(Request $request)
+    {
+        return $this->downloadPeriodPdf($request, VerifikasiQc2::class, 'Jadwal Verifikasi Internal QC2', [
+            ['label' => 'Tool Name', 'key' => 'tool_name'],
+            ['label' => 'Type', 'key' => 'tool_type'],
+            ['label' => 'Specification', 'key' => 'specification'],
+            ['label' => 'Serial No.', 'key' => 'serial_number'],
+            ['label' => 'Registration No.', 'key' => 'registration_number'],
+            ['label' => 'Shop', 'key' => 'shop'],
+            ['label' => 'Verification Date', 'key' => 'verification_date'],
+            ['label' => 'Next Verification Date', 'key' => 'next_verification_date'],
+            ['label' => 'JGM', 'key' => 'jgm'],
+        ], 'list-up-qc2');
+    }
+
+    private function downloadPeriodPdf(Request $request, string $model, string $title, array $columns, string $filename)
+    {
+        $tahun = $this->validatedYear($request);
+        $schedules = $model::query()->where('tahun', $tahun)->orderBy('tool_name')->get();
+
+        return Pdf::loadView('verifikasi.periode.pdf', compact('schedules', 'tahun', 'title', 'columns'))
+            ->setPaper('a4', 'landscape')
+            ->download("{$filename}-{$tahun}.pdf");
+    }
+
     // ==========================================
     // METHOD PRIVATE UNTUK VALIDASI & HELPER
     // ==========================================
 
-    /**
-     * Mengambil mapping Tool Name => array of Types
-     */
     private function getToolsWithTypes($tableName)
     {
         return \Illuminate\Support\Facades\DB::table($tableName)

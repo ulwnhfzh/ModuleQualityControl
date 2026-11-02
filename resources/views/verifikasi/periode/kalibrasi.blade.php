@@ -6,9 +6,8 @@
     @if($errors->any())<div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ $errors->first() }}</div>@endif
     
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <!-- FILTER TAHUN (DROPDOWN JENIS DIHAPUS) -->
+        <!-- FILTER TAHUN -->
         <form method="GET" action="{{ route('verifikasi.periode.index') }}" class="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3 gap-y-3 sm:flex sm:flex-wrap">
-            
             <!-- Hidden input agar saat ganti tahun, jenis tetap 'kalibrasi' -->
             <input type="hidden" name="jenis" value="kalibrasi">
 
@@ -25,20 +24,26 @@
             
             @if(Auth::check() && Auth::user()->role === 'admin')
                 <!-- Tombol Import -->
-                <a href="{{ route('verifikasi.periode.kalibrasi.import.form', ['tahun' => $tahun]) }}" class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
-                    📥 Import
+                <a href="{{ route('verifikasi.periode.kalibrasi.import.form', ['tahun' => $tahun]) }}" class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-blue-600 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:px-3 sm:py-2 sm:text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L8 8m4-4 4 4M4 16v4h16v-4" />
+                    </svg>
+                    Import
                 </a>
 
                 <!-- Tombol Export Dropdown -->
                 <div class="relative inline-block" id="exportDropdownKalibrasi">
-                    <button type="button" onclick="toggleExportKalibrasi()" class="bg-slate-800 text-white rounded font-semibold hover:bg-slate-900 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
-                        📤 Export
+                    <button type="button" onclick="toggleExportKalibrasi()" class="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:px-3 sm:py-2 sm:text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v12m0 0 4-4m-4 4-4-4M4 8V4h16v4" />
+                        </svg>
+                        Export
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
                     <div id="exportMenuKalibrasi" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                        <a href="{{ route('verifikasi.periode.kalibrasi.export', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-green-50 transition border-b border-gray-100">
+                        <a href="{{ route('verifikasi.periode.kalibrasi.export', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 border-b border-gray-100 px-3 py-2.5 text-xs text-gray-700 transition hover:bg-blue-50">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                 <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
                                 <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
@@ -46,19 +51,15 @@
                             </svg>
                             <span class="font-medium">Export Excel</span>
                         </a>
-                        <a href="{{ route('verifikasi.periode.kalibrasi.export', ['tahun' => $tahun, 'format' => 'pdf']) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
-                                <path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
-                                <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
-                                <text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="7">PDF</text>
-                            </svg>
+                        <a href="{{ route('verifikasi.periode.kalibrasi.export.pdf', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 transition hover:bg-blue-50">
+                            <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-red-600 text-[8px] font-bold text-white">PDF</span>
                             <span class="font-medium">Export PDF</span>
                         </a>
                     </div>
                 </div>
 
                 <!-- Tombol Tambah -->
-                <a href="{{ route('verifikasi.periode.kalibrasi.create', ['tahun' => $tahun]) }}" class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                <a href="{{ route('verifikasi.periode.kalibrasi.create', ['tahun' => $tahun]) }}" class="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:px-3 sm:py-2 sm:text-sm">
                     <span>+</span> Tambah
                 </a>
             @endif
@@ -69,7 +70,7 @@
 <p class="mb-2 text-xs text-slate-500 md:hidden">Geser tabel ke samping untuk melihat semua kolom →</p>
 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
     <div class="overflow-x-auto">
-        <table class="w-full min-w-[1450px] table-auto border-collapse text-xs text-slate-700">
+        <table class="calibration-table w-full min-w-[1000px] table-auto border-collapse text-xs text-slate-700">
             <thead class="bg-slate-800 text-white">
                 <tr class="text-center uppercase tracking-wide">
                     <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">No</th>
@@ -80,7 +81,7 @@
                     <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">Number Registration</th>
                     <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">Shop</th>
                     
-                    <th colspan="6" class="border border-slate-600 px-3 py-2 text-center bg-slate-700">Year {{ $tahun }}</th>
+                    <th colspan="3" class="border border-slate-600 px-3 py-2 text-center bg-slate-700">Year {{ $tahun }}</th>
                     
                     @if(Auth::check() && Auth::user()->role === 'admin') 
                         <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">Aksi</th> 
@@ -88,14 +89,10 @@
                 </tr>
 
                 <tr class="text-center uppercase">
-                    <th colspan="3" class="border border-slate-600 px-3 py-2 bg-slate-700">Periode 1</th>
-                    <th colspan="3" class="border border-slate-600 px-3 py-2 bg-slate-700">Periode 2</th>
+                    <th colspan="3" class="border border-slate-600 px-3 py-2 bg-slate-700">Kalibrasi Tahunan</th>
                 </tr>
 
                 <tr class="text-center uppercase text-[10px]">
-                    <th class="border border-slate-600 px-3 py-2">Calibration Date</th>
-                    <th class="border border-slate-600 px-3 py-2">Next Calibration Date</th>
-                    <th class="border border-slate-600 px-3 py-2">JGM</th>
                     <th class="border border-slate-600 px-3 py-2">Calibration Date</th>
                     <th class="border border-slate-600 px-3 py-2">Next Calibration Date</th>
                     <th class="border border-slate-600 px-3 py-2">JGM</th>
@@ -103,7 +100,7 @@
             </thead>
             <tbody>
                 @forelse($schedules as $index => $schedule)
-                    <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }} hover:bg-emerald-50/50">
+                    <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }} hover:bg-blue-50">
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $index + 1 }}</td>
                         <td class="border border-slate-200 px-3 py-3 font-semibold text-slate-800">{{ $schedule->tool_name }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->tool_type }}</td>
@@ -116,24 +113,38 @@
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->next_calibration_date?->locale('id')->translatedFormat('d F Y') ?? '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->jgm ?: '-' }}</td>
                         
-                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period2_calibration_date?->locale('id')->translatedFormat('d F Y') ?? '-' }}</td>
-                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period2_next_calibration_date?->locale('id')->translatedFormat('d F Y') ?? '-' }}</td>
-                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period2_jgm ?: '-' }}</td>
-                        
                         @if(Auth::check() && Auth::user()->role === 'admin')
                             <td class="border border-slate-200 px-3 py-3"><div class="flex justify-center gap-2">
-                                <a href="{{ route('verifikasi.periode.kalibrasi.edit', $schedule) }}" class="rounded bg-amber-400 px-2 py-1 font-semibold text-white hover:bg-amber-500">Edit</a>
-                                <form method="POST" action="{{ route('verifikasi.periode.kalibrasi.destroy', $schedule) }}" onsubmit="return confirm('Hapus jadwal kalibrasi ini?')">@csrf @method('DELETE')<button class="rounded bg-rose-500 px-2 py-1 font-semibold text-white hover:bg-rose-600">Hapus</button></form>
+                                <a href="{{ route('verifikasi.periode.kalibrasi.edit', $schedule) }}" class="rounded-md bg-blue-600 px-2 py-1 font-semibold text-white hover:bg-blue-700">Edit</a>
+                                <form method="POST" action="{{ route('verifikasi.periode.kalibrasi.destroy', $schedule) }}" onsubmit="return confirm('Hapus jadwal kalibrasi ini?')">@csrf @method('DELETE')<button class="rounded-md bg-rose-600 px-2 py-1 font-semibold text-white hover:bg-rose-700">Hapus</button></form>
                             </div></td>
                         @endif
                     </tr>
                 @empty
-                    <tr><td colspan="{{ Auth::check() && Auth::user()->role === 'admin' ? 14 : 13 }}" class="px-4 py-12 text-center text-slate-500">Belum ada jadwal kalibrasi internal untuk tahun {{ $tahun }}.</td></tr>
+                    <tr><td colspan="{{ Auth::check() && Auth::user()->role === 'admin' ? 11 : 10 }}" class="px-4 py-12 text-center text-slate-500">Belum ada jadwal kalibrasi internal untuk tahun {{ $tahun }}.</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 </div>
+
+<style>
+    .main-content .calibration-table th,
+    .main-content .calibration-table td {
+        border-color: #d9d9d9;
+    }
+
+    .main-content .calibration-table thead tr:first-child th {
+        background-color: #0070f2;
+        border-color: #0054b5;
+        color: #fff;
+    }
+
+    .main-content .calibration-table thead tr:not(:first-child) th {
+        background-color: #eaf2f8;
+        color: #1f2937;
+    }
+</style>
 
 <script>
 function toggleExportKalibrasi() {

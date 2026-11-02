@@ -61,7 +61,7 @@
                         <a href="{{ route('verifikasi.import.form', ['mode' => $mode]) }}"
                            class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap
                                   px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
-                            📥 Import
+                            @include('components.icons.import') Import
                         </a>
 
                         <!-- Tombol Export Dropdown -->
@@ -69,7 +69,7 @@
                             <button type="button" onclick="toggleExportVerif()"
                                     class="bg-slate-800 text-white rounded font-semibold hover:bg-slate-900 transition inline-flex items-center gap-1 whitespace-nowrap
                                            px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
-                                📤 Export
+                                @include('components.icons.export') Export
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                                 </svg>
@@ -164,11 +164,11 @@
                         @if(Auth::check() && Auth::user()->role === 'admin')
                         <div class="flex justify-center gap-1">
                             <a href="{{ route('verifikasi.edit', $item->id) }}"
-                               class="bg-yellow-400 text-white rounded hover:bg-yellow-500 transition px-2 py-1 text-[10px]">Edit</a>
+                               class="rounded bg-blue-600 px-2 py-1 text-[10px] text-white transition hover:bg-blue-700">Edit</a>
                             <form action="{{ route('verifikasi.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus?');" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="bg-red-500 text-white rounded hover:bg-red-600 transition px-2 py-1 text-[10px]">Hapus</button>
+                                <button type="submit" class="rounded bg-rose-600 px-2 py-1 text-[10px] text-white transition hover:bg-rose-700">Hapus</button>
                             </form>
                         </div>
                         @else
@@ -259,11 +259,11 @@
                         @if(Auth::check() && Auth::user()->role === 'admin')
                         <div class="flex justify-center gap-1">
                             <a href="{{ route('verifikasi.edit', $item->id) }}"
-                               class="bg-yellow-400 text-white rounded hover:bg-yellow-500 transition px-2 py-1 text-[10px]">Edit</a>
+                               class="rounded bg-blue-600 px-2 py-1 text-[10px] text-white transition hover:bg-blue-700">Edit</a>
                             <form action="{{ route('verifikasi.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus?');" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="bg-red-500 text-white rounded hover:bg-red-600 transition px-2 py-1 text-[10px]">Hapus</button>
+                                <button type="submit" class="rounded bg-rose-600 px-2 py-1 text-[10px] text-white transition hover:bg-rose-700">Hapus</button>
                             </form>
                         </div>
                         @else

@@ -8,11 +8,17 @@ use App\Models\Internal;
 use App\Models\Eksternal;
 use App\Models\EksternalMesin;
 use App\Models\ActivityLog;
+use App\Models\DataAllProduksi;
+use App\Models\KalibrasiInternalListUp;
+use App\Models\ToolDefect;
+use App\Models\ToolStockMovement;
+use App\Models\VerifikasiInternalSchedule;
+use App\Models\VerifikasiQc2;
 use App\Exports\ActivityLogExport;
 use App\Models\User;
 use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
@@ -22,85 +28,16 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $tahun = $this->validatedYear($request);
-        $filters = $request->validate(['tab' => 'nullable|in:ringkasan,log,grafik']);
-        $tab = $filters['tab'] ?? 'ringkasan';
-
-        // ===== TAB RINGKASAN =====
-        $totalTools       = Tool::where('tahun', $tahun)->count();
-        $totalVerifikasi  = Verifikasi::where('tahun', $tahun)->count();
-        $totalInternal    = Internal::where('tahun', $tahun)->count();
-        $totalEksternal   = Eksternal::where('tahun', $tahun)->count();
-        $totalMesin       = EksternalMesin::where('tahun', $tahun)->count();
-
-        $toolsSmallTool = Tool::where('tahun', $tahun)->where('category', 'Small Tool')->count();
-        $toolsMachine   = Tool::where('tahun', $tahun)->where('category', 'Machine')->count();
-        $toolsJig       = Tool::where('tahun', $tahun)->where('category', 'Jig')->count();
+        $filters = $request->validate(['tab' => 'nullable|in:log,grafik']);
+        $tab = $filters['tab'] ?? 'grafik';
 
         // ===== TAB LOG AKTIVITAS =====
-        $logs = $this->filteredActivityLogs($request)->orderBy('id', 'desc')->paginate(25)->withQueryString();
+        $logs = $tab === 'log'
+            ? $this->filteredActivityLogs($request)->orderBy('id', 'desc')->paginate(25)->withQueryString()
+            : null;
+        $users = $tab === 'log' ? User::orderBy('name')->get() : collect();
 
-        $users = User::orderBy('name')->get();
-
-        // ===== TAB GRAFIK (DATA AWAL) =====
-        $bulanLabels  = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-        $bulanColumns = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-        $tahunRange = range(date('Y'), date('Y') - 4);
-        sort($tahunRange);
-        $tahunLabels = array_map('strval', $tahunRange);
-
-        $verifikasiPerBulan = $internalPerBulan = $eksternalPerBulan = $mesinPerBulan = [];
-        $verifikasiPerTahun = $internalPerTahun = $eksternalPerTahun = $mesinPerTahun = $toolsPerTahun = [];
-
-        if ($tab === 'grafik') {
-            $monthlyTotals = [];
-            foreach ([
-                'verifikasi' => Verifikasi::class,
-                'internal' => Internal::class,
-                'eksternal' => Eksternal::class,
-                'mesin' => EksternalMesin::class,
-            ] as $key => $model) {
-                $totals = $model::where('tahun', $tahun)
-                    ->selectRaw(implode(', ', array_map(fn ($column) => "SUM(`{$column}`) as `{$column}`", $bulanColumns)))
-                    ->first();
-                $monthlyTotals[$key] = array_map(fn ($column) => (int) $totals->{$column}, $bulanColumns);
-            }
-
-            $verifikasiPerBulan = $monthlyTotals['verifikasi'];
-            $internalPerBulan = $monthlyTotals['internal'];
-            $eksternalPerBulan = $monthlyTotals['eksternal'];
-            $mesinPerBulan = $monthlyTotals['mesin'];
-
-            $yearlyCounts = [];
-            foreach ([
-                'verifikasi' => Verifikasi::class,
-                'internal' => Internal::class,
-                'eksternal' => Eksternal::class,
-                'mesin' => EksternalMesin::class,
-                'tools' => Tool::class,
-            ] as $key => $model) {
-                $yearlyCounts[$key] = $model::whereIn('tahun', $tahunRange)
-                    ->select('tahun')
-                    ->selectRaw('COUNT(*) as total')
-                    ->groupBy('tahun')
-                    ->pluck('total', 'tahun');
-            }
-
-            $verifikasiPerTahun = array_map(fn ($year) => (int) $yearlyCounts['verifikasi']->get($year, 0), $tahunRange);
-            $internalPerTahun = array_map(fn ($year) => (int) $yearlyCounts['internal']->get($year, 0), $tahunRange);
-            $eksternalPerTahun = array_map(fn ($year) => (int) $yearlyCounts['eksternal']->get($year, 0), $tahunRange);
-            $mesinPerTahun = array_map(fn ($year) => (int) $yearlyCounts['mesin']->get($year, 0), $tahunRange);
-            $toolsPerTahun = array_map(fn ($year) => (int) $yearlyCounts['tools']->get($year, 0), $tahunRange);
-        }
-
-        return view('reports.index', compact(
-            'tahun', 'tab',
-            'totalTools', 'totalVerifikasi', 'totalInternal', 'totalEksternal', 'totalMesin',
-            'toolsSmallTool', 'toolsMachine', 'toolsJig',
-            'logs', 'users',
-            // Data grafik awal
-            'bulanLabels', 'verifikasiPerBulan', 'internalPerBulan', 'eksternalPerBulan', 'mesinPerBulan',
-            'tahunLabels', 'verifikasiPerTahun', 'internalPerTahun', 'eksternalPerTahun', 'mesinPerTahun', 'toolsPerTahun'
-        ));
+        return view('reports.index', compact('tahun', 'tab', 'logs', 'users'));
     }
 
     // ==========================================
@@ -111,13 +48,24 @@ class ReportController extends Controller
     {
         $tahun = $this->validatedYear($request);
         return response()->json([
-            'labels' => ['Daftar Induk', 'Verifikasi', 'Kalibrasi Internal', 'Kalibrasi Eksternal', 'Kalibrasi Mesin'],
+            'labels' => [
+                'Daftar Induk', 'Verifikasi', 'Kalibrasi Internal', 'Kalibrasi Eksternal',
+                'Kalibrasi Mesin', 'Verifikasi Periode', 'Kalibrasi List Up', 'Verifikasi QC2',
+                'Data NG', 'Pergerakan Stock', 'Data All Produksi', 'Log Aktivitas',
+            ],
             'values' => [
                 Tool::where('tahun', $tahun)->count(),
                 Verifikasi::where('tahun', $tahun)->count(),
                 Internal::where('tahun', $tahun)->count(),
                 Eksternal::where('tahun', $tahun)->count(),
                 EksternalMesin::where('tahun', $tahun)->count(),
+                VerifikasiInternalSchedule::where('tahun', $tahun)->count(),
+                KalibrasiInternalListUp::where('tahun', $tahun)->count(),
+                VerifikasiQc2::where('tahun', $tahun)->count(),
+                ToolDefect::where('tahun', $tahun)->count(),
+                ToolStockMovement::whereYear('movement_date', $tahun)->count(),
+                DataAllProduksi::count(),
+                ActivityLog::whereYear('created_at', $tahun)->count(),
             ]
         ]);
     }
@@ -174,6 +122,161 @@ class ReportController extends Controller
                 (int)$data->P6, (int)$data->P7, (int)$data->P8, (int)$data->ENG
             ]
         ]);
+    }
+
+    public function apiChart(Request $request, string $chart): JsonResponse
+    {
+        $tahun = $this->validatedYear($request);
+        $bulanColumns = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        $bulanLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+        $data = match ($chart) {
+            'verifikasi-bulanan' => $this->monthlyChartData(Verifikasi::class, $tahun, $bulanColumns, $bulanLabels),
+            'internal-bulanan' => $this->monthlyChartData(Internal::class, $tahun, $bulanColumns, $bulanLabels),
+            'eksternal-bulanan' => $this->monthlyChartData(Eksternal::class, $tahun, $bulanColumns, $bulanLabels),
+            'mesin-bulanan' => $this->monthlyChartData(EksternalMesin::class, $tahun, $bulanColumns, $bulanLabels),
+            'produksi-bulanan' => $this->monthlyChartData(DataAllProduksi::class, null, $bulanColumns, $bulanLabels),
+            'data-ng' => $this->defectChartData($tahun),
+            'stock-bulanan' => $this->stockChartData($tahun, $bulanLabels),
+            'verifikasi-periode' => $this->statusChartData(
+                VerifikasiInternalSchedule::where('tahun', $tahun)->get(['period1_jgm', 'period2_jgm']),
+                ['period1_jgm', 'period2_jgm']
+            ),
+            'kalibrasi-periode' => $this->statusChartData(
+                KalibrasiInternalListUp::where('tahun', $tahun)->get(['jgm', 'period2_jgm']),
+                ['jgm', 'period2_jgm']
+            ),
+            'verifikasi-qc2' => $this->statusChartData(
+                VerifikasiQc2::where('tahun', $tahun)->get(['jgm']),
+                ['jgm']
+            ),
+            'activity-actions' => $this->activityChartData($tahun),
+            'daily-report' => $this->dailyReportChartData($tahun),
+            default => abort(404),
+        };
+
+        return response()->json($data);
+    }
+
+    /**
+     * @param array<int, string> $columns
+     * @param array<int, string> $labels
+     * @return array{labels: array<int, string>, values: array<int, int>}
+     */
+    private function monthlyChartData(string $model, ?int $tahun, array $columns, array $labels): array
+    {
+        $query = $model::query();
+        if ($tahun !== null) {
+            $query->where('tahun', $tahun);
+        }
+
+        $totals = $query->selectRaw(implode(', ', array_map(
+            fn (string $column): string => "COALESCE(SUM(`{$column}`), 0) as `{$column}`",
+            $columns
+        )))->first();
+
+        return [
+            'labels' => $labels,
+            'values' => array_map(fn (string $column): int => (int) $totals->{$column}, $columns),
+        ];
+    }
+
+    /**
+     * @return array{labels: array<int, string>, values: array<int, int>}
+     */
+    private function defectChartData(int $tahun): array
+    {
+        $fields = ToolDefect::COUNT_FIELDS;
+        $totals = ToolDefect::where('tahun', $tahun)
+            ->selectRaw(implode(', ', array_map(
+                fn (string $field): string => "COALESCE(SUM(`{$field}`), 0) as `{$field}`",
+                $fields
+            )))
+            ->first();
+
+        return [
+            'labels' => array_map(
+                fn (string $field): string => strtoupper(str_replace('_', ' ', $field)),
+                $fields
+            ),
+            'values' => array_map(fn (string $field): int => (int) $totals->{$field}, $fields),
+        ];
+    }
+
+    /**
+     * @param array<int, string> $labels
+     * @return array{labels: array<int, string>, values: array<int, int>}
+     */
+    private function stockChartData(int $tahun, array $labels): array
+    {
+        $startDate = sprintf('%d-01-01', $tahun);
+        $endDate = sprintf('%d-12-31', $tahun);
+        $movements = ToolStockMovement::whereBetween('movement_date', [$startDate, $endDate])
+            ->get(['movement_date', 'quantity']);
+        $monthlyTotals = array_fill(1, 12, 0);
+
+        foreach ($movements as $movement) {
+            $monthlyTotals[(int) $movement->movement_date->format('n')] += (int) $movement->quantity;
+        }
+
+        return ['labels' => $labels, 'values' => array_values($monthlyTotals)];
+    }
+
+    /**
+     * @param iterable<object> $records
+     * @param array<int, string> $columns
+     * @return array{labels: array<int, string>, values: array<int, int>}
+     */
+    private function statusChartData(iterable $records, array $columns): array
+    {
+        $counts = [];
+        foreach ($records as $record) {
+            foreach ($columns as $column) {
+                $status = strtoupper(trim((string) ($record->{$column} ?? '')));
+                $status = $status !== '' ? $status : 'BELUM DIISI';
+                $counts[$status] = ($counts[$status] ?? 0) + 1;
+            }
+        }
+        arsort($counts);
+
+        return ['labels' => array_keys($counts), 'values' => array_values($counts)];
+    }
+
+    /**
+     * @return array{labels: array<int, string>, values: array<int, int>}
+     */
+    private function activityChartData(int $tahun): array
+    {
+        $counts = ActivityLog::whereYear('created_at', $tahun)
+            ->select('aksi')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('aksi')
+            ->orderByDesc('total')
+            ->get();
+
+        return [
+            'labels' => $counts->pluck('aksi')->all(),
+            'values' => $counts->pluck('total')->map(fn ($total): int => (int) $total)->all(),
+        ];
+    }
+
+    /**
+     * @return array{labels: array<int, string>, values: array<int, int>}
+     */
+    private function dailyReportChartData(int $tahun): array
+    {
+        $counts = ActivityLog::whereYear('created_at', $tahun)
+            ->whereIn('jenis_data', ['tools', 'verifikasi', 'internal', 'eksternal', 'mesin', 'user'])
+            ->select('jenis_data')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('jenis_data')
+            ->orderByDesc('total')
+            ->get();
+
+        return [
+            'labels' => $counts->map(fn (ActivityLog $log): string => $log->label_jenis)->all(),
+            'values' => $counts->pluck('total')->map(fn ($total): int => (int) $total)->all(),
+        ];
     }
 
     // ==========================================

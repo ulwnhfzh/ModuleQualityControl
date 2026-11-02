@@ -31,11 +31,11 @@
             
             @if(Auth::check() && Auth::user()->role === 'admin')
                 <!-- TOMBOL IMPORT: Diubah ke route yang benar -->
-                <a href="{{ route('verifikasi.qc2.import.form', ['tahun' => $tahun]) }}" class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">📥 Import</a>
+                <a href="{{ route('verifikasi.qc2.import.form', ['tahun' => $tahun]) }}" class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.import') Import</a>
                 
                 <div class="relative inline-block" id="exportDropdownVerif">
                     <button type="button" onclick="toggleExportVerif()" class="bg-slate-800 text-white rounded font-semibold hover:bg-slate-900 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
-                        📤 Export
+                        @include('components.icons.export') Export
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                     </button>
                     <div id="exportMenuVerif" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
@@ -44,8 +44,8 @@
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0"><path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/><path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/><text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="9">X</text></svg>
                             <span class="font-medium">Export Excel</span>
                         </a>
-                        <a href="#" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0"><path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/><path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/><text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="7">PDF</text></svg>
+                        <a href="{{ route('verifikasi.qc2.export.pdf', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
+                            <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-red-600 text-[8px] font-bold text-white">PDF</span>
                             <span class="font-medium">Export PDF</span>
                         </a>
                     </div>
@@ -105,10 +105,10 @@
                         @if(Auth::check() && Auth::user()->role === 'admin')
                             <td class="border border-slate-200 px-3 py-3">
                                 <div class="flex justify-center gap-2">
-                                    <a href="{{ route('verifikasi.qc2.edit', $schedule) }}" class="rounded bg-amber-400 px-2 py-1 font-semibold text-white hover:bg-amber-500">Edit</a>
+                                    <a href="{{ route('verifikasi.qc2.edit', $schedule) }}" class="rounded bg-blue-600 px-2 py-1 font-semibold text-white hover:bg-blue-700">Edit</a>
                                     <form method="POST" action="{{ route('verifikasi.qc2.destroy', $schedule) }}" onsubmit="return confirm('Hapus jadwal QC2 ini?')">
                                         @csrf @method('DELETE')
-                                        <button class="rounded bg-rose-500 px-2 py-1 font-semibold text-white hover:bg-rose-600">Hapus</button>
+                                        <button class="rounded bg-rose-600 px-2 py-1 font-semibold text-white hover:bg-rose-700">Hapus</button>
                                     </form>
                                 </div>
                             </td>
