@@ -34,7 +34,7 @@
             class="{{ $inputClass }} min-w-0 flex-1 rounded-r-none"
             {{ $attributes }}
         >
-        <button type="button" data-date-open aria-label="Pilih tanggal dari kalender" title="Pilih tanggal dari kalender" class="inline-flex shrink-0 items-center justify-center rounded-r-lg border border-l-0 border-slate-300 bg-slate-50 px-3 text-slate-600 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        <button type="button" data-date-open aria-label="Pilih tanggal dari kalender" title="Pilih tanggal dari kalender" class="inline-flex shrink-0 items-center justify-center rounded-r-lg border border-l-0 border-slate-300 bg-slate-50 px-3 text-slate-600 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M7.5 3v4M16.5 3v4M3.5 9.5h17M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01" stroke-linecap="round"/></svg>
         </button>
         <input type="date" tabindex="-1" aria-hidden="true" data-date-picker class="pointer-events-none absolute h-px w-px opacity-0">

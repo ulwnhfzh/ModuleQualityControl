@@ -43,7 +43,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        // Redirect ke dashboard.index setelah register
-        return redirect(route('dashboard.index', absolute: false));
+        return redirect(route('dashboard', absolute: false));
     }
 }

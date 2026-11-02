@@ -44,8 +44,7 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
-        // Redirect ke dashboard.index setelah login berhasil
-        return redirect()->intended(route('dashboard.index', absolute: false));
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta name="theme-color" content="#0f172a">
-    <title>StockMaster - QC Tools</title>
+    <meta name="theme-color" content="#0070f2">
+    <title>@yield('title', 'Quality Management - QC Tools')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,22 +28,19 @@
         }
         select::-ms-expand { display: none; }
 
-        /* =========================================
-           STYLING SIDEBAR
-           ========================================= */
         .sidebar-link {
             display: flex; align-items: center; gap: 12px;
             padding: 10px 12px; border-radius: 8px;
             font-size: 14px; font-weight: 500;
-            color: #94a3b8; transition: all 0.15s ease;
+            color: #33475b; transition: all 0.15s ease;
             width: 100%; text-align: left;
             background: transparent; border: none; cursor: pointer;
         }
-        .sidebar-link:hover { background-color: rgba(255,255,255,0.05); color: #e2e8f0; }
+        .sidebar-link:hover { background-color: #edf5fc; color: #0054b5; }
         .sidebar-link.active {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: #fff; font-weight: 600;
-            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+            background: #eaf3fc;
+            color: #0054b5; font-weight: 600;
+            box-shadow: inset 3px 0 0 #0070f2;
         }
         .sidebar-link .icon {
             width: 20px; height: 20px; flex-shrink: 0;
@@ -55,134 +52,110 @@
             display: flex; align-items: center; gap: 10px;
             padding: 8px 12px; border-radius: 6px;
             font-size: 13px; font-weight: 500;
-            color: #94a3b8; transition: all 0.15s ease;
+            color: #475b70; transition: all 0.15s ease;
             width: 100%; text-align: left;
             background: transparent; border: none; cursor: pointer;
         }
-        .sidebar-sublink:hover { background-color: rgba(255,255,255,0.05); color: #e2e8f0; }
+        .sidebar-sublink:hover { background-color: #edf5fc; color: #0054b5; }
         .sidebar-sublink.active {
-            background-color: rgba(16, 185, 129, 0.15);
-            color: #6ee7b7; font-weight: 600;
-            border-left: 3px solid #10b981; padding-left: 9px;
+            background-color: #eaf3fc;
+            color: #0054b5; font-weight: 600;
+            border-left: 3px solid #0070f2; padding-left: 9px;
         }
         .sidebar-sublink .dot {
             width: 6px; height: 6px; border-radius: 50%;
-            background-color: #475569; flex-shrink: 0;
+            background-color: #8296aa; flex-shrink: 0;
         }
-        .sidebar-sublink:hover .dot { background-color: #94a3b8; }
+        .sidebar-sublink:hover .dot { background-color: #0070f2; }
         .sidebar-sublink.active .dot {
-            background-color: #10b981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+            background-color: #0070f2;
+            box-shadow: 0 0 0 3px rgba(0, 112, 242, 0.16);
         }
         
         .chevron { transition: transform 0.2s ease; }
         
         .sidebar-section {
             font-size: 10px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.08em; color: #475569; padding: 0 12px; margin: 16px 0 6px;
+            letter-spacing: 0.08em; color: #6a7d90; padding: 0 12px; margin: 16px 0 6px;
         }
         .sidebar-section:first-child { margin-top: 0; }
 
         /* =========================================
-           STYLING TABEL GLOBAL (SINKRON)
+           SHARED BUSINESS-SCREEN STYLES
            ========================================= */
-        .table-header { background-color: #1a202c; color: white; }
-        .table-row-even { background-color: #f8fafc; }
-        .table-row-odd { background-color: #ffffff; }
-        
-        .main-content table { border-collapse: collapse; }
+        .main-content table { border-collapse: collapse; background-color: #fff; }
         .main-content table th,
-        .main-content table td { border: 1px solid #000000; }
+        .main-content table td { border: 1px solid #d9d9d9; }
         
         .main-content table thead tr:first-child th {
-            background-color: #a0a8b4;
-            color: #111827;
+            background-color: #0070f2;
+            border-color: #0054b5;
+            color: #ffffff;
         }
         .main-content table thead tr:not(:first-child) th {
-            background-color: #ffffff;
-            color: #111827;
+            background-color: #eaf3fc;
+            border-color: #d9d9d9;
+            color: #1d2d3e;
         }
         .main-content table tfoot th,
         .main-content table tfoot td {
-            background-color: #a0a8b4;
-            color: #111827;
+            background-color: #eaf3fc;
+            color: #1d2d3e;
             font-weight: 700;
+        }
+        .main-content table tbody tr:hover > td {
+            background-color: #f0f7fd;
         }
 
-        .main-content form[enctype="multipart/form-data"] {
-            font-family: inherit;
+        .main-content input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .main-content select,
+        .main-content textarea {
+            border-color: #89919a;
+            border-radius: 0.25rem;
         }
-        .main-content div:has(> form[enctype="multipart/form-data"]) {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-            padding: 24px;
+        .main-content input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):focus,
+        .main-content select:focus,
+        .main-content textarea:focus {
+            border-color: #0070f2;
+            box-shadow: 0 0 0 0.125rem rgba(0, 112, 242, 0.2);
+            outline: none;
         }
-        .main-content div:has(> form[enctype="multipart/form-data"]) > h1,
-        .main-content div:has(> form[enctype="multipart/form-data"]) > h2 {
-            color: #1f2937;
-            font-size: 18px;
-            font-weight: 700;
-        }
-        .main-content form[enctype="multipart/form-data"] input[type="file"],
-        .main-content form[enctype="multipart/form-data"] input[type="number"],
-        .main-content form[enctype="multipart/form-data"] select {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 14px;
-        }
-        .main-content form[enctype="multipart/form-data"] input[type="file"] {
-            background-color: #ffffff;
-            padding: 8px 12px;
-        }
-        .main-content form[enctype="multipart/form-data"] button[type="submit"] {
-            background-color: #1f2937;
-            border-radius: 6px;
-            color: #ffffff;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 8px 20px;
-        }
-        .main-content form[enctype="multipart/form-data"] button[type="submit"]:hover {
-            background-color: #374151;
-        }
-        .main-content div:has(> form[enctype="multipart/form-data"]) a[href]:not([href*="template"]) {
-            background-color: #f3f4f6;
-            border-radius: 6px;
-            color: #374151;
-            font-weight: 600;
-        }
-        .main-content a[href*="/import"] {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            color: #374151;
-            font-weight: 600;
-        }
-        .main-content button[onclick^="toggleExport"] {
-            background-color: #1f2937;
-            border-radius: 6px;
+
+        .main-content button[type="submit"]:not([class*="bg-rose-"]):not([class*="bg-red-"]):not([class*="bg-amber-"]),
+        .main-content button[onclick^="toggleExport"],
+        .main-content button[aria-haspopup="true"] {
+            background-color: #0070f2;
+            border-color: #0070f2;
+            border-radius: 0.25rem;
             color: #ffffff;
         }
-        .main-content a[href*="/export"]:not(div[id^="exportMenu"] a):not([href*="/pdf"]) {
-            background-color: #15803d;
-            border-color: #15803d;
+        .main-content button[type="submit"]:not([class*="bg-rose-"]):not([class*="bg-red-"]):not([class*="bg-amber-"]):hover,
+        .main-content button[onclick^="toggleExport"]:hover,
+        .main-content button[aria-haspopup="true"]:hover {
+            background-color: #0054b5;
+            border-color: #0054b5;
+        }
+        .main-content a[href*="/import"]:not(div[id^="exportMenu"] a) {
+            border-color: #0070f2;
+            border-radius: 0.25rem;
+            color: #0054b5;
+        }
+        .main-content a[href*="/export"]:not(div[id^="exportMenu"] a),
+        .main-content a[class*="bg-black"],
+        .main-content a[class*="bg-slate-800"] {
+            background-color: #0070f2;
+            border-color: #0070f2;
             color: #ffffff;
         }
-        .main-content a[href*="/pdf"]:not(div[id^="exportMenu"] a) {
-            background-color: #b91c1c;
-            border-color: #b91c1c;
-            color: #ffffff;
-        }
-        @media (max-width: 639px) {
-            .main-content div:has(> form[enctype="multipart/form-data"]) { padding: 16px; }
+        .main-content a[href*="/export"]:not(div[id^="exportMenu"] a):hover,
+        .main-content a[class*="bg-black"]:hover,
+        .main-content a[class*="bg-slate-800"]:hover {
+            background-color: #0054b5;
+            border-color: #0054b5;
         }
         
         .sidebar-scroll::-webkit-scrollbar { width: 4px; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #b8c4ce; border-radius: 2px; }
         html, body { overflow-x: hidden; }
 
         details.user-menu > summary { list-style: none; cursor: pointer; }
@@ -294,7 +267,7 @@
                                     {{ Auth::user()->role === 'admin' ? 'Administrator' : 'User' }}
                                 </p>
                             </div>
-                            <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-[10px] shadow-sm ring-2 ring-white">
+                            <div class="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-[10px] shadow-sm ring-2 ring-white">
                                 {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                             </div>
                             <svg class="chevron-down w-4 h-4 text-slate-400 hidden sm:block"
@@ -332,7 +305,7 @@
                     </div>
 
                     <a href="{{ route('login') }}"
-                       class="bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold transition inline-flex items-center gap-1.5 whitespace-nowrap
+                       class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition inline-flex items-center gap-1.5 whitespace-nowrap
                               px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-xs">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -354,7 +327,7 @@
     <!-- SIDEBAR DESKTOP (Bisa Collapse) -->
     <!-- ========================================== -->
     <aside :class="sidebarDesktopOpen ? '' : 'collapsed'"
-           class="sidebar-desktop hidden lg:flex flex-col bg-slate-900 border-r border-slate-800"
+           class="sidebar-desktop hidden lg:flex flex-col bg-white border-r border-slate-200"
            x-data="{
                verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
@@ -363,10 +336,10 @@
         <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
             
             {{-- MAIN MENU --}}
-            <p class="sidebar-section">Main Menu</p>
+            <p class="sidebar-section">Data & Master</p>
             <nav class="px-3 space-y-1">
 
-                <a href="{{ route('dashboard.index') }}" class="sidebar-link {{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
+                <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg></span>
                     <span>Dashboard</span>
                 </a>
@@ -464,7 +437,7 @@
 
             {{-- LAPORAN & PENGATURAN --}}
             @if(Auth::check() && Auth::user()->role === 'admin')
-            <p class="sidebar-section">Laporan & Pengaturan</p>
+            <p class="sidebar-section">Analitik & Pengaturan</p>
             <nav class="px-3 space-y-1">
                 <a href="{{ route('reports.index') }}" class="sidebar-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></span>
@@ -483,9 +456,9 @@
 
         </div>
 
-        <div class="p-4 border-t border-slate-800 shrink-0">
+        <div class="p-4 border-t border-slate-200 shrink-0">
             <p class="text-[10px] text-slate-500 text-center leading-relaxed">
-                Prototype • © 2026<br>
+                Quality Management • © 2026<br>
                 <span class="text-slate-600">v1.0.0</span>
             </p>
         </div>
@@ -501,7 +474,7 @@
            x-transition:leave="transition ease-in duration-150"
            x-transition:leave-start="translate-x-0"
            x-transition:leave-end="-translate-x-full"
-           class="lg:hidden fixed left-0 z-50 bg-slate-900 w-64 shadow-2xl flex flex-col"
+           class="lg:hidden fixed left-0 z-50 bg-white border-r border-slate-200 w-64 shadow-2xl flex flex-col"
            style="top: 64px; bottom: 0;"
            x-data="{
                verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
@@ -511,9 +484,9 @@
         <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
             
             {{-- MAIN MENU --}}
-            <p class="sidebar-section">Main Menu</p>
+            <p class="sidebar-section">Data & Master</p>
             <nav class="px-3 space-y-1">
-                <a href="{{ route('dashboard.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
+                <a href="{{ route('dashboard') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg></span>
                     <span>Dashboard</span>
                 </a>
@@ -605,7 +578,7 @@
 
             {{-- LAPORAN & PENGATURAN --}}
             @if(Auth::check() && Auth::user()->role === 'admin')
-            <p class="sidebar-section">Laporan & Pengaturan</p>
+            <p class="sidebar-section">Analitik & Pengaturan</p>
             <nav class="px-3 space-y-1">
                 <a href="{{ route('reports.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></span>
@@ -623,9 +596,9 @@
             @endif
         </div>
 
-        <div class="p-4 border-t border-slate-800 shrink-0">
+        <div class="p-4 border-t border-slate-200 shrink-0">
             <p class="text-[10px] text-slate-500 text-center leading-relaxed">
-                Prototype • © 2026
+                • Quality Assured by Ulwan •
             </p>
         </div>
     </aside>

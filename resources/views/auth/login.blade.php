@@ -2,7 +2,7 @@
 
     <div class="text-center mb-6">
         <h2 class="text-lg sm:text-xl font-bold text-slate-800">
-            🔐 Login Admin
+            Login Admin
         </h2>
         <p class="text-xs sm:text-sm text-slate-500 mt-1">
             Masukkan kredensial Anda untuk melanjutkan
@@ -11,7 +11,7 @@
 
     <!-- Session Status -->
     @if (session('status'))
-        <div class="mb-4 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs sm:text-sm text-emerald-700">
+        <div class="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 sm:text-sm">
             {{ session('status') }}
         </div>
     @endif
@@ -33,7 +33,7 @@
                    autocomplete="username"
                    placeholder="admin@hamatetsu.com"
                    class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm
-                          focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                           transition">
             @error('email')
                 <p class="text-rose-500 text-xs mt-1">{{ $message }}</p>
@@ -52,7 +52,7 @@
                    autocomplete="current-password"
                    placeholder="••••••••"
                    class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm
-                          focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                           transition">
             @error('password')
                 <p class="text-rose-500 text-xs mt-1">{{ $message }}</p>
@@ -64,7 +64,7 @@
             <input id="remember_me"
                    type="checkbox"
                    name="remember"
-                   class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                   class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
             <label for="remember_me" class="ml-2 text-xs sm:text-sm text-slate-600">
                 Ingat saya
             </label>
@@ -72,9 +72,8 @@
 
         <!-- Tombol Login -->
         <button type="submit"
-                class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg py-2.5 text-sm
-                       transition shadow-lg shadow-slate-900/20 active:scale-[0.98]">
-            Log In
+                class="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98]">
+            Masuk
         </button>
 
     </form>

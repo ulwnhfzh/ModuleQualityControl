@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#0070f2">
     <title>Selamat Datang - QC Measurement Tools</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
@@ -16,14 +16,14 @@
         body {
             background-color: #f8fafc;
             background-image:
-                radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 15% 15%, rgba(0, 112, 242, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 85% 85%, rgba(15, 23, 42, 0.06) 0%, transparent 40%);
             min-height: 100vh;
         }
 
         /* ===== PANEL KIRI: BRANDING ===== */
         .brand-panel {
-            background: linear-gradient(135deg, #065f46 0%, #059669 50%, #10b981 100%);
+            background: linear-gradient(135deg, #0054b5 0%, #0070f2 55%, #3b91ff 100%);
             position: relative;
             overflow: hidden;
         }
@@ -63,12 +63,12 @@
             text-align: left;
         }
         .choice-btn.admin {
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-            box-shadow: 0 8px 20px -8px rgba(16, 185, 129, 0.5);
+            background: linear-gradient(135deg, #0070f2 0%, #0054b5 100%);
+            box-shadow: 0 8px 20px -8px rgba(0, 112, 242, 0.35);
         }
         .choice-btn.admin:hover {
             transform: translateY(-3px);
-            box-shadow: 0 16px 32px -8px rgba(16, 185, 129, 0.6);
+            box-shadow: 0 16px 32px -8px rgba(0, 112, 242, 0.4);
         }
         .choice-btn.admin .icon-wrap {
             background: rgba(255,255,255,0.2);
@@ -83,25 +83,25 @@
 
         .choice-btn.guest {
             background: #ffffff;
-            border: 2px solid #d1fae5;
+            border: 2px solid #cfe5fc;
             box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.08);
         }
         .choice-btn.guest:hover {
             transform: translateY(-3px);
-            border-color: #10b981;
-            box-shadow: 0 16px 32px -8px rgba(16, 185, 129, 0.25);
+            border-color: #0070f2;
+            box-shadow: 0 16px 32px -8px rgba(0, 112, 242, 0.2);
         }
         .choice-btn.guest .icon-wrap {
-            background: #ecfdf5;
-            color: #059669;
+            background: #eaf3fc;
+            color: #0070f2;
         }
         .choice-btn.guest:hover .icon-wrap {
-            background: #059669;
+            background: #0070f2;
             color: #ffffff;
             transform: scale(1.1) rotate(-5deg);
         }
         .choice-btn.guest .arrow { color: #cbd5e1; }
-        .choice-btn.guest:hover .arrow { color: #059669; transform: translateX(4px); }
+        .choice-btn.guest:hover .arrow { color: #0070f2; transform: translateX(4px); }
 
         .icon-wrap {
             width: 48px; height: 48px;
@@ -130,8 +130,8 @@
         }
         .form-input:focus {
             outline: none;
-            border-color: #10b981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+            border-color: #0070f2;
+            box-shadow: 0 0 0 3px rgba(0, 112, 242, 0.15);
         }
         .form-input::placeholder { color: #94a3b8; }
 
@@ -146,8 +146,8 @@
             transition: all 0.2s ease;
         }
         .password-wrapper:focus-within {
-            border-color: #10b981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+            border-color: #0070f2;
+            box-shadow: 0 0 0 3px rgba(0, 112, 242, 0.15);
         }
         .password-wrapper input {
             flex: 1;
@@ -178,12 +178,12 @@
             transition: all 0.15s ease;
         }
         .toggle-password:hover {
-            color: #059669;
-            background: #ecfdf5;
+            color: #0070f2;
+            background: #eaf3fc;
         }
         .toggle-password:active {
-            color: #047857;
-            background: #d1fae5;
+            color: #0054b5;
+            background: #cfe5fc;
             transform: scale(0.95);
         }
         .toggle-password svg {
@@ -197,7 +197,7 @@
 
     {{-- Card Utama Split Screen --}}
     <div class="w-full max-w-2xl fade-in">
-        <div class="grid grid-cols-1 md:grid-cols-2 rounded-[32px] overflow-hidden shadow-2xl shadow-emerald-900/20 bg-white items-stretch">
+        <div class="grid grid-cols-1 md:grid-cols-2 rounded-[32px] overflow-hidden shadow-2xl shadow-slate-900/10 bg-white items-stretch">
 
             {{-- ========== PANEL KIRI: BRANDING ========== --}}
             {{-- Sudut kiri-atas dan kiri-bawah dibuat membulat --}}
@@ -206,7 +206,7 @@
 
                 <div class="relative z-10">
                     {{-- LOGO --}}
-                    <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white shadow-xl shadow-emerald-900/30 ring-1 ring-white/40 p-3 mb-4 md:mb-5">
+                    <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white shadow-xl shadow-blue-900/20 ring-1 ring-white/40 p-3 mb-4 md:mb-5">
                         <img src="{{ asset('images/hamatetsu_indonesia_logo.jpg') }}"
                              alt="Logo PT Hamatetsu Indonesia"
                              class="w-full h-full object-contain">
@@ -216,14 +216,14 @@
                         PT. Hamatetsu<br>Indonesia
                     </h1>
 
-                    <p class="text-sm text-emerald-50 mt-3 md:mt-4 leading-relaxed max-w-sm">
+                    <p class="text-sm text-blue-50 mt-3 md:mt-4 leading-relaxed max-w-sm">
                         Sistem Manajemen Alat Ukur & Kalibrasi untuk Quality Control.
                     </p>
                 </div>
 
                 <div class="relative z-10 mt-6 md:mt-8">
                     <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-[10px] font-semibold uppercase tracking-wider">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-200 animate-pulse"></span>
                         Quality Control — Measurement Tools
                     </div>
                 </div>
@@ -245,9 +245,9 @@
                             Silakan pilih jenis akses untuk melanjutkan
                         </p>
                         <div class="flex items-center justify-center mt-4">
-                            <span class="h-px w-10 bg-gradient-to-r from-transparent to-emerald-300"></span>
-                            <span class="mx-2 w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span class="h-px w-10 bg-gradient-to-l from-transparent to-emerald-300"></span>
+                            <span class="h-px w-10 bg-gradient-to-r from-transparent to-blue-300"></span>
+                            <span class="mx-2 w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                            <span class="h-px w-10 bg-gradient-to-l from-transparent to-blue-300"></span>
                         </div>
                     </div>
 
@@ -264,7 +264,7 @@
                                 <p class="text-base font-bold text-white leading-tight">
                                     Login Admin
                                 </p>
-                                <p class="text-xs text-emerald-50 mt-0.5 leading-snug">
+                                <p class="text-xs text-blue-50 mt-0.5 leading-snug">
                                     Akses penuh manajemen data
                                 </p>
                             </div>
@@ -298,7 +298,7 @@
 
                     <div class="mt-6 pt-5 border-t border-slate-200">
                         <div class="flex items-start gap-2 text-[11px] text-slate-500 leading-relaxed">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <span>Guest hanya dapat melihat data tanpa mengubah atau menghapus.</span>
@@ -310,7 +310,7 @@
                 <div x-show="view === 'login'" x-cloak>
 
                     <div class="text-center mb-6">
-                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 mb-3">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 mb-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
@@ -324,7 +324,7 @@
                     </div>
 
                     @if (session('status'))
-                        <div class="mb-4 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-700">
+                        <div class="mb-4 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800">
                             {{ session('status') }}
                         </div>
                     @endif
@@ -389,22 +389,22 @@
                             <input id="remember_me"
                                    type="checkbox"
                                    name="remember"
-                                   class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                   class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
                             <label for="remember_me" class="ml-2 text-xs text-slate-600">
                                 Ingat saya
                             </label>
                         </div>
 
                         <button type="submit"
-                                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl py-2.5 text-sm
-                                       transition shadow-lg shadow-emerald-600/30 active:scale-[0.98]">
-                            Log In
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg py-2.5 text-sm
+                                       transition shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98]">
+                            Masuk
                         </button>
                     </form>
 
                     <div class="text-center mt-5">
                         <button type="button" @click="view = 'choice'"
-                                class="inline-flex items-center gap-1.5 text-slate-500 hover:text-emerald-700 text-xs font-medium transition">
+                                class="inline-flex items-center gap-1.5 text-slate-500 hover:text-blue-700 text-xs font-medium transition">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>

@@ -3,6 +3,30 @@
 @tailwind utilities;
 
 @layer base {
+    :root {
+        --sap-blue: #0070f2;
+        --sap-blue-hover: #0054b5;
+        --sap-border: #d9d9d9;
+        --sap-surface: #ffffff;
+        --sap-surface-muted: #f5f6f7;
+        --sap-text: #1d2d3e;
+        --sap-text-muted: #556b82;
+    }
+
+    body {
+        color: var(--sap-text);
+    }
+
+    button,
+    a,
+    input,
+    select,
+    textarea {
+        accent-color: var(--sap-blue);
+    }
+}
+
+@layer base {
     html {
         font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
     }
@@ -49,8 +73,8 @@
         background: #64748b;
     }
 
-    main :where(input, select, textarea):focus-visible {
-        outline: 2px solid #10b981;
+    main :where(input, select, textarea, button, a):focus-visible {
+        outline: 2px solid var(--sap-blue);
         outline-offset: 1px;
     }
 
