@@ -16,6 +16,7 @@ use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\ToolDefectController;
 use App\Http\Controllers\DataAllProduksiController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +45,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock', [StockController::class, 'index'])->name('stock.index');
     Route::get('/stock/rekap-bulanan', [StockController::class, 'summary'])->name('stock.summary');
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/notifikasi', [NotifikasiController::class, 'index'])->name('notifikasi.index');
     Route::post('/notifikasi/{alatId}/diproses', [NotifikasiController::class, 'tandaiDiproses'])->name('notifikasi.diproses');
@@ -118,6 +122,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/verifikasi/periode/import/form', [VerifikasiPeriodeController::class, 'importForm'])->name('verifikasi.periode.import.form');
     Route::post('/verifikasi/periode/import', [VerifikasiPeriodeController::class, 'import'])->name('verifikasi.periode.import');
     Route::get('/verifikasi/periode/export', [VerifikasiPeriodeController::class, 'export'])->name('verifikasi.periode.export');
+    Route::get('/verifikasi/periode/export/pdf', [VerifikasiPeriodeController::class, 'exportPdf'])->name('verifikasi.periode.export.pdf');
     Route::post('/verifikasi/periode', [VerifikasiPeriodeController::class, 'store'])->name('verifikasi.periode.store');
     Route::get('/verifikasi/periode/{schedule}/edit', [VerifikasiPeriodeController::class, 'edit'])->name('verifikasi.periode.edit');
     Route::put('/verifikasi/periode/{schedule}', [VerifikasiPeriodeController::class, 'update'])->name('verifikasi.periode.update');
@@ -132,6 +137,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/verifikasi/periode/kalibrasi/import/form', [VerifikasiPeriodeController::class, 'internalCalibrationImportForm'])->name('verifikasi.periode.kalibrasi.import.form');
     Route::post('/verifikasi/periode/kalibrasi/import', [VerifikasiPeriodeController::class, 'internalCalibrationImport'])->name('verifikasi.periode.kalibrasi.import');
     Route::get('/verifikasi/periode/kalibrasi/export', [VerifikasiPeriodeController::class, 'internalCalibrationExport'])->name('verifikasi.periode.kalibrasi.export');
+    Route::get('/verifikasi/periode/kalibrasi/export/pdf', [VerifikasiPeriodeController::class, 'internalCalibrationExportPdf'])->name('verifikasi.periode.kalibrasi.export.pdf');
 
     // ===== LIST UP PERIODE: VERIFIKASI QC2 =====
     Route::get('/verifikasi/qc2/create', [VerifikasiPeriodeController::class, 'qc2Create'])->name('verifikasi.qc2.create');
@@ -142,6 +148,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/verifikasi/qc2/import/form', [VerifikasiPeriodeController::class, 'qc2ImportForm'])->name('verifikasi.qc2.import.form');
     Route::post('/verifikasi/qc2/import', [VerifikasiPeriodeController::class, 'qc2Import'])->name('verifikasi.qc2.import');
     Route::get('/verifikasi/qc2/export/excel', [VerifikasiPeriodeController::class, 'qc2ExportExcel'])->name('verifikasi.qc2.export.excel');
+    Route::get('/verifikasi/qc2/export/pdf', [VerifikasiPeriodeController::class, 'qc2ExportPdf'])->name('verifikasi.qc2.export.pdf');
 
     // ===== KALIBRASI INTERNAL (Jadwal Tahunan) =====
     Route::get('/internal/create', [InternalController::class, 'create'])->name('internal.create');
@@ -186,6 +193,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/reports/api/pareto-kategori', [ReportController::class, 'apiParetoKategori'])->name('reports.api.pareto.kategori');
     Route::get('/reports/api/pareto-bulanan', [ReportController::class, 'apiParetoBulanan'])->name('reports.api.pareto.bulanan');
     Route::get('/reports/api/pareto-departemen', [ReportController::class, 'apiParetoDepartemen'])->name('reports.api.pareto.departemen');
+    Route::get('/reports/api/chart/{chart}', [ReportController::class, 'apiChart'])->name('reports.api.chart');
 
     Route::post('/reports/export-all/excel', [ReportController::class, 'exportAllExcel'])->name('reports.export.all.excel');
     Route::post('/reports/export-all/pdf', [ReportController::class, 'exportAllPdf'])->name('reports.export.all.pdf');

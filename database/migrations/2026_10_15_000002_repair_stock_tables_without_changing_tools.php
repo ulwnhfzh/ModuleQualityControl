@@ -46,7 +46,10 @@ return new class extends Migration
                 Schema::table('tool_stock_movements', function (Blueprint $table) {
                     $table->unsignedBigInteger('stock_id')->nullable()->after('tool_id');
                 });
-                DB::statement('UPDATE `tool_stock_movements` AS m INNER JOIN `tool_stocks` AS s ON s.tool_id = m.tool_id SET m.stock_id = s.id WHERE m.stock_id IS NULL');
+                DB::table('tool_stock_movements as movements')
+                    ->join('tool_stocks as stocks', 'stocks.tool_id', '=', 'movements.tool_id')
+                    ->whereNull('movements.stock_id')
+                    ->update(['movements.stock_id' => DB::raw('stocks.id')]);
             }
 
             if (in_array('tool_id', $movementColumns, true)) {
@@ -59,7 +62,9 @@ return new class extends Migration
 
             $movementColumns = Schema::getColumnListing('tool_stock_movements');
             if (in_array('stock_id', $movementColumns, true) && !Schema::hasColumn('tool_stock_movements', 'tool_id')) {
-                DB::statement('ALTER TABLE `tool_stock_movements` MODIFY `stock_id` BIGINT UNSIGNED NOT NULL');
+                Schema::table('tool_stock_movements', function (Blueprint $table) {
+                    $table->unsignedBigInteger('stock_id')->nullable(false)->change();
+                });
                 $foreignKeys = Schema::getForeignKeys('tool_stock_movements');
                 $indexes = Schema::getIndexListing('tool_stock_movements');
                 Schema::table('tool_stock_movements', function (Blueprint $table) use ($foreignKeys, $indexes) {
@@ -98,20 +103,39 @@ return new class extends Migration
             });
         }
 
-        DB::statement('UPDATE `tools` AS t INNER JOIN `tool_stocks` AS s ON s.tool_id = t.id SET t.order_number = s.order_number, t.specification = s.specification, t.opening_stock = s.opening_stock');
+        DB::table('tool_stocks as stocks')
+            ->join('tools as tools', 'tools.id', '=', 'stocks.tool_id')
+            ->select([
+                'tools.id',
+                'stocks.order_number',
+                'stocks.specification',
+                'stocks.opening_stock',
+            ])
+            ->orderBy('tools.id')
+            ->chunk(500, function ($stockRows) {
+                foreach ($stockRows as $stock) {
+                    DB::table('tools')->where('id', $stock->id)->update([
+                        'order_number' => $stock->order_number,
+                        'specification' => $stock->specification,
+                        'opening_stock' => $stock->opening_stock,
+                    ]);
+                }
+            });
 
         if (Schema::hasTable('tool_stock_movements') && !Schema::hasColumn('tool_stock_movements', 'tool_id') && Schema::hasColumn('tool_stock_movements', 'stock_id')) {
             Schema::table('tool_stock_movements', function (Blueprint $table) {
                 $table->unsignedBigInteger('tool_id')->nullable()->after('id');
             });
-            DB::statement('UPDATE `tool_stock_movements` AS m INNER JOIN `tool_stocks` AS s ON s.id = m.stock_id SET m.tool_id = s.tool_id');
+            DB::table('tool_stock_movements as movements')
+                ->join('tool_stocks as stocks', 'stocks.id', '=', 'movements.stock_id')
+                ->update(['movements.tool_id' => DB::raw('stocks.tool_id')]);
             Schema::table('tool_stock_movements', function (Blueprint $table) {
                 $table->dropForeign('tool_stock_movements_stock_id_foreign');
                 $table->dropIndex('tool_stock_movements_stock_id_movement_date_index');
                 $table->dropColumn('stock_id');
             });
-            DB::statement('ALTER TABLE `tool_stock_movements` MODIFY `tool_id` BIGINT UNSIGNED NOT NULL');
             Schema::table('tool_stock_movements', function (Blueprint $table) {
+                $table->unsignedBigInteger('tool_id')->nullable(false)->change();
                 $table->index(['tool_id', 'movement_date'], 'tool_stock_movements_tool_id_movement_date_index');
                 $table->foreign('tool_id')->references('id')->on('tools')->cascadeOnDelete();
             });

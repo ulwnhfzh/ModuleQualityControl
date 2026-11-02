@@ -16,7 +16,24 @@ return new class extends Migration
             $table->unsignedBigInteger('tool_id')->nullable()->change();
         });
 
-        DB::statement('UPDATE tool_stocks s INNER JOIN tools t ON t.id = s.tool_id SET s.tool_name = t.tool_name, s.category = t.category, s.type = t.category WHERE s.tool_name IS NULL');
+        DB::table('tool_stocks as stocks')
+            ->join('tools as tools', 'tools.id', '=', 'stocks.tool_id')
+            ->whereNull('stocks.tool_name')
+            ->select([
+                'stocks.id',
+                'tools.tool_name',
+                'tools.category',
+            ])
+            ->orderBy('stocks.id')
+            ->chunk(500, function ($stockRows) {
+                foreach ($stockRows as $stock) {
+                    DB::table('tool_stocks')->where('id', $stock->id)->update([
+                        'tool_name' => $stock->tool_name,
+                        'category' => $stock->category,
+                        'type' => $stock->category,
+                    ]);
+                }
+            });
     }
 
     public function down(): void
