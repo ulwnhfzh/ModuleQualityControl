@@ -3,210 +3,235 @@
 namespace App\Imports;
 
 use App\Models\ToolDefect;
+use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ToolDefectsImport
 {
-    protected int $tahun;
+    private const MONTHS = [
+        'JAN' => ['JAN', 'JANUARY', 'JANUARI'],
+        'FEB' => ['FEB', 'FEBRUARY', 'FEBRUARI'],
+        'MAR' => ['MAR', 'MARCH', 'MARET'],
+        'APR' => ['APR', 'APRIL'],
+        'MAY' => ['MAY', 'MEI'],
+        'JUN' => ['JUN', 'JUNE', 'JUNI'],
+        'JUL' => ['JUL', 'JULY', 'JULI'],
+        'AUG' => ['AUG', 'AUGUST', 'AGUSTUS'],
+        'SEP' => ['SEP', 'SEPTEMBER'],
+        'OCT' => ['OCT', 'OCTOBER', 'OKTOBER'],
+        'NOV' => ['NOV', 'NOVEMBER'],
+        'DEC' => ['DEC', 'DECEMBER', 'DESEMBER'],
+    ];
 
-    public function __construct(int $tahun)
+    public function __construct(private readonly int $tahun)
     {
-        $this->tahun = $tahun;
     }
 
-    public function import($filePath)
+    public function import(string $filePath): int
     {
-        $reader = IOFactory::createReaderForFile($filePath);
-        $reader->setReadDataOnly(false);
-        $spreadsheet = $reader->load($filePath);
-
-        $validDivisions = array_map(fn($d) => strtoupper(trim($d)), ToolDefect::DIVISIONS);
-        $validDefects   = array_map(fn($f) => strtolower(trim($f)), ToolDefect::COUNT_FIELDS);
-
-        // Dukungan nama bulan Bahasa Inggris & Indonesia (huruf besar semua)
-        $monthMap = [
-            'JANUARY'   => 'JAN', 'JANUARI'  => 'JAN',
-            'FEBRUARY'  => 'FEB', 'FEBRUARI' => 'FEB',
-            'MARCH'     => 'MAR', 'MARET'    => 'MAR',
-            'APRIL'     => 'APR', 'APRIL '   => 'APR',
-            'MAY'       => 'MAY', 'MEI'      => 'MAY',
-            'JUNE'      => 'JUN', 'JUNI'     => 'JUN',
-            'JULY'      => 'JUL', 'JULI'     => 'JUL',
-            'AUGUST'    => 'AUG', 'AGUSTUS'  => 'AUG',
-            'SEPTEMBER' => 'SEP', 'SEPTEMBER' => 'SEP',
-            'OCTOBER'   => 'OCT', 'OKTOBER'  => 'OCT',
-            'NOVEMBER'  => 'NOV', 'NOVEMBER' => 'NOV',
-            'DECEMBER'  => 'DEC', 'DESEMBER' => 'DEC',
-        ];
-
-        $allRows = [];
+        $spreadsheet = IOFactory::createReaderForFile($filePath)
+            ->setReadDataOnly(false)
+            ->load($filePath);
+        $rowsByKey = [];
 
         foreach ($spreadsheet->getAllSheets() as $sheet) {
-            $sheetName = strtoupper(trim($sheet->getTitle()));
-
-            if ($sheetName !== 'MASTER REKAP GENERAL') {
-                continue;
-            }
-
-            // ============================================================
-            // 1. CARI BARIS HEADER BULAN & HEADER DEFECT SECARA DINAMIS
-            // ============================================================
-            // Kadang header bulan tidak selalu di baris 2.
-            // Kita scan baris 1-5 untuk cari baris mana yang mengandung 'JANUARY', 'FEBRUARY', dst.
-            $headerMonthRowIndex  = null;
-            $headerDefectRowIndex = null;
-
-            for ($r = 1; $r <= 5; $r++) {
-                $row = $sheet->rangeToArray('A' . $r . ':ZZ' . $r)[0] ?? [];
-                $hasMonthName = false;
-                foreach ($row as $cell) {
-                    $val = strtoupper(trim((string) $cell));
-                    if (isset($monthMap[$val])) {
-                        $hasMonthName = true;
-                        break;
-                    }
-                }
-                if ($hasMonthName && $headerMonthRowIndex === null) {
-                    $headerMonthRowIndex = $r;
-                    // Baris defect diasumsikan 1-2 baris di bawah header bulan
-                    // Kita coba scan baris berikutnya untuk cari 'AUS', 'ERORR', dst.
-                    for ($dr = $r + 1; $dr <= $r + 3; $dr++) {
-                        $rowDefect = $sheet->rangeToArray('A' . $dr . ':ZZ' . $dr)[0] ?? [];
-                        foreach ($rowDefect as $cellDefect) {
-                            $valDefect = strtolower(trim(str_replace([' ', '-'], '_', (string) $cellDefect)));
-                            if (in_array($valDefect, $validDefects, true)) {
-                                $headerDefectRowIndex = $dr;
-                                break 2;
-                            }
-                        }
-                    }
-                    break;
-                }
-            }
-
-            if ($headerMonthRowIndex === null || $headerDefectRowIndex === null) {
-                // Kalau tidak ketemu header bulan & defect, skip sheet ini
-                continue;
-            }
-
-            // ============================================================
-            // 2. BACA HEADER BULAN & DEFECT
-            // ============================================================
-            $monthRow  = $sheet->rangeToArray('A' . $headerMonthRowIndex . ':ZZ' . $headerMonthRowIndex)[0] ?? [];
-            $defectRow = $sheet->rangeToArray('A' . $headerDefectRowIndex . ':ZZ' . $headerDefectRowIndex)[0] ?? [];
-
-            // ============================================================
-            // 3. FORWARD-FILL MERGED CELL (Inti Solusi)
-            // ============================================================
-            // Jika header bulan di Excel di-merge, hanya sel pertama yang berisi teks,
-            // sel-sel setelahnya berisi NULL. Kita perlu mengisi (forward-fill)
-            // nilai $currentMonth sampai ketemu nama bulan baru.
-            $currentMonth = null;
-            $validColumns = [];
-            $lastFoundMonth = null;
-
-            foreach ($monthRow as $idx => $cellValue) {
-                $val = strtoupper(trim((string) $cellValue));
-
-                // Jika sel ini berisi nama bulan, update currentMonth
-                if (isset($monthMap[$val])) {
-                    $currentMonth = $monthMap[$val];
-                    $lastFoundMonth = $currentMonth;
-                }
-
-                // Karena mungkin sel kosong (merged cell), kita gunakan $lastFoundMonth
-                // sebagai fallback jika $currentMonth sudah pernah terisi.
-                // Tapi kita hanya mau isi jika sedang dalam range bulan yang valid.
-                if ($currentMonth !== null && $lastFoundMonth !== null) {
-                    $currentMonth = $lastFoundMonth;
-                }
-
-                // Cek defect di baris defect
-                $defectName = strtolower(trim(str_replace([' ', '-'], '_', (string) ($defectRow[$idx] ?? ''))));
-
-                if ($currentMonth !== null && in_array($defectName, $validDefects, true)) {
-                    $validColumns[$idx + 1] = [
-                        'bulan'  => $currentMonth,
-                        'defect' => $defectName,
-                    ];
-                }
-            }
-
-            if (empty($validColumns)) {
-                continue;
-            }
-
-            $highestRow = $sheet->getHighestRow();
-
-            // ============================================================
-            // 4. BACA DATA MULAI BARIS SETELAH HEADER DEFECT
-            // ============================================================
-            $startRow = $headerDefectRowIndex + 1;
-
-            for ($rowIndex = $startRow; $rowIndex <= $highestRow; $rowIndex++) {
-                // Cari kolom division. Kolom C (index 3) biasanya, tapi kita deteksi lebih aman.
-                // Kita coba baca kolom A, B, C untuk cari nama divisi yang valid.
-                $division = null;
-                for ($divCol = 1; $divCol <= 5; $divCol++) {
-                    $cellDiv = strtoupper(trim((string) $sheet->getCell([$divCol, $rowIndex])->getValue()));
-                    if ($cellDiv === '' || str_contains($cellDiv, 'TOTAL')) {
-                        continue;
-                    }
-                    foreach ($validDivisions as $vd) {
-                        if ($cellDiv === $vd || str_contains($cellDiv, $vd)) {
-                            $division = $vd;
-                            break 2;
-                        }
-                    }
-                }
-
-                if (!$division) {
+            $sheetRows = $this->readSheet($sheet);
+            foreach ($sheetRows as $row) {
+                $key = $row['tahun'] . '|' . $row['bulan'] . '|' . $row['division'];
+                if (!isset($rowsByKey[$key])) {
+                    $rowsByKey[$key] = $row;
                     continue;
                 }
 
-                // Siapkan wadah per bulan
-                $monthlyData = [];
-                foreach (array_values($monthMap) as $m) {
-                    $monthlyData[$m] = array_fill_keys($validDefects, 0);
-                }
-
-                // Baca nilai per kolom valid
-                foreach ($validColumns as $colIdx => $info) {
-                    $val = $sheet->getCell([$colIdx, $rowIndex])->getCalculatedValue();
-                    if (is_string($val)) {
-                        $val = str_replace(',', '.', $val);
-                    }
-                    if (is_numeric($val)) {
-                        $monthlyData[$info['bulan']][$info['defect']] += (float) $val;
-                    }
-                }
-
-                // Kumpulkan baris yang ada isinya
-                foreach ($monthlyData as $bulan => $defects) {
-                    if (array_sum($defects) > 0) {
-                        $allRows[] = array_merge([
-                            'tahun'    => $this->tahun,
-                            'bulan'    => $bulan,
-                            'division' => $division,
-                        ], $defects);
-                    }
+                foreach (ToolDefect::COUNT_FIELDS as $field) {
+                    $rowsByKey[$key][$field] += $row[$field];
                 }
             }
         }
 
-        if (empty($allRows)) {
-            throw new \Exception(
-                "Tidak ada data yang masuk. Pastikan sheet bernama 'MASTER REKAP GENERAL', " .
-                "terdapat header bulan (JANUARY/DECEMBER) dan header defect (AUS, ERORR, dst) " .
-                "di 5 baris pertama."
+        if ($rowsByKey === []) {
+            throw new \RuntimeException(
+                'Tidak ada data Data NG yang dikenali. Pastikan sheet memuat header bulan, header jenis kerusakan, dan nama divisi.'
             );
         }
 
-        // Bulk upsert
-        ToolDefect::upsert(
-            $allRows,
-            ['tahun', 'bulan', 'division'],
-            array_values($validDefects)
-        );
+        $rows = array_values($rowsByKey);
+        DB::transaction(function () use ($rows): void {
+            foreach ($rows as $row) {
+                ToolDefect::updateOrCreate(
+                    [
+                        'tahun' => $row['tahun'],
+                        'bulan' => $row['bulan'],
+                        'division' => $row['division'],
+                    ],
+                    array_intersect_key($row, array_flip(ToolDefect::COUNT_FIELDS))
+                );
+            }
+        });
+
+        return count($rows);
+    }
+
+    /**
+     * @return array<int, array<string, int|string>>
+     */
+    private function readSheet(Worksheet $sheet): array
+    {
+        $highestRow = $sheet->getHighestRow();
+        $highestColumn = Coordinate::columnIndexFromString($sheet->getHighestColumn());
+        $header = $this->findHeaders($sheet, $highestRow, $highestColumn);
+        if ($header === null) {
+            return [];
+        }
+
+        [$monthRow, $defectRow, $sheetMonth] = $header;
+        $columns = [];
+        $currentMonth = $sheetMonth;
+        for ($column = 1; $column <= $highestColumn; $column++) {
+            if ($monthRow !== null) {
+                $month = $this->normalizeMonth($sheet->getCell([$column, $monthRow])->getFormattedValue());
+                if ($month !== null) {
+                    $currentMonth = $month;
+                }
+            }
+
+            $defect = $this->normalizeDefect($sheet->getCell([$column, $defectRow])->getFormattedValue());
+            if ($currentMonth !== null && $defect !== null) {
+                $columns[$column] = ['month' => $currentMonth, 'field' => $defect];
+            }
+        }
+
+        if ($columns === []) {
+            return [];
+        }
+
+        $monthsOnSheet = array_values(array_unique(array_column($columns, 'month')));
+        $validDivisions = ToolDefect::DIVISIONS;
+        usort($validDivisions, fn (string $a, string $b): int => strlen($b) <=> strlen($a));
+        $rows = [];
+
+        for ($rowIndex = $defectRow + 1; $rowIndex <= $highestRow; $rowIndex++) {
+            $division = $this->findDivision($sheet, $rowIndex, $highestColumn, $validDivisions);
+            if ($division === null) {
+                continue;
+            }
+
+            $monthlyData = [];
+            foreach ($monthsOnSheet as $month) {
+                $monthlyData[$month] = array_fill_keys(ToolDefect::COUNT_FIELDS, 0);
+            }
+
+            foreach ($columns as $column => $mapping) {
+                $value = $sheet->getCell([$column, $rowIndex])->getCalculatedValue();
+                if (is_numeric($value) && (float) $value >= 0) {
+                    $monthlyData[$mapping['month']][$mapping['field']] += (int) round((float) $value);
+                }
+            }
+
+            foreach ($monthlyData as $month => $defects) {
+                $rows[] = array_merge([
+                    'tahun' => $this->tahun,
+                    'bulan' => $month,
+                    'division' => $division,
+                ], $defects);
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @return array{0: int|null, 1: int, 2: string|null}|null
+     */
+    private function findHeaders(Worksheet $sheet, int $highestRow, int $highestColumn): ?array
+    {
+        $lastHeaderRow = min(10, $highestRow);
+        $defectRow = null;
+        for ($row = 1; $row <= $lastHeaderRow; $row++) {
+            $recognized = 0;
+            for ($column = 1; $column <= $highestColumn; $column++) {
+                if ($this->normalizeDefect($sheet->getCell([$column, $row])->getFormattedValue()) !== null) {
+                    $recognized++;
+                }
+            }
+            if ($recognized >= 3) {
+                $defectRow = $row;
+                break;
+            }
+        }
+
+        if ($defectRow === null) {
+            return null;
+        }
+
+        $monthRow = null;
+        for ($row = 1; $row < $defectRow; $row++) {
+            for ($column = 1; $column <= $highestColumn; $column++) {
+                if ($this->normalizeMonth($sheet->getCell([$column, $row])->getFormattedValue()) !== null) {
+                    $monthRow = $row;
+                    break 2;
+                }
+            }
+        }
+
+        $sheetMonth = $monthRow === null
+            ? $this->normalizeMonth($sheet->getTitle())
+            : null;
+
+        return [$monthRow, $defectRow, $sheetMonth];
+    }
+
+    private function findDivision(Worksheet $sheet, int $row, int $highestColumn, array $divisions): ?string
+    {
+        for ($column = 1; $column <= min(10, $highestColumn); $column++) {
+            $value = $this->normalizeText($sheet->getCell([$column, $row])->getFormattedValue());
+            if ($value === '') {
+                continue;
+            }
+            foreach ($divisions as $division) {
+                if ($value === $this->normalizeText($division)) {
+                    return $division;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeMonth(mixed $value): ?string
+    {
+        $normalized = strtoupper(trim((string) $value));
+        foreach (self::MONTHS as $month => $aliases) {
+            if (in_array($normalized, $aliases, true)) {
+                return $month;
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeDefect(mixed $value): ?string
+    {
+        $normalized = strtoupper(trim((string) $value));
+        $normalized = preg_replace('/[\s-]+/', '_', $normalized);
+        if ($normalized === 'ERROR' || $normalized === 'EROR' || $normalized === 'ERORR') {
+            return 'erorr';
+        }
+        if ($normalized === 'LAIN_LAIN') {
+            return 'lain_lain';
+        }
+        if (in_array($normalized, ['MIN_STD', 'OVER_STD'], true)) {
+            return strtolower($normalized);
+        }
+
+        $field = strtolower($normalized);
+        return in_array($field, ToolDefect::COUNT_FIELDS, true) ? $field : null;
+    }
+
+    private function normalizeText(mixed $value): string
+    {
+        return strtoupper(preg_replace('/\s+/', ' ', trim((string) $value)));
     }
 }

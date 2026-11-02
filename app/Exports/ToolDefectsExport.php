@@ -27,7 +27,7 @@ class ToolDefectsExport implements FromArray, WithStyles, WithColumnWidths
         $dataTahunan = ToolDefect::where('tahun', $tahun)->get();
 
         $bulanList = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        $jenisKerusakan = ['aus', 'erorr', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'];
+        $jenisKerusakan = ToolDefect::COUNT_FIELDS;
         
         $urutanDivisi = [
             'ENGINEERING', 'L.SCC', 'PRODUKSI 1', 'PRODUKSI 2', 'PRODUKSI 3', 
@@ -60,7 +60,7 @@ class ToolDefectsExport implements FromArray, WithStyles, WithColumnWidths
         $rows = [];
 
         // Baris 1: Judul Utama
-        $rows[] = ['DATA RECORD TOOL ALL DIVISION ' . $tahun]; 
+        $rows[] = ['DATA NG ALL DIVISION ' . $tahun];
 
         // Baris 2: Header (NO, DIVISION, Bulan, GRAND TOTAL)
         // Setiap bulan mengambil 13 kolom (12 jenis + 1 total)
@@ -75,7 +75,7 @@ class ToolDefectsExport implements FromArray, WithStyles, WithColumnWidths
         // Baris 3: Header Jenis Kerusakan
         $headerJenis = ['', '']; // Kosongkan untuk NO dan DIVISION (di-merge vertikal)
         $jenisText = [
-            'AUS', 'ERORR', 'GOMPAL', 'HILANG', 'KARAT', 'MACET', 
+            'AUS', 'ERORR', 'GOMPAL', 'HILANG', 'KARAT', 'MACET',
             "MIN\nSTD", "OVER\nSTD", 'PATAH', 'RUSAK', 'SERET', "LAIN-\nLAIN", 
             'TOTAL' // Kolom ke-13: TOTAL masuk ke dalam blok bulan
         ];

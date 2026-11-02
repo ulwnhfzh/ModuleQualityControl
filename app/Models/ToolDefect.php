@@ -18,13 +18,13 @@ class ToolDefect extends Model
     ];
 
     public const COUNT_FIELDS = [
-        'aus', 'error', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std',
+        'aus', 'erorr', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std',
         'patah', 'rusak', 'seret', 'lain_lain',
     ];
 
     protected $fillable = [
         'tahun', 'bulan', 'division',
-        'aus', 'error', 'gompal', 'hilang', 'karat', 'macet', 
+        'aus', 'erorr', 'gompal', 'hilang', 'karat', 'macet',
         'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'
     ];
 }

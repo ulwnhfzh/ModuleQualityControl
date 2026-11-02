@@ -7,7 +7,6 @@ use App\Imports\ToolDefectsImport;
 use App\Exports\ToolDefectsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ToolDefectController extends Controller
@@ -21,9 +20,10 @@ class ToolDefectController extends Controller
         $tahun = $filters['tahun'] ?? date('Y');
         $bulanFilter = $filters['bulan'] ?? 'DEC';
 
-        $jenisKerusakan = ['aus', 'error', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'];
+        $jenisKerusakan = ToolDefect::COUNT_FIELDS;
 
-        $rawData = ToolDefect::where('tahun', $tahun)->where('bulan', $bulanFilter)->get();
+        $yearData = ToolDefect::where('tahun', $tahun)->get();
+        $rawData = $yearData->where('bulan', $bulanFilter);
 
         $dataPerDivisi = [];
         foreach ($rawData as $row) {
@@ -33,17 +33,24 @@ class ToolDefectController extends Controller
                 $dataPerDivisi[$row->division]['grand_total'] = 0;
             }
             foreach ($jenisKerusakan as $jenis) {
-                $dataPerDivisi[$row->division][$jenis] += $row->$jenis;
-                $dataPerDivisi[$row->division]['total'] += $row->$jenis;
+                $value = (int) $row->$jenis;
+                $dataPerDivisi[$row->division][$jenis] += $value;
+                $dataPerDivisi[$row->division]['total'] += $value;
+            }
+        }
+
+        $grandTotalsByDivision = [];
+        foreach ($yearData as $row) {
+            $grandTotalsByDivision[$row->division] ??= 0;
+            foreach ($jenisKerusakan as $jenis) {
+                $grandTotalsByDivision[$row->division] += (int) $row->$jenis;
             }
         }
 
         foreach ($dataPerDivisi as $divisi => &$data) {
-            $grandTotal = ToolDefect::where('tahun', $tahun)
-                ->where('division', $divisi)
-                ->sum(DB::raw('aus + error + gompal + hilang + karat + macet + min_std + over_std + patah + rusak + seret + lain_lain'));
-            $data['grand_total'] = $grandTotal;
+            $data['grand_total'] = $grandTotalsByDivision[$divisi] ?? 0;
         }
+        unset($data);
 
         $urutanDivisi = [
             'ENGINEERING', 'L.SCC', 'PRODUKSI 1', 'PRODUKSI 2', 'PRODUKSI 3', 
@@ -75,8 +82,10 @@ class ToolDefectController extends Controller
             $footerTotals['grand_total'] += $data['grand_total'];
         }
 
+        $existingDefects = $rawData->keyBy('division');
+
         return view('defects.index', compact(
-            'tahun', 'bulanFilter', 'jenisKerusakan', 'sortedData', 'footerTotals'
+            'tahun', 'bulanFilter', 'jenisKerusakan', 'sortedData', 'footerTotals', 'existingDefects'
         ));
     }
 
@@ -97,7 +106,7 @@ class ToolDefectController extends Controller
         }
         $data = $request->validate($rules);
 
-        foreach (['aus', 'error', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'] as $col) {
+        foreach (ToolDefect::COUNT_FIELDS as $col) {
             $data[$col] = $data[$col] ?? 0;
         }
 
@@ -126,7 +135,7 @@ class ToolDefectController extends Controller
         }
         $data = $request->validate($rules);
 
-        foreach (['aus', 'error', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'] as $col) {
+        foreach (ToolDefect::COUNT_FIELDS as $col) {
             $data[$col] = $data[$col] ?? 0;
         }
 
@@ -189,7 +198,7 @@ class ToolDefectController extends Controller
         $tahun = $filters['tahun'] ?? date('Y');
         $bulan = $filters['bulan'] ?? 'DEC';
         
-        $jenisKerusakan = ['aus', 'error', 'gompal', 'hilang', 'karat', 'macet', 'min_std', 'over_std', 'patah', 'rusak', 'seret', 'lain_lain'];
+        $jenisKerusakan = ToolDefect::COUNT_FIELDS;
         $rawData = ToolDefect::where('tahun', $tahun)->where('bulan', $bulan)->get();
         
         $dataPerDivisi = [];
