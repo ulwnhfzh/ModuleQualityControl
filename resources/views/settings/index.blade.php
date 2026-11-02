@@ -67,13 +67,13 @@
                     <td class="px-4 py-3 text-center">
                         <div class="flex justify-center gap-1">
                             <a href="{{ route('settings.user.edit', $user->id) }}"
-                               class="bg-yellow-400 text-white rounded hover:bg-yellow-500 transition px-2 py-1 text-[10px]">Edit</a>
+                               class="rounded bg-blue-600 px-2 py-1 text-[10px] text-white transition hover:bg-blue-700">Edit</a>
 
                             @if(Auth::id() !== $user->id)
                             <form action="{{ route('settings.user.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus user ini?');" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="bg-red-500 text-white rounded hover:bg-red-600 transition px-2 py-1 text-[10px]">Hapus</button>
+                                <button type="submit" class="rounded bg-rose-600 px-2 py-1 text-[10px] text-white transition hover:bg-rose-700">Hapus</button>
                             </form>
                             @else
                             <span class="bg-gray-200 text-gray-500 px-2 py-1 text-[10px] rounded">Anda</span>

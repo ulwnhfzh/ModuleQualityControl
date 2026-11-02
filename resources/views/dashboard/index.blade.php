@@ -12,7 +12,7 @@
         </div>
         <div class="flex items-center gap-2">
             <span class="text-xs text-slate-500 font-medium">Tahun:</span>
-            <form method="GET" action="{{ route('dashboard.index') }}">
+            <form method="GET" action="{{ route('dashboard') }}">
                 <select name="tahun" onchange="this.form.submit()"
                         class="bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg px-3 py-2
                                focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer">
@@ -206,49 +206,36 @@
     </div>
     @endif
 
-    {{-- AKSES CEPAT --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-        <h3 class="font-semibold text-slate-800 text-sm mb-3">Akses Cepat</h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-            <a href="{{ route('tools.index') }}"
-               class="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-3 text-center transition">
-                <div class="text-blue-600 font-semibold text-xs">Daftar Induk</div>
-            </a>
-            <a href="{{ route('verifikasi.index') }}"
-               class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg p-3 text-center transition">
-                <div class="text-emerald-600 font-semibold text-xs">Verifikasi</div>
-            </a>
-            <a href="{{ route('laporan.harian.index') }}"
-               class="bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg p-3 text-center transition">
-                <div class="text-purple-600 font-semibold text-xs">Laporan Harian</div>
-            </a>
-            <a href="{{ route('reports.index') }}"
-               class="bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg p-3 text-center transition">
-                <div class="text-amber-600 font-semibold text-xs">Reports</div>
-            </a>
+    {{-- KOMPOSISI DAFTAR INDUK --}}
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <div class="mb-4">
+            <h3 class="font-semibold text-slate-800 text-sm">Komposisi Daftar Induk</h3>
+            <p class="mt-1 text-xs text-slate-500">Jumlah alat terdaftar per kategori pada tahun {{ $tahun }}</p>
+        </div>
+        <div class="space-y-4">
+            @forelse($kpi['breakdownKategori'] as $kat)
+                @php
+                    $persentaseKategori = $totalTools > 0 ? round(($kat->jumlah / $totalTools) * 100) : 0;
+                @endphp
+                <div>
+                    <div class="mb-1.5 flex items-center justify-between gap-3 text-xs">
+                        <span class="font-medium text-slate-700">{{ $kat->category }}</span>
+                        <span class="shrink-0 font-semibold text-slate-600">{{ $kat->jumlah }} <span class="font-normal text-slate-400">({{ $persentaseKategori }}%)</span></span>
+                    </div>
+                    <div class="h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label="Persentase kategori {{ $kat->category }}" aria-valuenow="{{ $persentaseKategori }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="h-full rounded-full bg-blue-600 transition-all" style="width: {{ $persentaseKategori }}%"></div>
+                    </div>
+                </div>
+            @empty
+                <div class="py-6 text-center text-sm text-slate-500">Belum ada data daftar induk untuk tahun ini.</div>
+            @endforelse
         </div>
     </div>
 
-    {{-- REKAPITULASI --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <h3 class="font-semibold text-slate-800 text-sm mb-3">Rekapitulasi Alat per Kategori</h3>
-            <div class="space-y-2">
-                @forelse($kpi['breakdownKategori'] as $kat)
-                <div class="flex items-center justify-between border-b border-gray-100 py-2">
-                    <span class="text-sm text-gray-700 font-medium">{{ $kat->category }}</span>
-                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">{{ $kat->jumlah }}</span>
-                </div>
-                @empty
-                <div class="text-center text-gray-400 text-sm py-4">Belum terdapat data</div>
-                @endforelse
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <h3 class="font-semibold text-slate-800 text-sm mb-3">Rekapitulasi Data Tahun {{ $tahun }}</h3>
-            <div class="grid grid-cols-2 gap-2">
+    {{-- REKAPITULASI DATA TAHUNAN --}}
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <h3 class="font-semibold text-slate-800 text-sm mb-3">Rekapitulasi Data Tahun {{ $tahun }}</h3>
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
                 <div class="bg-blue-50 rounded-lg p-2 text-center">
                     <p class="text-2xl font-bold text-blue-700">{{ $totalTools }}</p>
                     <p class="text-[10px] text-blue-600 uppercase">Daftar Induk</p>
@@ -265,11 +252,10 @@
                     <p class="text-2xl font-bold text-amber-700">{{ $totalEksternal }}</p>
                     <p class="text-[10px] text-amber-600 uppercase">Eksternal</p>
                 </div>
-                <div class="bg-rose-50 rounded-lg p-2 text-center col-span-2">
+                <div class="bg-rose-50 rounded-lg p-2 text-center">
                     <p class="text-2xl font-bold text-rose-700">{{ $totalMesin }}</p>
                     <p class="text-[10px] text-rose-600 uppercase">Mesin</p>
                 </div>
-            </div>
         </div>
     </div>
 

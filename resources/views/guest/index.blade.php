@@ -20,7 +20,7 @@
 {{-- ============================================ --}}
 <div class="feature-toolbar bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-3">
     <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md" style="background-color:#059669;">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md" style="background-color:#0070f2;">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
@@ -54,14 +54,14 @@
                    placeholder="Cari alat, mesin, atau jadwal..."
                    class="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700
                           placeholder:text-slate-400
-                          focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                          focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
         </div>
 
         {{-- Filter Tahun --}}
         <div class="sm:w-44">
             <select name="tahun"
                     class="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700
-                           focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer transition">
+                           focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition">
                 @for($y = date('Y'); $y >= date('Y') - 5; $y--)
                     <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>Tahun {{ $y }}</option>
                 @endfor
@@ -70,7 +70,7 @@
 
         {{-- Tombol Cari --}}
         <button type="submit"
-                class="h-11 px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-semibold
+                class="h-11 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold
                        transition inline-flex items-center justify-center gap-2 shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -103,7 +103,7 @@
                       {{ $isActive
                           ? 'text-white shadow-sm'
                           : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100' }}"
-               @if($isActive) style="background-color:#059669;" @endif>
+               @if($isActive) style="background-color:#0070f2;" @endif>
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}" />
                 </svg>
@@ -129,10 +129,10 @@
 {{-- STYLE HEADER TABEL --}}
 {{-- ============================================ --}}
 @php
-    $thStyle = 'background-color:#a0a8b4; color:#111827; font-weight:700; padding:10px 8px; font-size:10px; text-transform:uppercase; border:1px solid #000000;';
-    $thStyleTotal = 'background-color:#a0a8b4; color:#111827; font-weight:700; padding:10px 8px; font-size:10px; text-transform:uppercase; border:1px solid #000000;';
-    $tdStyle = 'padding:8px 8px; border:1px solid #000000;';
-    $tfootStyle = 'background-color:#a0a8b4; color:#111827; font-weight:700; padding:12px 8px; font-size:11px; border:1px solid #000000;';
+    $thStyle = 'background-color:#0070f2; color:#ffffff; font-weight:700; padding:10px 8px; font-size:10px; text-transform:uppercase; border:1px solid #0054b5;';
+    $thStyleTotal = 'background-color:#0070f2; color:#ffffff; font-weight:700; padding:10px 8px; font-size:10px; text-transform:uppercase; border:1px solid #0054b5;';
+    $tdStyle = 'padding:8px 8px; border:1px solid #d9d9d9;';
+    $tfootStyle = 'background-color:#eaf3fc; color:#1d2d3e; font-weight:700; padding:12px 8px; font-size:11px; border:1px solid #d9d9d9;';
 @endphp
 
 {{-- ============ TAB: INDUK ============ --}}
@@ -177,7 +177,7 @@
             </thead>
             <tbody>
                 @forelse($data['induk'] as $i => $row)
-                <tr class="{{ $i % 2 == 0 ? 'bg-white' : 'bg-slate-50' }} hover:bg-emerald-50 transition">
+                <tr class="{{ $i % 2 == 0 ? 'bg-white' : 'bg-slate-50' }} hover:bg-blue-50 transition">
                     <td style="{{ $tdStyle }}" class="font-semibold">{{ $i + 1 }}</td>
                     <td style="{{ $tdStyle }}" class="font-medium">{{ strtoupper($row->tool_name) }}</td>
                     <td style="{{ $tdStyle }}" class="text-slate-600">{{ $row->category }}</td>
@@ -207,7 +207,7 @@
             </tbody>
             @if($data['induk']->count() > 0)
             <tfoot>
-                <tr style="background-color:#047857; color:#ffffff;">
+                <tr style="background-color:#eaf3fc; color:#1d2d3e;">
                     <td colspan="3" style="{{ $tfootStyle }} text-align:center;">TOTAL</td>
                     <td style="{{ $tfootStyle }} text-align:center;">{{ $data['induk_total']['qa_1'] }}</td>
                     <td style="{{ $tfootStyle }} text-align:center;">{{ $data['induk_total']['qa_1_2'] }}</td>
@@ -237,16 +237,16 @@
 {{-- ============ TAB: VERIFIKASI ============ --}}
 @if(isset($data['verifikasi']))
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-4">
-    <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-emerald-50">
+    <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-blue-50">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0" style="background-color:#059669;">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0" style="background-color:#0070f2;">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
             <h2 class="font-bold text-slate-800 text-sm">Jadwal Verifikasi</h2>
         </div>
-        <span class="text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">{{ $data['verifikasi']->count() }} jadwal</span>
+        <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">{{ $data['verifikasi']->count() }} jadwal</span>
     </div>
     <div class="overflow-x-auto table-scroll">
         <table class="w-full text-xs text-left whitespace-nowrap min-w-[900px]">
@@ -261,7 +261,7 @@
             </thead>
             <tbody>
                 @forelse($data['verifikasi'] as $i => $row)
-                <tr class="{{ $i % 2 == 0 ? 'bg-white' : 'bg-slate-50' }} hover:bg-emerald-50 transition">
+                <tr class="{{ $i % 2 == 0 ? 'bg-white' : 'bg-slate-50' }} hover:bg-blue-50 transition">
                     <td style="{{ $tdStyle }}" class="font-semibold">{{ $i + 1 }}</td>
                     <td style="{{ $tdStyle }}" class="font-medium">{{ strtoupper($row->tool_name) }}</td>
                     <td style="{{ $tdStyle }}" class="text-slate-600">{{ ucfirst($row->tipe ?? '-') }}</td>
@@ -276,7 +276,7 @@
             </tbody>
             @if($data['verifikasi']->count() > 0)
             <tfoot>
-                <tr style="background-color:#d1fae5; color:#065f46;">
+                <tr style="background-color:#eaf3fc; color:#1d2d3e;">
                     <td colspan="4" style="{{ $tfootStyle }} text-align:center;">TOTAL</td>
                     <td style="{{ $tfootStyle }} text-align:center;">{{ $data['verifikasi_total']['total'] }}</td>
                 </tr>
@@ -350,7 +350,7 @@
             </tbody>
             @if($data['internal']->count() > 0)
             <tfoot>
-                <tr style="background-color:#047857; color:#ffffff;">
+                <tr style="background-color:#eaf3fc; color:#1d2d3e;">
                     <td colspan="2" style="{{ $tfootStyle }} text-align:center;">TOTAL</td>
                     <td style="{{ $tfootStyle }} text-align:center;">{{ $data['internal_total']['jan'] }}</td>
                     <td style="{{ $tfootStyle }} text-align:center;">{{ $data['internal_total']['feb'] }}</td>
@@ -435,7 +435,7 @@
             </tbody>
             @if($data['eksternal']->count() > 0)
             <tfoot>
-                <tr style="background-color:#047857; color:#ffffff;">
+                <tr style="background-color:#eaf3fc; color:#1d2d3e;">
                     <td colspan="2" style="{{ $tfootStyle }} text-align:center;">TOTAL</td>
                     <td style="{{ $tfootStyle }} text-align:center;">{{ $data['eksternal_total']['jan'] }}</td>
                     <td style="{{ $tfootStyle }} text-align:center;">{{ $data['eksternal_total']['feb'] }}</td>
@@ -537,7 +537,7 @@
             </tbody>
             @if($data['mesin']->count() > 0)
             <tfoot>
-                <tr style="background-color:#047857; color:#ffffff;">
+                <tr style="background-color:#eaf3fc; color:#1d2d3e;">
                     <td colspan="10" style="{{ $tfootStyle }} text-align:center;">TOTAL</td>
                     <td style="{{ $tfootStyle }} text-align:center;">{{ $data['mesin_total']['jan'] }}</td>
                     <td style="{{ $tfootStyle }} text-align:center;">{{ $data['mesin_total']['feb'] }}</td>

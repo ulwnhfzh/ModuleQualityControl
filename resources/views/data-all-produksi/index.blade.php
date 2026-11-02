@@ -49,8 +49,8 @@
         <!-- KANAN: Total dan Tombol Aksi -->
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
             <p class="text-xs text-slate-500 mr-1">Total <span class="font-bold text-slate-700">{{ $data->count() }}</span></p>
-            <a href="{{ route('data-all-produksi.import.form') }}" class="bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">📥 Import</a>
-            <a href="{{ route('data-all-produksi.export', ['division' => $selectedDivision]) }}" class="bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">📤 Export</a>
+            <a href="{{ route('data-all-produksi.import.form') }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-blue-600 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-50 sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.import') Import</a>
+            <a href="{{ route('data-all-produksi.export', ['division' => $selectedDivision]) }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.export') Export</a>
             <a href="{{ route('data-all-produksi.create') }}" class="bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-3 py-1.5 text-xs sm:text-sm"><span>+</span> Tambah</a>
         </div>
     </div>
@@ -126,11 +126,11 @@
                         
                         <td class="border border-slate-200 px-2 py-3 text-center">
                             <div class="flex justify-center gap-1">
-                                <a href="{{ route('data-all-produksi.edit', $item->id) }}" class="bg-amber-400 text-white px-2 py-1 rounded text-[10px] font-bold hover:bg-amber-500">EDIT</a>
+                                <a href="{{ route('data-all-produksi.edit', $item->id) }}" class="rounded bg-blue-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-blue-700">EDIT</a>
                                 <form action="{{ route('data-all-produksi.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="bg-rose-500 text-white px-2 py-1 rounded text-[10px] font-bold hover:bg-rose-600">HAPUS</button>
+                                    <button type="submit" class="rounded bg-rose-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-rose-700">HAPUS</button>
                                 </form>
                             </div>
                         </td>

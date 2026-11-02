@@ -17,7 +17,7 @@
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Persediaan QA Plant 2</p>
                 <h1 class="text-lg font-bold text-gray-900 md:text-xl">Data Stock Alat Ukur QA Plant 2</h1>
-                <p class="mt-1 text-xs text-gray-500">Tabel menampilkan data stock tersimpan. Gunakan tombol tambah untuk menginput data baru.</p>
+                <p class="mt-1 text-xs text-gray-500">Pilih bulan untuk menampilkan data stock tersimpan.</p>
             </div>
             <form method="GET" action="{{ route('stock.index') }}" class="flex flex-wrap items-end gap-2">
                 <label class="text-xs font-semibold text-gray-600">Tahun
@@ -34,14 +34,22 @@
                         @endforeach
                     </select>
                 </label>
+                {{-- DROPDOWN BULAN --}}
+                <label class="text-xs font-semibold text-gray-600">Bulan
+                    <select name="bulan" class="mt-1 block rounded border-gray-300 text-sm">
+                        @foreach($months as $m => $name)
+                            <option value="{{ $m }}" @selected((int)request('bulan', date('n')) === $m)>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </label>
                 <button class="rounded bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Tampilkan</button>
             </form>
         </div>
         @if(Auth::user()->role === 'admin')
         <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3">
-            <a href="{{ route('stock.export', ['tahun' => $tahun, 'kategori' => $kategori]) }}" class="rounded border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Export Excel</a>
+            <a href="{{ route('stock.export', ['tahun' => $tahun, 'kategori' => $kategori]) }}" class="inline-flex items-center gap-1.5 rounded bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">@include('components.icons.export') Export Excel</a>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('stock.import.form', ['tahun' => $tahun, 'kategori' => $kategori]) }}" class="rounded border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Import</a>
+                <a href="{{ route('stock.import.form', ['tahun' => $tahun, 'kategori' => $kategori]) }}" class="inline-flex items-center gap-1.5 rounded border border-blue-600 bg-white px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50">@include('components.icons.import') Import</a>
                 <button type="button" onclick="document.getElementById('stock-entry-dialog').showModal()" class="rounded bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-700">+ Tambah Data Stock</button>
             </div>
         </div>
@@ -136,16 +144,22 @@
     @endif
     @endif
 
+    @php
+        $selectedMonth = (int) request('bulan', date('n'));
+        $selectedMonthName = $months[$selectedMonth] ?? 'Jan';
+    @endphp
+
     <section class="overflow-hidden rounded-lg bg-white shadow-sm">
         <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
             <div>
                 <h2 class="text-sm font-bold text-gray-800">Data Stock Tersimpan — {{ $kategori }} — {{ $tahun }}</h2>
-            <p class="mt-1 text-xs text-gray-500">Format tabel tahunan mengikuti lembar stock: QTY dan tanggal masuk/keluar per bulan.</p>
+            <p class="mt-1 text-xs text-gray-500">Menampilkan data untuk bulan <strong>{{ $selectedMonthName }}</strong>.</p>
             </div>
             <span class="text-xs text-gray-500">{{ $rows->count() }} alat</span>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[12600px] border-collapse text-[11px] text-gray-800">
+            {{-- STRUKTUR TABEL ASLI, TAPI HANYA MERENDER 1 BULAN --}}
+            <table class="w-full min-w-[1200px] border-collapse text-[11px] text-gray-800">
                 <thead class="text-center font-semibold uppercase text-white">
                     <tr class="bg-slate-700">
                         <th rowspan="3" class="border border-slate-500 px-2 py-2">No</th>
@@ -154,57 +168,71 @@
                         <th rowspan="3" class="min-w-24 border border-slate-500 px-2 py-2">Number Order</th>
                         <th rowspan="3" class="min-w-28 border border-slate-500 px-2 py-2">Spesifikasi</th>
                         <th rowspan="3" class="min-w-20 border border-slate-500 px-2 py-2">Total</th>
-                        @foreach($months as $monthNumber => $monthName)
-                            <th colspan="16" class="border border-slate-500 px-2 py-2">{{ strtoupper($monthName) }}</th>
-                        @endforeach
-                        <th rowspan="3" class="min-w-20 border border-slate-500 bg-emerald-700 px-2 py-2">Akhir Tahun</th>
+                        
+                        {{-- HANYA RENDER 1 BULAN SESUAI DROPDOWN --}}
+                        <th colspan="16" class="border border-slate-500 px-2 py-2">{{ strtoupper($selectedMonthName) }}</th>
+                        
+                        <th rowspan="3" class="min-w-20 border border-slate-500 bg-emerald-700 px-2 py-2">Akhir Bulan</th>
                     </tr>
                     <tr class="bg-slate-600">
-                        @foreach($months as $monthNumber => $monthName)
-                            <th colspan="4" class="border border-slate-500 px-1 py-2">IN · QTY</th>
-                            <th colspan="4" class="border border-slate-500 px-1 py-2">OUT · QTY</th>
-                            <th colspan="4" class="border border-slate-500 px-1 py-2">Tanggal Kedatangan</th>
-                            <th colspan="4" class="border border-slate-500 px-1 py-2">Tanggal Dikeluarkan</th>
-                        @endforeach
+                        <th colspan="4" class="border border-slate-500 px-1 py-2">IN · QTY</th>
+                        <th colspan="4" class="border border-slate-500 px-1 py-2">OUT · QTY</th>
+                        <th colspan="4" class="border border-slate-500 px-1 py-2">Tanggal Kedatangan</th>
+                        <th colspan="4" class="border border-slate-500 px-1 py-2">Tanggal Dikeluarkan</th>
                     </tr>
                     <tr class="bg-slate-500">
-                        @foreach($months as $monthNumber => $monthName)
-                            @foreach(range(1, 16) as $slot)
-                                <th class="border border-slate-400 px-1 py-1">{{ (($slot - 1) % 4) + 1 }}</th>
-                            @endforeach
+                        @foreach(range(1, 16) as $slot)
+                            <th class="border border-slate-400 px-1 py-1">{{ (($slot - 1) % 4) + 1 }}</th>
                         @endforeach
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($rows as $index => $row)
-                        @php($stock = $row['stock'])
+                        @php
+                            $stock = $row['stock'];
+                            $monthlyData = $row['monthly'][$selectedMonth] ?? null;
+                            $monthSlots = $row['movement_slots']->get($selectedMonth, []);
+                        @endphp
                         <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }}">
                             <td class="border border-gray-300 px-2 py-2 text-center">{{ $index + 1 }}</td>
                             <td class="border border-gray-300 px-2 py-2 font-semibold">{{ $stock->tool_name }}</td>
                             <td class="border border-gray-300 px-2 py-2 text-center">{{ $stock->type }}</td>
                             <td class="border border-gray-300 px-2 py-2 text-center">{{ $stock->order_number ?: '—' }}</td>
                             <td class="border border-gray-300 px-2 py-2">{{ $stock->specification ?: '—' }}</td>
-                            <td class="border border-gray-300 px-2 py-2 text-center">{{ $row['monthly'][1]['opening'] }}</td>
-                            @foreach($months as $monthNumber => $monthName)
-                                @php($monthSlots = $row['movement_slots']->get($monthNumber, []))
-                                @foreach(['in', 'out'] as $direction)
-                                    @foreach(range(0, 3) as $slotIndex)
-                                        @php($movementSlot = $monthSlots[$direction][$slotIndex] ?? null)
-                                        <td class="border border-gray-300 px-1 py-1 text-center">{{ $movementSlot['quantity'] ?? '' }}</td>
-                                    @endforeach
-                                @endforeach
-                                @foreach(['in', 'out'] as $direction)
-                                    @php($directionSlots = $monthSlots[$direction] ?? [])
-                                    @foreach(range(0, 3) as $slotIndex)
-                                        <td class="border border-gray-300 px-1 py-1 text-center">{{ $directionSlots[$slotIndex]['date'] ?? '' }}</td>
-                                    @endforeach
-                                @endforeach
+                            
+                            {{-- Total Awal Bulan --}}
+                            <td class="border border-gray-300 px-2 py-2 text-center">{{ $monthlyData['opening'] ?? 0 }}</td>
+
+                            {{-- IN slots --}}
+                            @foreach(range(0, 3) as $slotIndex)
+                                @php $movementSlot = $monthSlots['in'][$slotIndex] ?? null; @endphp
+                                <td class="border border-gray-300 px-1 py-1 text-center">{{ $movementSlot['quantity'] ?? '' }}</td>
                             @endforeach
-                            <td class="border border-gray-300 bg-emerald-50 px-2 py-2 text-center font-bold text-emerald-900">{{ $row['closing_stock'] }}</td>
+                            
+                            {{-- OUT slots --}}
+                            @foreach(range(0, 3) as $slotIndex)
+                                @php $movementSlot = $monthSlots['out'][$slotIndex] ?? null; @endphp
+                                <td class="border border-gray-300 px-1 py-1 text-center">{{ $movementSlot['quantity'] ?? '' }}</td>
+                            @endforeach
+
+                            {{-- Tanggal IN --}}
+                            @foreach(range(0, 3) as $slotIndex)
+                                @php $movementSlot = $monthSlots['in'][$slotIndex] ?? null; @endphp
+                                <td class="border border-gray-300 px-1 py-1 text-center">{{ $movementSlot['date'] ?? '' }}</td>
+                            @endforeach
+
+                            {{-- Tanggal OUT --}}
+                            @foreach(range(0, 3) as $slotIndex)
+                                @php $movementSlot = $monthSlots['out'][$slotIndex] ?? null; @endphp
+                                <td class="border border-gray-300 px-1 py-1 text-center">{{ $movementSlot['date'] ?? '' }}</td>
+                            @endforeach
+
+                            {{-- Akhir Bulan --}}
+                            <td class="border border-gray-300 bg-emerald-50 px-2 py-2 text-center font-bold text-emerald-900">{{ $monthlyData['balance'] ?? 0 }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="199" class="px-4 py-12 text-center text-sm text-gray-500">Belum ada data stock {{ $kategori }} untuk tahun {{ $tahun }}. Gunakan tombol “Tambah Data Stock” untuk mengisi data.</td>
+                            <td colspan="22" class="px-4 py-12 text-center text-sm text-gray-500">Belum ada data stock {{ $kategori }} untuk tahun {{ $tahun }}. Gunakan tombol “Tambah Data Stock” untuk mengisi data.</td>
                         </tr>
                     @endforelse
                 </tbody>
