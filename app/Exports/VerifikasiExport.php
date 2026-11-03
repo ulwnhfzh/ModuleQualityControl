@@ -9,11 +9,12 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class VerifikasiExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithEvents
+class VerifikasiExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithEvents, WithTitle
 {
     protected string $tahun;
     protected string $mode;
@@ -23,6 +24,11 @@ class VerifikasiExport implements FromCollection, WithHeadings, WithMapping, Wit
     {
         $this->tahun = $tahun;
         $this->mode = $mode;
+    }
+
+    public function title(): string
+    {
+        return $this->mode === 'harian' ? 'Verifikasi Bulanan' : 'Verifikasi Tahunan';
     }
 
     /**

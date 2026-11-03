@@ -8,15 +8,18 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
 
-class VerifikasiPeriodeExport implements FromCollection, WithHeadings, WithMapping, WithEvents
+class VerifikasiPeriodeExport implements FromCollection, WithHeadings, WithMapping, WithEvents, WithTitle
 {
     private int $number = 0;
 
     public function __construct(private readonly int $tahun)
     {
     }
+
+    public function title(): string { return 'Verifikasi Periode'; }
 
     public function collection(): Collection
     {

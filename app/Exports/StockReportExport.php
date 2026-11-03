@@ -8,16 +8,19 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class StockReportExport implements FromCollection, WithHeadings, WithEvents
+class StockReportExport implements FromCollection, WithHeadings, WithEvents, WithTitle
 {
     private array $headings = [];
 
     public function __construct(private readonly int $tahun, private readonly string $kategori)
     {
     }
+
+    public function title(): string { return 'Stok ' . $this->kategori; }
 
     public function headings(): array
     {

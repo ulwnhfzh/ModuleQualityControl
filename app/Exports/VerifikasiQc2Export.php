@@ -7,9 +7,10 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class VerifikasiQc2Export implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles
+class VerifikasiQc2Export implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles, WithTitle
 {
     protected $tahun;
 
@@ -17,6 +18,8 @@ class VerifikasiQc2Export implements FromCollection, WithHeadings, ShouldAutoSiz
     {
         $this->tahun = $tahun;
     }
+
+    public function title(): string { return 'Verifikasi QC2'; }
 
     public function collection()
     {

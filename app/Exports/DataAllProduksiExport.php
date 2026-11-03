@@ -3,14 +3,24 @@
 namespace App\Exports;
 
 use App\Models\DataAllProduksi;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Illuminate\Database\Eloquent\Builder;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class DataAllProduksiExport implements FromCollection, WithHeadings, WithMapping, WithTitle
+class DataAllProduksiExport implements FromQuery, WithHeadings, WithMapping, WithTitle, WithColumnWidths, WithStyles, WithEvents
 {
     protected $division;
+    private int $rowNumber = 0;
 
     public function __construct($division)
     {
@@ -21,19 +31,19 @@ class DataAllProduksiExport implements FromCollection, WithHeadings, WithMapping
     public function title(): string
     {
         if ($this->division === 'ALL') {
-            return 'Semua Division';
+            return 'Data All Produksi';
         }
         return $this->division;
     }
 
-    public function collection()
+    public function query(): Builder
     {
         // Jika 'ALL', ambil semua data. Jika tidak, filter berdasarkan division.
         if ($this->division === 'ALL') {
-            return DataAllProduksi::orderBy('division', 'asc')->orderBy('id', 'asc')->get();
+            return DataAllProduksi::query()->orderBy('division', 'asc')->orderBy('id', 'asc');
         }
         
-        return DataAllProduksi::where('division', $this->division)->orderBy('id', 'asc')->get();
+        return DataAllProduksi::query()->where('division', $this->division)->orderBy('id', 'asc');
     }
 
     public function headings(): array
@@ -56,8 +66,7 @@ class DataAllProduksiExport implements FromCollection, WithHeadings, WithMapping
 
     public function map($row): array
     {
-        static $no = 0; // Nomor urut otomatis
-        $no++;
+        $no = ++$this->rowNumber;
         
         $data = [
             $no,
@@ -89,5 +98,59 @@ class DataAllProduksiExport implements FromCollection, WithHeadings, WithMapping
         }
 
         return $data;
+    }
+
+    public function columnWidths(): array
+    {
+        if ($this->division === 'ALL') {
+            return [
+                'A' => 7, 'B' => 18, 'C' => 30, 'D' => 18, 'E' => 18,
+                'F' => 20, 'G' => 20, 'H' => 26, 'I' => 28,
+                'J' => 11, 'K' => 11, 'L' => 11, 'M' => 11, 'N' => 11, 'O' => 11,
+                'P' => 11, 'Q' => 11, 'R' => 11, 'S' => 11, 'T' => 11, 'U' => 11,
+                'V' => 36,
+            ];
+        }
+
+        return [
+            'A' => 7, 'B' => 30, 'C' => 18, 'D' => 18, 'E' => 20,
+            'F' => 20, 'G' => 26, 'H' => 28,
+            'I' => 11, 'J' => 11, 'K' => 11, 'L' => 11, 'M' => 11, 'N' => 11,
+            'O' => 11, 'P' => 11, 'Q' => 11, 'R' => 11, 'S' => 11, 'T' => 11,
+            'U' => 36,
+        ];
+    }
+
+    public function styles(Worksheet $sheet): array
+    {
+        $lastColumn = Coordinate::stringFromColumnIndex(count($this->headings()));
+
+        return [
+            1 => [
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1E3A5F']],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+                'borders' => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'CBD5E1']]],
+            ],
+        ];
+    }
+
+    public function registerEvents(): array
+    {
+        return [AfterSheet::class => function (AfterSheet $event): void {
+            $sheet = $event->sheet->getDelegate();
+            $lastColumn = Coordinate::stringFromColumnIndex(count($this->headings()));
+            $lastRow = max(1, $sheet->getHighestRow());
+
+            $sheet->freezePane($this->division === 'ALL' ? 'D2' : 'C2');
+            $sheet->setAutoFilter("A1:{$lastColumn}{$lastRow}");
+            $sheet->getRowDimension(1)->setRowHeight(32);
+            if ($lastRow > 1) {
+                $sheet->getStyle("A2:{$lastColumn}{$lastRow}")->getAlignment()
+                    ->setVertical(Alignment::VERTICAL_CENTER)
+                    ->setWrapText(true);
+                $sheet->getStyle("A2:A{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            }
+        }];
     }
 }

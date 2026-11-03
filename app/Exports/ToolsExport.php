@@ -9,11 +9,12 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class ToolsExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithEvents
+class ToolsExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithEvents, WithTitle
 {
     protected string $tahun;
     protected string $kategori;
@@ -23,6 +24,11 @@ class ToolsExport implements FromCollection, WithHeadings, WithMapping, WithStyl
     {
         $this->tahun = $tahun;
         $this->kategori = $kategori;
+    }
+
+    public function title(): string
+    {
+        return $this->kategori;
     }
 
     public function collection()

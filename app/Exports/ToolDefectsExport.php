@@ -6,13 +6,14 @@ use App\Models\ToolDefect;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class ToolDefectsExport implements FromArray, WithStyles, WithColumnWidths
+class ToolDefectsExport implements FromArray, WithStyles, WithColumnWidths, WithTitle
 {
     protected $tahun;
 
@@ -20,6 +21,8 @@ class ToolDefectsExport implements FromArray, WithStyles, WithColumnWidths
     {
         $this->tahun = $tahun;
     }
+
+    public function title(): string { return 'Data NG'; }
 
     public function array(): array
     {

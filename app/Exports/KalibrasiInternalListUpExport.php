@@ -8,11 +8,14 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
 
-class KalibrasiInternalListUpExport implements FromCollection, WithHeadings, WithMapping, WithEvents
+class KalibrasiInternalListUpExport implements FromCollection, WithHeadings, WithMapping, WithEvents, WithTitle
 {
     public function __construct(private readonly int $tahun) {}
+
+    public function title(): string { return 'Kalibrasi List Up'; }
 
     public function collection(): Collection
     {
