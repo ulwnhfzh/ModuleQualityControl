@@ -458,8 +458,8 @@
 
         <div class="p-4 border-t border-slate-200 shrink-0">
             <p class="text-[10px] text-slate-500 text-center leading-relaxed">
-                Quality Management • © 2026<br>
-                <span class="text-slate-600">v1.0.0</span>
+                • Quality Assured by Ulwan •<br>
+                <span class="text-slate-600">V 1.0.0</span>
             </p>
         </div>
     </aside>

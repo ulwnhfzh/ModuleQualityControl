@@ -2,20 +2,21 @@
 
 @section('content')
 
-<div class="space-y-6">
+<div class="dashboard-page flex w-full flex-col gap-5 pb-8">
 
     {{-- HEADER --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
-            <p class="text-sm text-slate-500 mt-1">Ringkasan data QC Measurement Tools tahun {{ $tahun }}</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Quality Control</p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Dashboard</h1>
+            <p class="mt-1 text-sm text-slate-500">Ringkasan alat ukur dan aktivitas operasional.</p>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-500 font-medium">Tahun:</span>
+        <div class="flex items-center gap-3">
+            <label for="dashboard-year" class="text-sm font-medium text-slate-600">Tahun laporan</label>
             <form method="GET" action="{{ route('dashboard') }}">
                 <select name="tahun" onchange="this.form.submit()"
-                        class="bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg px-3 py-2
-                               focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer">
+                        id="dashboard-year" aria-label="Pilih tahun laporan" class="bg-white border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg px-3 py-2.5 shadow-sm
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
                     @for($y = date('Y'); $y >= date('Y') - 12; $y--)
                         <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
@@ -24,58 +25,47 @@
         </div>
     </div>
 
-    {{-- INFO AKSES ADMINISTRATOR --}}
-    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-start gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <div>
-            <p class="text-sm font-semibold text-emerald-800">Akses Administrator</p>
-            <p class="text-xs text-emerald-600 mt-0.5">Anda memiliki akses penuh terhadap seluruh data sistem.</p>
-        </div>
-    </div>
-
     {{-- INDIKATOR KINERJA --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <div class="bg-transparent">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h2 class="font-bold text-slate-800 text-lg">Indikator Kinerja — {{ $kpi['bulanLabel'] }}</h2>
-                <p class="text-xs text-slate-500 mt-0.5">Rekapitulasi capaian periode bulan berjalan</p>
+                <h2 class="font-bold text-slate-900 text-lg">Kinerja bulan ini <span class="font-medium text-slate-500">· {{ $kpi['bulanLabel'] }}</span></h2>
+                <p class="text-sm text-slate-500 mt-1">Pantau progres kalibrasi, keterlambatan, dan aktivitas tim.</p>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 
             {{-- Progres Kalibrasi --}}
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm min-h-[156px]">
                 <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Progres Kalibrasi</p>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Progres kalibrasi</p>
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                 </div>
-                <div class="flex items-baseline gap-2">
-                    <p class="text-4xl font-bold text-blue-700">{{ $kpi['progressKalibrasi'] }}%</p>
+                <div class="flex items-baseline gap-2 mt-3">
+                    <p class="text-4xl font-bold tracking-tight text-slate-900">{{ $kpi['progressKalibrasi'] }}<span class="text-2xl text-slate-500">%</span></p>
                 </div>
-                <p class="text-xs text-blue-600 mt-1">
+                <p class="text-xs text-slate-500 mt-1">
                     {{ $kpi['totalKalibrasiBulanIni'] }} dari {{ $kpi['totalAlatKalibrasi'] }} alat
                 </p>
-                <div class="w-full bg-blue-200 rounded-full h-2 mt-3">
+                <div class="w-full bg-slate-100 rounded-full h-2 mt-4">
                     <div class="bg-blue-600 h-2 rounded-full transition-all duration-500"
                          style="width: {{ min($kpi['progressKalibrasi'], 100) }}%"></div>
                 </div>
             </div>
 
             {{-- Alat Terlambat --}}
-            <div class="bg-gradient-to-br from-rose-50 to-rose-100 rounded-lg p-4 border border-rose-200">
+            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm min-h-[156px]">
                 <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-semibold text-rose-700 uppercase tracking-wide">Alat Terlambat</p>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Terlambat kalibrasi</p>
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
-                <p class="text-4xl font-bold text-rose-700">{{ $kpi['jumlahTerlambat'] }}</p>
-                <p class="text-xs text-rose-600 mt-1">
+                <p class="text-4xl font-bold tracking-tight {{ $kpi['jumlahTerlambat'] > 0 ? 'text-rose-700' : 'text-slate-900' }} mt-3">{{ $kpi['jumlahTerlambat'] }}</p>
+                <p class="text-xs text-slate-500 mt-1">
                     @if($kpi['jumlahTerlambat'] > 0)
                         Memerlukan tindak lanjut segera
                     @else
@@ -85,25 +75,25 @@
             </div>
 
             {{-- Aktivitas Minggu Ini --}}
-            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 border border-emerald-200">
+            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm min-h-[156px]">
                 <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Aktivitas Minggu Ini</p>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Aktivitas minggu ini</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                 </div>
-                <div class="flex items-baseline gap-2">
-                    <p class="text-4xl font-bold text-emerald-700">{{ $kpi['aktivitasMingguIni'] }}</p>
+                <div class="flex items-baseline gap-2 mt-3">
+                    <p class="text-4xl font-bold tracking-tight text-slate-900">{{ $kpi['aktivitasMingguIni'] }}</p>
                     @php $perubahan = $kpi['perubahanAktivitas']; @endphp
                     @if($perubahan > 0)
-                        <span class="text-sm font-semibold text-emerald-600">↑ {{ $perubahan }}%</span>
+                        <span class="text-sm font-semibold text-blue-600">↑ {{ $perubahan }}%</span>
                     @elseif($perubahan < 0)
                         <span class="text-sm font-semibold text-rose-600">↓ {{ abs($perubahan) }}%</span>
                     @else
                         <span class="text-sm font-semibold text-gray-500">—</span>
                     @endif
                 </div>
-                <p class="text-xs text-emerald-600 mt-1">
+                <p class="text-xs text-slate-500 mt-1">
                     Periode sebelumnya: {{ $kpi['aktivitasMingguLalu'] }} aktivitas
                 </p>
             </div>
@@ -111,13 +101,13 @@
     </div>
 
     {{-- PEMBERITAHUAN --}}
-    @if($kpi['jumlahTerlambat'] > 0 || $kpi['jumlahJatuhTempo7'] > 0 || $kpi['jumlahJatuhTempo30'] > 0)
+    @if($kpi['jumlahTerlambat'] > 0 || $kpi['jumlahJatuhTempo7'] > 0 || $kpi['jumlahJatuhTempo30'] > 0 || $kpi['jumlahVerifikasiBelumDikonfirmasi'] > 0)
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="bg-amber-50 px-4 py-3 border-b border-amber-200 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            <h3 class="font-bold text-amber-800 text-sm">Pemberitahuan — Terdapat Alat yang Memerlukan Tindak Lanjut</h3>
+            <h3 class="font-bold text-amber-800 text-sm">Pengingat operasional</h3>
         </div>
 
         <div class="p-4 space-y-3">
@@ -147,8 +137,8 @@
                         @endif
                     </div>
                     @endforeach
-                    @if($kpi['alatTerlambat']->count() > 3)
-                    <div class="text-xs text-rose-600 font-semibold">... dan {{ $kpi['alatTerlambat']->count() - 3 }} alat lainnya</div>
+                    @if($kpi['jumlahTerlambat'] > $kpi['alatTerlambat']->count())
+                    <div class="text-xs text-rose-600 font-semibold">... dan {{ $kpi['jumlahTerlambat'] - $kpi['alatTerlambat']->count() }} alat lainnya</div>
                     @endif
                 </div>
             </div>
@@ -202,17 +192,35 @@
             </div>
             @endif
 
+            @if($kpi['jumlahVerifikasiBelumDikonfirmasi'] > 0)
+            <div class="rounded-r-lg border-l-4 border-amber-500 bg-amber-50 p-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-sm font-semibold text-amber-900">{{ $kpi['jumlahVerifikasiBelumDikonfirmasi'] }} verifikasi menunggu konfirmasi</span>
+                    <a href="{{ route('verifikasi.index', ['tahun' => $kpi['tahun']]) }}" class="text-xs font-semibold text-blue-700 underline hover:text-blue-900">Buka daftar verifikasi</a>
+                </div>
+                <ul class="mt-2 space-y-1 pl-4 text-xs text-amber-800">
+                    @foreach($kpi['verifikasiBelumDikonfirmasi']->take(3) as $record)
+                        <li>{{ $record->tool_name }} · {{ ucfirst($record->tipe) }}</li>
+                    @endforeach
+                    @if($kpi['jumlahVerifikasiBelumDikonfirmasi'] > 3)
+                        <li class="font-semibold">Dan {{ $kpi['jumlahVerifikasiBelumDikonfirmasi'] - 3 }} verifikasi lainnya</li>
+                    @endif
+                </ul>
+            </div>
+            @endif
+
         </div>
     </div>
     @endif
 
     {{-- KOMPOSISI DAFTAR INDUK --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+    <div class="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-2">
+    <div class="min-h-[156px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div class="mb-4">
-            <h3 class="font-semibold text-slate-800 text-sm">Komposisi Daftar Induk</h3>
-            <p class="mt-1 text-xs text-slate-500">Jumlah alat terdaftar per kategori pada tahun {{ $tahun }}</p>
+            <h3 class="font-semibold text-slate-900">Komposisi daftar induk</h3>
+            <p class="mt-1 text-sm text-slate-500">Jumlah alat terdaftar per kategori pada {{ $tahun }}.</p>
         </div>
-        <div class="space-y-4">
+        <div class="space-y-3">
             @forelse($kpi['breakdownKategori'] as $kat)
                 @php
                     $persentaseKategori = $totalTools > 0 ? round(($kat->jumlah / $totalTools) * 100) : 0;
@@ -233,60 +241,32 @@
     </div>
 
     {{-- REKAPITULASI DATA TAHUNAN --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-        <h3 class="font-semibold text-slate-800 text-sm mb-3">Rekapitulasi Data Tahun {{ $tahun }}</h3>
-        <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-                <div class="bg-blue-50 rounded-lg p-2 text-center">
+    <div class="min-h-[156px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h3 class="font-semibold text-slate-900">Rekap data {{ $tahun }}</h3>
+        <p class="mt-1 mb-4 text-sm text-slate-500">Jumlah catatan dalam sistem.</p>
+        <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+                <div class="bg-slate-50 rounded-lg p-2.5">
                     <p class="text-2xl font-bold text-blue-700">{{ $totalTools }}</p>
                     <p class="text-[10px] text-blue-600 uppercase">Daftar Induk</p>
                 </div>
-                <div class="bg-emerald-50 rounded-lg p-2 text-center">
-                    <p class="text-2xl font-bold text-emerald-700">{{ $totalVerifikasi }}</p>
-                    <p class="text-[10px] text-emerald-600 uppercase">Verifikasi</p>
+                <div class="bg-slate-50 rounded-lg p-2.5">
+                    <p class="text-2xl font-bold text-blue-700">{{ $totalVerifikasi }}</p>
+                    <p class="text-[10px] text-blue-600 uppercase">Verifikasi</p>
                 </div>
-                <div class="bg-purple-50 rounded-lg p-2 text-center">
+                <div class="bg-slate-50 rounded-lg p-2.5">
                     <p class="text-2xl font-bold text-purple-700">{{ $totalInternal }}</p>
                     <p class="text-[10px] text-purple-600 uppercase">Internal</p>
                 </div>
-                <div class="bg-amber-50 rounded-lg p-2 text-center">
+                <div class="bg-slate-50 rounded-lg p-2.5">
                     <p class="text-2xl font-bold text-amber-700">{{ $totalEksternal }}</p>
                     <p class="text-[10px] text-amber-600 uppercase">Eksternal</p>
                 </div>
-                <div class="bg-rose-50 rounded-lg p-2 text-center">
+                <div class="bg-slate-50 rounded-lg p-2.5">
                     <p class="text-2xl font-bold text-rose-700">{{ $totalMesin }}</p>
                     <p class="text-[10px] text-rose-600 uppercase">Mesin</p>
                 </div>
         </div>
     </div>
-
-    {{-- CATATAN SISTEM --}}
-    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5">
-        <div class="flex items-start gap-3">
-            <div class="bg-amber-100 text-amber-600 rounded-full p-2 shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <div>
-                <h4 class="text-sm font-semibold text-slate-800">Catatan Sistem</h4>
-                <ul class="text-xs text-slate-600 mt-1 space-y-1 list-disc list-inside">
-                    <li>Progres kalibrasi bulan ini: <strong>{{ $kpi['progressKalibrasi'] }}%</strong> ({{ $kpi['totalKalibrasiBulanIni'] }} dari {{ $kpi['totalAlatKalibrasi'] }} alat).</li>
-                    <li>Aktivitas minggu ini: <strong>{{ $kpi['aktivitasMingguIni'] }}</strong>
-                        @if($kpi['perubahanAktivitas'] > 0)
-                            (mengalami kenaikan {{ $kpi['perubahanAktivitas'] }}% dari periode sebelumnya)
-                        @elseif($kpi['perubahanAktivitas'] < 0)
-                            (mengalami penurunan {{ abs($kpi['perubahanAktivitas']) }}% dari periode sebelumnya)
-                        @endif
-                    </li>
-                    @if($kpi['jumlahTerlambat'] > 0)
-                        <li class="text-rose-600 font-medium">Perhatian: {{ $kpi['jumlahTerlambat'] }} alat <strong>terlambat kalibrasi</strong>.</li>
-                    @endif
-                    @if($kpi['jumlahJatuhTempo7'] > 0)
-                        <li class="text-orange-600 font-medium">{{ $kpi['jumlahJatuhTempo7'] }} alat akan jatuh tempo dalam waktu dekat.</li>
-                    @endif
-                </ul>
-            </div>
-        </div>
     </div>
 
 </div>

@@ -109,6 +109,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/verifikasi/create', [VerifikasiController::class, 'create'])->name('verifikasi.create');
     Route::post('/verifikasi', [VerifikasiController::class, 'store'])->name('verifikasi.store');
     Route::get('/verifikasi/{verifikasi}/edit', [VerifikasiController::class, 'edit'])->name('verifikasi.edit');
+    Route::post('/verifikasi/{verifikasi}/confirm', [VerifikasiController::class, 'confirm'])->name('verifikasi.confirm');
+    Route::post('/verifikasi/{verifikasi}/reopen', [VerifikasiController::class, 'reopen'])->name('verifikasi.reopen');
     Route::put('/verifikasi/{verifikasi}', [VerifikasiController::class, 'update'])->name('verifikasi.update');
     Route::delete('/verifikasi/{verifikasi}', [VerifikasiController::class, 'destroy'])->name('verifikasi.destroy');
     Route::get('/verifikasi/import/form', [VerifikasiController::class, 'importForm'])->name('verifikasi.import.form');
