@@ -3,7 +3,7 @@
 @section('content')
 
 @if(session('success'))
-<div class="bg-green-100 border border-green-400 text-green-700 rounded mb-3 px-4 py-3 text-sm">
+<div class="bg-blue-100 border border-blue-400 text-blue-700 rounded mb-3 px-4 py-3 text-sm">
     {{ session('success') }}
 </div>
 @endif
@@ -72,7 +72,7 @@
                             Warning Standar (Warna Biru)
                         </label>
                         <p class="text-xs text-blue-600 mb-2">
-                            Notifikasi standar untuk alat yang akan jatuh tempo dalam beberapa hari/minggu ke depan.
+                            Notifikasi aplikasi dan pengingat email untuk alat yang akan jatuh tempo dalam beberapa hari/minggu ke depan.
                         </p>
                         <div class="flex items-center gap-2">
                             <input type="number" name="warning_days_standar"
@@ -82,7 +82,7 @@
                             <span class="text-sm text-blue-700 font-medium">hari</span>
                         </div>
                         <p class="text-[10px] text-blue-600 mt-1">
-                            Contoh: Jika diisi <strong>30</strong>, maka alat yang jatuh tempo ≤ 30 hari akan muncul dengan warna biru.
+                            Contoh: Jika diisi <strong>30</strong>, notifikasi aplikasi muncul dengan warna biru dan pengingat email mulai dikirim saat tenggat tersisa ≤ 30 hari.
                         </p>
                     </div>
                 </div>

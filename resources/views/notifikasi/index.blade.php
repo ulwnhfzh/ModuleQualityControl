@@ -3,7 +3,7 @@
 @section('content')
 
 @if(session('success'))
-<div class="bg-green-100 border border-green-400 text-green-700 rounded mb-3 px-4 py-3 text-sm">
+<div class="bg-blue-100 border border-blue-400 text-blue-700 rounded mb-3 px-4 py-3 text-sm">
     {{ session('success') }}
 </div>
 @endif
@@ -19,7 +19,7 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
             <h1 class="text-base font-bold text-gray-800">Notifikasi</h1>
-            <p class="text-xs text-gray-500 mt-0.5">Daftar alat yang memerlukan perhatian</p>
+            <p class="text-xs text-gray-500 mt-0.5">Tenggat alat dan verifikasi yang memerlukan tindak lanjut</p>
         </div>
         <div class="flex items-center gap-2 flex-wrap text-[10px]">
             <span class="text-gray-500 font-semibold">Keterangan Warna:</span>
@@ -27,14 +27,14 @@
             <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded font-semibold">Jatuh Tempo</span>
             <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">Masih Lama</span>
             <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded font-semibold">Diproses</span>
-            <span class="bg-green-100 text-green-700 px-2 py-1 rounded font-semibold">Selesai</span>
+            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">Selesai</span>
             <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded font-semibold">Dibatalkan</span>
         </div>
     </div>
 </div>
 
 {{-- RINGKASAN --}}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-4">
     <div class="bg-rose-50 border border-rose-200 rounded-xl p-4 shadow-sm">
         <div class="flex items-center justify-between">
             <div>
@@ -79,7 +79,63 @@
             </div>
         </div>
     </div>
+
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide">Verifikasi Belum Dikonfirmasi</p>
+                <p class="text-3xl font-bold text-amber-700 mt-1">{{ $verifikasiBelumDikonfirmasi->count() }}</p>
+                <p class="text-[10px] text-amber-600 mt-0.5">Tahun {{ $hariIni->year }} · ada aktivitas tercatat</p>
+            </div>
+            <div class="bg-amber-200 text-amber-700 rounded-lg p-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+        </div>
+    </div>
 </div>
+
+@if($verifikasiBelumDikonfirmasi->isNotEmpty())
+<div class="mb-4 overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm">
+    <div class="border-b border-amber-200 bg-amber-50 px-4 py-3">
+        <h3 class="text-sm font-semibold text-amber-900">Verifikasi Menunggu Konfirmasi</h3>
+        <p class="mt-0.5 text-xs text-amber-700">Hanya record tahun ini yang memiliki aktivitas dan belum dicatat pemeriksanya.</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-800 text-white uppercase">
+                <tr>
+                    <th class="px-3 py-2.5 text-[10px]">Alat</th>
+                    <th class="px-3 py-2.5 text-[10px]">Tipe / Periode</th>
+                    <th class="px-3 py-2.5 text-center text-[10px]">Jumlah Aktivitas</th>
+                    <th class="px-3 py-2.5 text-[10px]">Status</th>
+                    @if(Auth::check() && Auth::user()->role === 'admin')
+                        <th class="px-3 py-2.5 text-center text-[10px]">Aksi</th>
+                    @endif
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($verifikasiBelumDikonfirmasi as $record)
+                    <tr class="border-b last:border-0 hover:bg-amber-50/50">
+                        <td class="px-3 py-2 font-semibold">{{ $record->tool_name }}</td>
+                        <td class="px-3 py-2 text-slate-600">
+                            {{ ucfirst($record->tipe) }} ·
+                            {{ $record->tipe === 'harian' && $record->tanggal ? \Carbon\Carbon::parse($record->tanggal)->format('d/m/Y') : 'Tahun ' . $record->tahun }}
+                        </td>
+                        <td class="px-3 py-2 text-center font-semibold">{{ $record->total }}</td>
+                        <td class="px-3 py-2"><span class="rounded bg-amber-100 px-2 py-1 text-[10px] font-semibold text-amber-800">Belum dikonfirmasi</span></td>
+                        @if(Auth::check() && Auth::user()->role === 'admin')
+                            <td class="px-3 py-2 text-center">
+                                <a href="{{ route('verifikasi.index', ['tahun' => $record->tahun, 'mode' => $record->tipe]) }}#verifikasi-{{ $record->id }}"
+                                   class="inline-block rounded bg-blue-600 px-2.5 py-1.5 text-[10px] font-semibold text-white hover:bg-blue-700">Buka Verifikasi</a>
+                            </td>
+                        @endif
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
 
 {{-- TABEL NOTIFIKASI --}}
 @php
@@ -118,7 +174,7 @@
                         $rowColor = '';
                         if ($statusNotif) {
                             if ($statusNotif->status === 'diproses') $rowColor = 'bg-yellow-50';
-                            elseif ($statusNotif->status === 'selesai') $rowColor = 'bg-green-50';
+                            elseif ($statusNotif->status === 'selesai') $rowColor = 'bg-blue-50';
                             elseif ($statusNotif->status === 'dibatalkan') $rowColor = 'bg-gray-50';
                         }
                     @endphp
@@ -160,11 +216,11 @@
                                         <div class="text-[9px] text-yellow-600 mt-0.5">{{ $statusNotif->catatan }}</div>
                                     @endif
                                 @elseif($statusNotif->status === 'selesai')
-                                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-semibold uppercase">
+                                    <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-semibold uppercase">
                                         Selesai
                                     </span>
                                     @if($statusNotif->catatan)
-                                        <div class="text-[9px] text-green-600 mt-0.5">{{ $statusNotif->catatan }}</div>
+                                        <div class="text-[9px] text-blue-600 mt-0.5">{{ $statusNotif->catatan }}</div>
                                     @endif
                                 @elseif($statusNotif->status === 'dibatalkan')
                                     <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-[10px] font-semibold uppercase">
@@ -189,7 +245,7 @@
                                     </button>
                                 @elseif($statusNotif->status === 'diproses')
                                     <button onclick="showSelesaiModal({{ $item->id }}, '{{ $item->tool_name }}')"
-                                            class="bg-green-500 text-white rounded hover:bg-green-600 px-2 py-1 text-[10px] font-semibold transition">
+                                            class="bg-blue-500 text-white rounded hover:bg-blue-600 px-2 py-1 text-[10px] font-semibold transition">
                                         Selesai
                                     </button>
                                     <button onclick="showBatalModal({{ $item->id }}, '{{ $item->tool_name }}')"
@@ -197,7 +253,7 @@
                                         Batal
                                     </button>
                                 @elseif($statusNotif->status === 'selesai')
-                                    <span class="text-green-600 font-semibold text-[10px]">Terverifikasi</span>
+                                    <span class="text-blue-600 font-semibold text-[10px]">Terverifikasi</span>
                                 @endif
                             </div>
                         </td>
@@ -211,13 +267,13 @@
 @endforeach
 
 {{-- EMPTY STATE --}}
-@if($alatTerlambat->count() == 0 && $alatJatuhTempo7->count() == 0 && $alatJatuhTempo30->count() == 0)
-<div class="bg-green-50 border border-green-200 rounded-xl p-12 text-center">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto text-green-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+@if($alatTerlambat->count() == 0 && $alatJatuhTempo7->count() == 0 && $alatJatuhTempo30->count() == 0 && $verifikasiBelumDikonfirmasi->isEmpty())
+<div class="bg-blue-50 border border-blue-200 rounded-xl p-12 text-center">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto text-blue-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
-    <h3 class="text-lg font-bold text-green-800">Seluruh Alat Terkalibrasi Sesuai Jadwal</h3>
-    <p class="text-sm text-green-600 mt-1">Tidak terdapat alat yang memerlukan perhatian dalam periode mendatang.</p>
+    <h3 class="text-lg font-bold text-blue-800">Seluruh Alat Terkalibrasi Sesuai Jadwal</h3>
+    <p class="text-sm text-blue-600 mt-1">Tidak terdapat alat yang memerlukan perhatian dalam periode mendatang.</p>
 </div>
 @endif
 
@@ -248,7 +304,7 @@
             <label class="block text-xs font-semibold text-gray-700 mb-1">Catatan (opsional)</label>
             <textarea name="catatan" rows="3" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Sudah diverifikasi"></textarea>
             <div class="flex gap-2 mt-4">
-                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-green-600">Simpan</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-600">Simpan</button>
                 <button type="button" onclick="closeModal('modalSelesai')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-300">Batal</button>
             </div>
         </form>

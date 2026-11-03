@@ -26,8 +26,15 @@ class NotifikasiController extends Controller
 
         $tahunIni = Carbon::now()->year;
 
+        $verifikasiBelumDikonfirmasi = Verifikasi::where('tahun', $tahunIni)
+            ->whereNull('verified_at')
+            ->where('total', '>', 0)
+            ->orderByDesc('updated_at')
+            ->get();
+
         // Nama alat yang sudah diverifikasi tahun ini
         $alatSudahDiverifikasi = Verifikasi::where('tahun', $tahunIni)
+            ->whereNotNull('verified_at')
             ->pluck('tool_name')
             ->map(function ($name) {
                 return strtoupper(trim($name));
@@ -86,6 +93,7 @@ class NotifikasiController extends Controller
             'alatTerlambat',
             'alatJatuhTempo7',
             'alatJatuhTempo30',
+            'verifikasiBelumDikonfirmasi',
             'hariIni',
             'warningCepat',
             'warningStandar'
