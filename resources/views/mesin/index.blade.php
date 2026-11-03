@@ -3,7 +3,7 @@
 @section('content')
 
 @if(session('success'))
-<div class="bg-green-100 border border-green-400 text-green-700 rounded mb-3 md:mb-4 px-3 py-2 text-xs sm:px-4 sm:py-3 sm:text-sm">
+<div class="bg-blue-100 border border-blue-400 text-blue-700 rounded mb-3 md:mb-4 px-3 py-2 text-xs sm:px-4 sm:py-3 sm:text-sm">
     {{ session('success') }}
 </div>
 @endif
@@ -58,7 +58,7 @@
                          class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
 
                         <a href="{{ route('mesin.export.excel', ['tahun' => $tahun]) }}"
-                           class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-green-50 transition border-b border-gray-100">
+                           class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                 <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
                                 <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
@@ -120,7 +120,7 @@
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Oct</th>
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Nov</th>
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Dec</th>
-                    <th class="px-2 py-2 md:py-3 text-[10px] md:text-xs text-center bg-emerald-600 text-white">Total</th>
+                    <th class="px-2 py-2 md:py-3 text-[10px] md:text-xs text-center bg-blue-600 text-white">Total</th>
                     <th class="px-2 py-2 md:py-3 text-[10px] md:text-xs text-center bg-gray-800 text-white sticky right-0 z-10">Aksi</th>
                 </tr>
             </thead>
@@ -149,7 +149,7 @@
                     <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $machine->oct ?? 0 }}</td>
                     <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $machine->nov ?? 0 }}</td>
                     <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $machine->dec ?? 0 }}</td>
-                    <td class="px-2 py-2 text-center font-bold text-emerald-700 bg-emerald-50 text-[11px] md:text-xs">{{ $machine->total ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center font-bold text-blue-700 bg-blue-50 text-[11px] md:text-xs">{{ $machine->total ?? 0 }}</td>
                     <td class="px-2 py-2 text-center bg-white sticky right-0 z-10 border-l border-gray-200">
                         @if(Auth::check() && Auth::user()->role === 'admin')
                         <div class="flex justify-center gap-1">
@@ -176,7 +176,7 @@
             </tbody>
             @if($machines->count() > 0)
             <tfoot>
-                <tr class="bg-emerald-50 font-bold text-emerald-900 border-t-2 border-emerald-300">
+                <tr class="bg-blue-50 font-bold text-blue-900 border-t-2 border-blue-300">
                     <td class="px-2 py-3 text-center text-[11px] md:text-xs uppercase tracking-wide">TOTAL</td>
                     <td colspan="9" class="px-2 py-3"></td>
                     <td class="px-2 py-3 text-center text-[11px] md:text-xs">{{ $machines->sum('jan') }}</td>
@@ -191,14 +191,23 @@
                     <td class="px-2 py-3 text-center text-[11px] md:text-xs">{{ $machines->sum('oct') }}</td>
                     <td class="px-2 py-3 text-center text-[11px] md:text-xs">{{ $machines->sum('nov') }}</td>
                     <td class="px-2 py-3 text-center text-[11px] md:text-xs">{{ $machines->sum('dec') }}</td>
-                    <td class="px-2 py-3 text-center text-[11px] md:text-xs bg-emerald-100">{{ $machines->sum('total') }}</td>
-                    <td class="px-2 py-3 bg-emerald-50 sticky right-0 z-10 border-l border-emerald-300"></td>
+                    <td class="px-2 py-3 text-center text-[11px] md:text-xs bg-blue-100">{{ $machines->sum('total') }}</td>
+                    <td class="px-2 py-3 bg-blue-50 sticky right-0 z-10 border-l border-blue-300"></td>
                 </tr>
             </tfoot>
             @endif
         </table>
     </div>
 </div>
+
+@php
+    $chartMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    $chartValues = collect(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'])
+        ->map(fn ($month) => $machines->sum(fn ($row) => (int) ($row->{$month} ?? 0)))->all();
+@endphp
+<x-monthly-bar-chart chart-id="machine-monthly-chart" title="Kalibrasi mesin per bulan"
+    description="Jumlah aktivitas kalibrasi mesin pada setiap bulan tahun {{ $tahun }}."
+    :labels="$chartMonths" :values="$chartValues" axis="Kalibrasi" />
 
 <script>
 function toggleExportMesin() {

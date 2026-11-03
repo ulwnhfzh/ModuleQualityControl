@@ -13,7 +13,7 @@
         @csrf
         <div class="mb-4">
             <label for="tahun" class="mb-1 block text-sm font-semibold text-slate-700">Tahun Data</label>
-            <select id="tahun" name="tahun" required class="w-full rounded-lg border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-500">
+            <select id="tahun" name="tahun" required class="w-full rounded-lg border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                 @for($year = max((int) date('Y') + 2, $tahun); $year >= date('Y') - 12; $year--)
                     <option value="{{ $year }}" @selected((int) old('tahun', $tahun) === $year)>YEAR {{ $year }}</option>
                 @endfor

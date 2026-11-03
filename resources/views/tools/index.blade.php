@@ -3,7 +3,7 @@
 @section('content')
 
 @if(session('success'))
-<div class="bg-green-100 border border-green-400 text-green-700 rounded mb-3 md:mb-4 px-3 py-2 text-xs sm:px-4 sm:py-3 sm:text-sm">
+<div class="bg-blue-100 border border-blue-400 text-blue-700 rounded mb-3 md:mb-4 px-3 py-2 text-xs sm:px-4 sm:py-3 sm:text-sm">
     {{ session('success') }}
 </div>
 @endif
@@ -72,7 +72,7 @@
                              class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
 
                             <a href="{{ route('tools.export.csv', ['tahun' => $tahun, 'kategori' => $kategori]) }}"
-                               class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-green-50 transition border-b border-gray-100">
+                               class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                     <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
                                     <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
@@ -131,7 +131,7 @@
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">P7</th>
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">P8</th>
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">ENG</th>
-                    <th class="px-2 py-2 md:py-3 text-[10px] md:text-xs text-center bg-emerald-600 text-white">Total</th>
+                    <th class="px-2 py-2 md:py-3 text-[10px] md:text-xs text-center bg-blue-600 text-white">Total</th>
                     <th class="px-2 py-2 md:py-3 text-[10px] md:text-xs text-center bg-gray-800 text-white sticky right-0 z-10">Aksi</th>
                 </tr>
             </thead>
@@ -156,7 +156,7 @@
                     <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $tool->p7 ?? 0 }}</td>
                     <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $tool->p8 ?? 0 }}</td>
                     <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $tool->eng ?? 0 }}</td>
-                    <td class="px-2 py-2 text-center font-bold text-emerald-700 bg-emerald-50 text-[11px] md:text-xs">{{ $tool->total ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center font-bold text-blue-700 bg-blue-50 text-[11px] md:text-xs">{{ $tool->total ?? 0 }}</td>
                     <td class="px-2 py-2 text-center bg-white sticky right-0 z-10 border-l border-gray-200">
                         @if(Auth::check() && Auth::user()->role === 'admin')
                         <div class="flex justify-center gap-1">
@@ -183,7 +183,7 @@
             </tbody>
             @if($tools->count() > 0)
             <tfoot>
-                <tr class="bg-emerald-100 font-bold border-t-2 border-emerald-300 text-emerald-900">
+                <tr class="bg-blue-100 font-bold border-t-2 border-blue-300 text-blue-900">
                     <td class="px-2 py-2 md:py-3 text-[11px] md:text-xs" colspan="2">TOTAL</td>
                     <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $tools->sum('qa_1') }}</td>
                     <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $tools->sum('qa_1_2') }}</td>
@@ -201,8 +201,8 @@
                     <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $tools->sum('p7') }}</td>
                     <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $tools->sum('p8') }}</td>
                     <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $tools->sum('eng') }}</td>
-                    <td class="px-2 py-2 md:py-3 text-center bg-emerald-200 text-[11px] md:text-xs">{{ $tools->sum('total') }}</td>
-                    <td class="px-2 py-2 md:py-3 bg-emerald-100 sticky right-0 z-10 border-l border-emerald-300"></td>
+                    <td class="px-2 py-2 md:py-3 text-center bg-blue-200 text-[11px] md:text-xs">{{ $tools->sum('total') }}</td>
+                    <td class="px-2 py-2 md:py-3 bg-blue-100 sticky right-0 z-10 border-l border-blue-300"></td>
                 </tr>
             </tfoot>
             @endif

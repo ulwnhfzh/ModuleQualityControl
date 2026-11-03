@@ -3,7 +3,7 @@
 @section('content')
 <div class="space-y-4">
     @if(session('success'))
-        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('success') }}</div>
+        <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">{{ session('success') }}</div>
     @endif
     @if($errors->any())
         <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
@@ -15,7 +15,7 @@
     <section class="feature-toolbar rounded-lg bg-white p-4 shadow-sm">
         <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Persediaan QA Plant 2</p>
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Persediaan QA Plant 2</p>
                 <h1 class="text-lg font-bold text-gray-900 md:text-xl">Data Stock Alat Ukur QA Plant 2</h1>
                 <p class="mt-1 text-xs text-gray-500">Pilih bulan untuk menampilkan data stock tersimpan.</p>
             </div>
@@ -133,7 +133,7 @@
             <div class="flex flex-col gap-2 border-t border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <p class="text-xs text-gray-500">Kolom bulan dapat digeser ke samping pada layar kecil.</p>
                 <div class="flex flex-wrap gap-2">
-                    <button type="submit" class="rounded bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Data Stock</button>
+                    <button type="submit" class="rounded bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Simpan Data Stock</button>
                     <button type="submit" name="save_mode" value="another" class="rounded bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Simpan & Tambah Lagi</button>
                 </div>
             </div>
@@ -172,7 +172,7 @@
                         {{-- HANYA RENDER 1 BULAN SESUAI DROPDOWN --}}
                         <th colspan="16" class="border border-slate-500 px-2 py-2">{{ strtoupper($selectedMonthName) }}</th>
                         
-                        <th rowspan="3" class="min-w-20 border border-slate-500 bg-emerald-700 px-2 py-2">Akhir Bulan</th>
+                        <th rowspan="3" class="min-w-20 border border-slate-500 bg-blue-700 px-2 py-2">Akhir Bulan</th>
                     </tr>
                     <tr class="bg-slate-600">
                         <th colspan="4" class="border border-slate-500 px-1 py-2">IN · QTY</th>
@@ -228,7 +228,7 @@
                             @endforeach
 
                             {{-- Akhir Bulan --}}
-                            <td class="border border-gray-300 bg-emerald-50 px-2 py-2 text-center font-bold text-emerald-900">{{ $monthlyData['balance'] ?? 0 }}</td>
+                            <td class="border border-gray-300 bg-blue-50 px-2 py-2 text-center font-bold text-blue-900">{{ $monthlyData['balance'] ?? 0 }}</td>
                         </tr>
                     @empty
                         <tr>

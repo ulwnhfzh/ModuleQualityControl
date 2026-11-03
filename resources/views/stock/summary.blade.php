@@ -4,7 +4,7 @@
 <div class="mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-            <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Persediaan QA</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Persediaan QA</p>
             <h1 class="mt-1 text-lg font-bold text-slate-900 sm:text-xl">Laporan Stock Alat Ukur QA Plant 2</h1>
             <p class="mt-1 text-sm text-slate-500">Laporan bulanan stok awal, barang masuk, barang keluar, dan stok akhir.</p>
         </div>
@@ -27,13 +27,6 @@
         </form>
     </div>
 </div>
-
-<section class="mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-    <h2 class="mb-3 text-sm font-bold text-slate-800">Grafik Pergerakan Stok — {{ $kategori }} {{ $tahun }}</h2>
-    <div class="relative h-72 sm:h-96">
-        <canvas id="stockMonthlyChart" aria-label="Grafik rekap stok bulanan"></canvas>
-    </div>
-</section>
 
 <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
     <div class="border-b border-slate-100 px-4 py-3">
@@ -72,10 +65,18 @@
     </div>
 </section>
 
+<section class="mt-6 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
+    <h2 class="mb-3 text-sm font-bold text-slate-800">Grafik Pergerakan Stok — {{ $kategori }} {{ $tahun }}</h2>
+    <div class="relative h-72 sm:h-96">
+        <canvas id="stockMonthlyChart" aria-label="Grafik rekap stok bulanan"></canvas>
+    </div>
+</section>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     const monthlyStock = @json(array_values($rows));
     const chartElement = document.getElementById('stockMonthlyChart');
+    Chart.defaults.font.family = 'Inter, ui-sans-serif, system-ui, sans-serif';
 
     new Chart(chartElement, {
         data: {
@@ -86,8 +87,8 @@
                     label: 'Stock Akhir',
                     data: monthlyStock.map((month) => month.closing),
                     yAxisID: 'stock',
-                    borderColor: '#059669',
-                    backgroundColor: '#059669',
+                    borderColor: '#3b82f6',
+                    backgroundColor: '#3b82f6',
                     pointRadius: 3,
                     pointHoverRadius: 5,
                     tension: 0.25,

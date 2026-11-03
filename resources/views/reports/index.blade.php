@@ -16,16 +16,25 @@
             <p class="text-xs text-gray-500 mt-0.5">Grafik operasional dan log aktivitas QC Measurement Tools</p>
         </div>
 
-        <form method="GET" action="{{ route('reports.index') }}" class="flex items-center gap-2">
-            <input type="hidden" name="tab" value="{{ $tab }}">
-            <label class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
-            <select name="tahun" onchange="this.form.submit()"
-                    class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                @for($y = date('Y'); $y >= date('Y') - 12; $y--)
-                    <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
-                @endfor
-            </select>
-        </form>
+        <div class="flex flex-wrap items-center gap-2">
+            <form method="GET" action="{{ route('reports.index') }}" class="flex items-center gap-2">
+                <input type="hidden" name="tab" value="{{ $tab }}">
+                <label class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
+                <select name="tahun" onchange="this.form.submit()"
+                        class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @for($y = date('Y'); $y >= date('Y') - 12; $y--)
+                        <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
+                    @endfor
+                </select>
+            </form>
+            <form method="POST" action="{{ route('reports.export.all.excel') }}">
+                @csrf
+                <input type="hidden" name="tahun" value="{{ $tahun }}">
+                <button type="submit" class="inline-flex items-center gap-1.5 rounded bg-blue-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-800">
+                    @include('components.icons.export') Export semua sheet
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -151,7 +160,7 @@
                     <td class="px-3 py-2 text-center">
                         @php
                             $badgeColors = [
-                                'CREATE' => 'bg-green-100 text-green-700',
+                                'CREATE' => 'bg-blue-100 text-blue-700',
                                 'UPDATE' => 'bg-amber-100 text-amber-700',
                                 'DELETE' => 'bg-red-100 text-red-700',
                                 'LOGIN'  => 'bg-blue-100 text-blue-700',
@@ -196,7 +205,7 @@
             <select id="chartFilter" class="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-700 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100">
                 <option value="{{ route('reports.api.pareto.fitur') }}" data-title="Total Data per Fitur" data-description="Jumlah data tersimpan di setiap fitur QC." data-axis="Fitur">Total Data per Fitur</option>
                 <option value="{{ route('reports.api.pareto.kategori') }}" data-title="Distribusi Kategori Alat" data-description="Jumlah alat pada setiap kategori Daftar Induk." data-axis="Alat">Distribusi Kategori Alat</option>
-                <option value="{{ route('reports.api.pareto.bulanan') }}" data-title="Aktivitas per Bulan" data-description="Total aktivitas kalibrasi dan verifikasi per bulan." data-axis="Aktivitas">Aktivitas per Bulan</option>
+                <option value="{{ route('reports.api.chart', 'operasional-bulanan') }}" data-title="Perbandingan Aktivitas Bulanan" data-description="Bandingkan jumlah aktivitas verifikasi dan kalibrasi per bulan. Setiap garis batang menunjukkan kategori terpisah." data-axis="Aktivitas">Perbandingan Aktivitas Bulanan</option>
                 <option value="{{ route('reports.api.pareto.departemen') }}" data-title="Distribusi Data per Departemen" data-description="Jumlah data verifikasi untuk setiap departemen." data-axis="Data">Distribusi Data per Departemen</option>
                 <option value="{{ route('reports.api.chart', 'verifikasi-bulanan') }}" data-title="Verifikasi per Bulan" data-description="Jumlah verifikasi tersimpan pada setiap bulan." data-axis="Verifikasi">Verifikasi per Bulan</option>
                 <option value="{{ route('reports.api.chart', 'internal-bulanan') }}" data-title="Kalibrasi Internal per Bulan" data-description="Jumlah kalibrasi internal tersimpan pada setiap bulan." data-axis="Alat">Kalibrasi Internal per Bulan</option>
@@ -253,10 +262,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (requestId !== activeRequest) {
                 return;
             }
-            if (!Array.isArray(data.labels) || !Array.isArray(data.values) || data.labels.length !== data.values.length) {
+            const isMultiSeries = Array.isArray(data.datasets) && data.datasets.length > 0;
+            if (!Array.isArray(data.labels) || (!isMultiSeries && (!Array.isArray(data.values) || data.labels.length !== data.values.length))) {
                 throw new Error('Data grafik dari server tidak valid.');
             }
-            if (data.labels.length === 0 || data.values.every(value => Number(value) === 0)) {
+            const chartValues = isMultiSeries
+                ? data.datasets.flatMap(dataset => Array.isArray(dataset.data) ? dataset.data : [])
+                : data.values;
+            if (data.labels.length === 0 || chartValues.every(value => Number(value) === 0)) {
                 if (reportChart) {
                     reportChart.destroy();
                     reportChart = null;
@@ -267,18 +280,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const combined = data.labels.map((label, index) => ({
-                label,
-                value: Number(data.values[index]) || 0,
-            })).sort((a, b) => b.value - a.value);
+            const combined = isMultiSeries
+                ? data.labels.map((label, index) => ({
+                    label,
+                    value: data.datasets.reduce((sum, dataset) => sum + (Number(dataset.data[index]) || 0), 0),
+                }))
+                : data.labels.map((label, index) => ({
+                    label,
+                    value: Number(data.values[index]) || 0,
+                })).sort((a, b) => b.value - a.value);
             const labels = combined.map(item => item.label);
             const values = combined.map(item => item.value);
             const total = values.reduce((sum, value) => sum + value, 0);
-            let cumulative = 0;
-            const cumulativeValues = values.map(value => {
-                cumulative += value;
-                return total > 0 ? (cumulative / total) * 100 : 0;
-            });
+            const percentageValues = values.map(value => (
+                total > 0 ? Math.round((value / total) * 1000) / 10 : 0
+            ));
 
             if (reportChart) {
                 reportChart.destroy();
@@ -287,33 +303,48 @@ document.addEventListener('DOMContentLoaded', function () {
             chartContainer.style.height = '440px';
             Chart.register(ChartDataLabels);
 
+            const barDatasets = isMultiSeries
+                ? data.datasets.map((dataset, index) => ({
+                    type: 'bar',
+                    label: dataset.label,
+                    data: dataset.data.map(value => Number(value) || 0),
+                    backgroundColor: ['#2563eb', '#3b82f6', '#d97706', '#7c3aed'][index % 4],
+                    borderRadius: 3,
+                    maxBarThickness: 24,
+                    yAxisID: 'y',
+                    order: 2,
+                    datalabels: { display: false },
+                }))
+                : [{
+                    type: 'bar',
+                    label: option.dataset.axis,
+                    data: values,
+                    backgroundColor: '#0070f2',
+                    hoverBackgroundColor: '#0054b5',
+                    borderRadius: 4,
+                    maxBarThickness: 28,
+                    yAxisID: 'y',
+                    order: 2,
+                    datalabels: {
+                        display: context => labels.length <= 12 && context.dataset.data[context.dataIndex] > 0,
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#334155',
+                        font: { size: 10, weight: 'bold' },
+                        formatter: value => value,
+                        clip: true,
+                    },
+                }];
+
+            Chart.defaults.font.family = 'Inter, ui-sans-serif, system-ui, sans-serif';
             reportChart = new Chart(chartCanvas, {
                 type: 'bar',
                 data: {
                     labels,
-                    datasets: [{
-                        type: 'bar',
-                        label: option.dataset.axis,
-                        data: values,
-                        backgroundColor: '#0070f2',
-                        hoverBackgroundColor: '#0054b5',
-                        borderRadius: 4,
-                        maxBarThickness: 28,
-                        yAxisID: 'y',
-                        order: 2,
-                        datalabels: {
-                            display: context => labels.length <= 12 && context.dataset.data[context.dataIndex] > 0,
-                            anchor: 'end',
-                            align: 'top',
-                            color: '#334155',
-                            font: { size: 10, weight: 'bold' },
-                            formatter: value => value,
-                            clip: true,
-                        },
-                    }, {
+                    datasets: [...barDatasets, {
                         type: 'line',
-                        label: '% Kumulatif',
-                        data: cumulativeValues,
+                        label: '% dari Total',
+                        data: percentageValues,
                         borderColor: '#dc2626',
                         backgroundColor: '#dc2626',
                         borderWidth: 2,
@@ -345,14 +376,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             padding: 10,
                             callbacks: {
                                 label: context => context.dataset.type === 'line'
-                                    ? ` % Kumulatif: ${context.parsed.y.toFixed(1)}%`
-                                    : ` ${option.dataset.axis}: ${context.parsed.y}`,
+                                    ? ` % dari Total: ${context.parsed.y.toFixed(1)}%`
+                                    : ` ${context.dataset.label}: ${context.parsed.y}`,
                             },
                         },
                     },
                     scales: {
                         y: { beginAtZero: true, position: 'left', title: { display: true, text: option.dataset.axis }, ticks: { precision: 0 } },
-                        y1: { beginAtZero: true, max: 120, position: 'right', title: { display: true, text: '% Kumulatif' }, ticks: { callback: value => value <= 100 ? `${value}%` : '', stepSize: 20 }, grid: { drawOnChartArea: false } },
+                        y1: { beginAtZero: true, max: 100, position: 'right', title: { display: true, text: '% dari Total' }, ticks: { callback: value => `${value}%`, stepSize: 20 }, grid: { drawOnChartArea: false } },
                         x: { grid: { display: false }, ticks: { maxRotation: labels.length > 8 ? 45 : 0, minRotation: 0 } },
                     },
                 },

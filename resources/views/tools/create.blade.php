@@ -5,7 +5,7 @@
 <div class="bg-white rounded-lg shadow-sm mb-3 md:mb-6 p-3 sm:p-4 md:p-6 max-w-4xl mx-auto">
     <h2 class="font-bold text-gray-800 mb-4 text-base md:text-xl">Tambah Alat Ukur Baru</h2>
     @if(session('success'))
-        <div class="mb-4 rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('success') }}</div>
+        <div class="mb-4 rounded border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">{{ session('success') }}</div>
     @endif
 
     @if ($errors->any())
@@ -90,7 +90,7 @@
             <button type="submit" class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition px-4 py-2 text-sm">
                 Simpan Data
             </button>
-            <button type="submit" name="save_mode" value="another" class="rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">
+            <button type="submit" name="save_mode" value="another" class="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
                 Simpan & Tambah Lagi
             </button>
             <a href="{{ route('tools.index') }}" class="bg-gray-200 text-gray-700 rounded font-semibold hover:bg-gray-300 transition px-4 py-2 text-sm">

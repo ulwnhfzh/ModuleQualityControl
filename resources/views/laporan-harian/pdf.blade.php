@@ -14,7 +14,7 @@
         .info-dokumen .label { font-weight: bold; width: 120px; }
         .section { margin-bottom: 15px; }
         .section h3 { background-color: #1e40af; color: #fff; padding: 6px 10px; margin: 0 0 8px 0; font-size: 11px; }
-        .kartu { display: inline-block; width: 24%; text-align: center; border: 1px solid #ddd; padding: 8px; margin-right: 1%; vertical-align: top; box-sizing: border-box; }
+        .kartu { display: inline-block; width: 31%; text-align: center; border: 1px solid #ddd; padding: 8px; margin-right: 1%; vertical-align: top; box-sizing: border-box; }
         .kartu .angka { font-size: 24px; font-weight: bold; color: #1e40af; }
         .kartu .label { font-size: 9px; color: #666; }
         table.data { width: 100%; border-collapse: collapse; }
@@ -22,13 +22,6 @@
         table.data th { background-color: #1e40af; color: #fff; text-align: center; }
         table.data td.center { text-align: center; }
         table.data tr:nth-child(even) { background-color: #f8fafc; }
-        .badge { padding: 2px 4px; border-radius: 3px; font-size: 8px; font-weight: bold; color: #fff; }
-        .badge-create { background-color: #16a34a; }
-        .badge-update { background-color: #f59e0b; }
-        .badge-delete { background-color: #dc2626; }
-        .badge-login { background-color: #3b82f6; }
-        .badge-logout { background-color: #6b7280; }
-        .badge-export { background-color: #8b5cf6; }
         .ttd { margin-top: 30px; }
         .ttd table { width: 100%; }
         .ttd td { text-align: center; padding-top: 50px; vertical-align: bottom; }
@@ -71,10 +64,6 @@
             <div class="label">Total Aktivitas</div>
         </div>
         <div class="kartu">
-            <div class="angka">{{ $userAktif }}</div>
-            <div class="label">User Aktif</div>
-        </div>
-        <div class="kartu">
             <div class="angka">{{ $verifikasiHariIni }}</div>
             <div class="label">Verifikasi</div>
         </div>
@@ -86,7 +75,7 @@
 
     {{-- BREAKDOWN PER JENIS --}}
     <div class="section">
-        <h3>AKTIVITAS PER JENIS DATA</h3>
+        <h3>RINGKASAN AKTIVITAS PER FITUR</h3>
         <table class="data">
             <thead>
                 <tr>
@@ -120,42 +109,9 @@
         </table>
     </div>
 
-    {{-- LOG AKTIVITAS --}}
-    <div class="section">
-        <h3>LOG AKTIVITAS HARI INI</h3>
-        <table class="data">
-            <thead>
-                <tr>
-                    <th style="width: 5%;">No</th>
-                    <th style="width: 12%;">Waktu</th>
-                    <th style="width: 15%;">User</th>
-                    <th style="width: 12%;">Aksi</th>
-                    <th style="width: 16%;">Jenis</th>
-                    <th style="width: 40%;">Keterangan</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($logs as $index => $log)
-                <tr>
-                    <td class="center">{{ $index + 1 }}</td>
-                    <td class="center">{{ $log->created_at->format('H:i:s') }}</td>
-                    <td>{{ $log->user_name ?? '-' }}</td>
-                    <td class="center">
-                        <span class="badge badge-{{ strtolower($log->aksi) }}">{{ $log->aksi }}</span>
-                    </td>
-                    <td>{{ $log->label_jenis ?? '-' }}</td>
-                    <td>{{ $log->keterangan ?? '-' }}</td>
-                </tr>
-                @empty
-                <tr><td colspan="6" class="center" style="padding: 15px;">Belum ada aktivitas.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
     {{-- ALAT JATUH TEMPO --}}
     <div class="section">
-        <h3>ALAT JATUH TEMPO KALIBRASI (30 HARI KE DEPAN)</h3>
+        <h3>ALAT JATUH TEMPO KALIBRASI ({{ $warningDays }} HARI KE DEPAN)</h3>
         <table class="data">
             <thead>
                 <tr>

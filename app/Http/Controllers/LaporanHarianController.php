@@ -3,14 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
-use App\Models\Tool;
-use App\Models\Verifikasi;
-use App\Models\Internal;
-use App\Models\Eksternal;
 use App\Models\EksternalMesin;
 use App\Models\DokumenCounter;
-use App\Models\User;
-use App\Exports\ActivityLogExport;
+use App\Models\Pengaturan;
+use App\Exports\LaporanHarianSummaryExport;
 use App\Traits\LogsActivity;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
@@ -31,11 +27,6 @@ class LaporanHarianController extends Controller
         // ===== STATISTIK =====
         $totalAktivitas = ActivityLog::whereDate('created_at', $tanggal)->count();
 
-        $userAktif = ActivityLog::whereDate('created_at', $tanggal)
-            ->where('aksi', 'LOGIN')
-            ->distinct('user_id')
-            ->count('user_id');
-
         $verifikasiHariIni = ActivityLog::whereDate('created_at', $tanggal)
             ->where('jenis_data', 'verifikasi')
             ->whereIn('aksi', ['CREATE', 'UPDATE'])
@@ -51,18 +42,8 @@ class LaporanHarianController extends Controller
             ->groupBy('jenis_data')
             ->get();
 
-        $aktivitasPerAksi = ActivityLog::whereDate('created_at', $tanggal)
-            ->select('aksi', DB::raw('COUNT(*) as jumlah'))
-            ->groupBy('aksi')
-            ->get();
-
-        // ===== LOG AKTIVITAS =====
-        $logs = ActivityLog::whereDate('created_at', $tanggal)
-            ->orderBy('id', 'desc')
-            ->get();
-
-        // ===== ALAT JATUH TEMPO (FIXED) =====
-        $batasJatuhTempo = $tanggalCarbon->copy()->addDays(30)->startOfDay();
+        $warningDays = Pengaturan::warningStandar();
+        $batasJatuhTempo = $tanggalCarbon->copy()->addDays($warningDays)->startOfDay();
 
         $alatJatuhTempo = EksternalMesin::whereNotNull('next_date')
             ->whereBetween('next_date', [$tanggalCarbon, $batasJatuhTempo])
@@ -73,20 +54,15 @@ class LaporanHarianController extends Controller
                 return $item;
             });
 
-        $users = User::orderBy('name')->get();
-
         return view('laporan-harian.index', compact(
             'tanggal',
             'tanggalCarbon',
             'totalAktivitas',
-            'userAktif',
             'verifikasiHariIni',
             'kalibrasiHariIni',
             'aktivitasPerJenis',
-            'aktivitasPerAksi',
-            'logs',
             'alatJatuhTempo',
-            'users'
+            'warningDays'
         ));
     }
 
@@ -116,8 +92,6 @@ class LaporanHarianController extends Controller
         $nomorDokumen = DokumenCounter::generateNomor('LAP', $tahun, 'QC');
 
         $totalAktivitas = ActivityLog::whereDate('created_at', $tanggal)->count();
-        $userAktif = ActivityLog::whereDate('created_at', $tanggal)
-            ->where('aksi', 'LOGIN')->distinct('user_id')->count('user_id');
         $verifikasiHariIni = ActivityLog::whereDate('created_at', $tanggal)
             ->where('jenis_data', 'verifikasi')->whereIn('aksi', ['CREATE', 'UPDATE'])->count();
         $kalibrasiHariIni = ActivityLog::whereDate('created_at', $tanggal)
@@ -128,14 +102,8 @@ class LaporanHarianController extends Controller
             ->select('jenis_data', DB::raw('COUNT(*) as jumlah'))
             ->groupBy('jenis_data')->get();
 
-        $aktivitasPerAksi = ActivityLog::whereDate('created_at', $tanggal)
-            ->select('aksi', DB::raw('COUNT(*) as jumlah'))
-            ->groupBy('aksi')->get();
-
-        $logs = ActivityLog::whereDate('created_at', $tanggal)
-            ->orderBy('id', 'desc')->get();
-
-        $batasJatuhTempo = $tanggalCarbon->copy()->addDays(30)->startOfDay();
+        $warningDays = Pengaturan::warningStandar();
+        $batasJatuhTempo = $tanggalCarbon->copy()->addDays($warningDays)->startOfDay();
         $alatJatuhTempo = EksternalMesin::whereNotNull('next_date')
             ->whereBetween('next_date', [$tanggalCarbon, $batasJatuhTempo])
             ->orderBy('next_date', 'asc')->get()
@@ -150,8 +118,8 @@ class LaporanHarianController extends Controller
 
         $pdf = Pdf::loadView('laporan-harian.pdf', compact(
             'tanggal', 'tanggalCarbon', 'nomorDokumen', 'pencetak',
-            'totalAktivitas', 'userAktif', 'verifikasiHariIni', 'kalibrasiHariIni',
-            'aktivitasPerJenis', 'aktivitasPerAksi', 'logs', 'alatJatuhTempo'
+            'totalAktivitas', 'verifikasiHariIni', 'kalibrasiHariIni',
+            'aktivitasPerJenis', 'alatJatuhTempo', 'warningDays'
         ))->setPaper('a4', 'portrait');
 
         $filename = 'laporan-harian-' . $tanggalCarbon->format('Y-m-d') . '.pdf';
@@ -167,19 +135,40 @@ class LaporanHarianController extends Controller
 
         $nomorDokumen = DokumenCounter::generateNomor('LAP', $tahun, 'QC');
 
-        $logs = ActivityLog::whereDate('created_at', $tanggal)
-            ->orderBy('id', 'desc')->get();
+        $totalAktivitas = ActivityLog::whereDate('created_at', $tanggal)->count();
+        $verifikasiHariIni = ActivityLog::whereDate('created_at', $tanggal)
+            ->where('jenis_data', 'verifikasi')->whereIn('aksi', ['CREATE', 'UPDATE'])->count();
+        $kalibrasiHariIni = ActivityLog::whereDate('created_at', $tanggal)
+            ->whereIn('jenis_data', ['internal', 'eksternal', 'mesin'])
+            ->whereIn('aksi', ['CREATE', 'UPDATE'])->count();
+        $aktivitasPerJenis = ActivityLog::whereDate('created_at', $tanggal)
+            ->select('jenis_data', DB::raw('COUNT(*) as jumlah'))
+            ->groupBy('jenis_data')->get();
+        $warningDays = Pengaturan::warningStandar();
+        $batasJatuhTempo = $tanggalCarbon->copy()->addDays($warningDays)->startOfDay();
+        $alatJatuhTempo = EksternalMesin::whereNotNull('next_date')
+            ->whereBetween('next_date', [$tanggalCarbon, $batasJatuhTempo])
+            ->orderBy('next_date', 'asc')->get()
+            ->map(function ($item) use ($tanggalCarbon) {
+                $item->sisa_hari = (int) $tanggalCarbon->diffInDays(Carbon::parse($item->next_date)->startOfDay(), false);
+                return $item;
+            });
 
         $this->logExport('laporan', 'Cetak Excel Laporan Harian tanggal ' . $tanggalCarbon->format('d/m/Y') . ' - Nomor: ' . $nomorDokumen);
 
         $filename = 'laporan-harian-' . $tanggalCarbon->format('Y-m-d') . '.xlsx';
-        $details = 'Tanggal: ' . $tanggalCarbon->format('d F Y')
-            . ' | Nomor: ' . $nomorDokumen
-            . ' | Pencetak: ' . (Auth::user()->name ?? '-')
-            . ' | Dicetak: ' . now()->format('d/m/Y H:i:s');
-
         return Excel::download(
-            new ActivityLogExport($logs, 'LAPORAN HARIAN QC', $details, 'H:i:s'),
+            new LaporanHarianSummaryExport(
+                $tanggalCarbon,
+                $nomorDokumen,
+                Auth::user()->name ?? '-',
+                $totalAktivitas,
+                $verifikasiHariIni,
+                $kalibrasiHariIni,
+                $aktivitasPerJenis,
+                $alatJatuhTempo,
+                $warningDays,
+            ),
             $filename
         );
     }

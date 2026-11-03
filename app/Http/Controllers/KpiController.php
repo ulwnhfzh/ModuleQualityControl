@@ -55,50 +55,47 @@ class KpiController extends Controller
         $batasCepat = $hariIni->copy()->addDays($warningCepat)->startOfDay();
         $batasStandar = $hariIni->copy()->addDays($warningStandar)->startOfDay();
 
-        // Nama alat yang sudah diverifikasi tahun ini (apapun tipenya, kolom manapun)
-        $alatSudahDiverifikasi = Verifikasi::where('tahun', $tahunIni)
-            ->pluck('tool_name')
-            ->map(function ($name) {
-                return strtoupper(trim($name));
-            })
-            ->unique()
-            ->toArray();
+        // Filter verifikasi di SQL agar tidak menarik seluruh tabel ke PHP.
+        $alatPerluPerhatian = static function () use ($tahunIni, $batasStandar) {
+            return EksternalMesin::query()
+                ->whereNotNull('next_date')
+                ->where('next_date', '<=', $batasStandar)
+                ->whereNotExists(function ($query) use ($tahunIni) {
+                    $query->selectRaw('1')
+                        ->from('verifikasis')
+                        ->where('verifikasis.tahun', $tahunIni)
+                        ->whereRaw('UPPER(TRIM(verifikasis.tool_name)) = UPPER(TRIM(eksternal_mesins.tool_name))');
+                });
+        };
 
-        // Ambil semua alat yang butuh perhatian
-        $semuaAlat = EksternalMesin::whereNotNull('next_date')
-            ->where('next_date', '<=', $batasStandar)
-            ->get()
-            ->filter(function ($item) use ($alatSudahDiverifikasi) {
-                // Sembunyikan kalau alat sudah ada di tabel verifikasis tahun ini
-                $namaAlat = strtoupper(trim($item->tool_name));
-                return !in_array($namaAlat, $alatSudahDiverifikasi);
+        $jumlahTerlambat = (clone $alatPerluPerhatian())->where('next_date', '<', $hariIni)->count();
+        $jumlahJatuhTempo7 = (clone $alatPerluPerhatian())->whereBetween('next_date', [$hariIni, $batasCepat])->count();
+        $jumlahJatuhTempo30 = (clone $alatPerluPerhatian())->where('next_date', '>', $batasCepat)->count();
+
+        $alatTerlambat = (clone $alatPerluPerhatian())->where('next_date', '<', $hariIni)
+            ->orderBy('next_date')->limit(3)->get()->map(function ($item) use ($hariIni) {
+                $item->sisa_hari = (int) $hariIni->diffInDays(Carbon::parse($item->next_date)->startOfDay(), false);
+                return $item;
+            });
+        $alatJatuhTempo7Hari = (clone $alatPerluPerhatian())->whereBetween('next_date', [$hariIni, $batasCepat])
+            ->orderBy('next_date')->limit(3)->get()->map(function ($item) use ($hariIni) {
+                $item->sisa_hari = (int) $hariIni->diffInDays(Carbon::parse($item->next_date)->startOfDay(), false);
+                return $item;
+            });
+        $alatJatuhTempo30Hari = (clone $alatPerluPerhatian())->where('next_date', '>', $batasCepat)
+            ->orderBy('next_date')->limit(3)->get()->map(function ($item) use ($hariIni) {
+                $item->sisa_hari = (int) $hariIni->diffInDays(Carbon::parse($item->next_date)->startOfDay(), false);
+                return $item;
             });
 
-        // Alat TERLAMBAT
-        $alatTerlambat = $semuaAlat->filter(function ($item) use ($hariIni) {
-            return Carbon::parse($item->next_date)->startOfDay() < $hariIni;
-        })->map(function ($item) use ($hariIni) {
-            $item->sisa_hari = (int) $hariIni->diffInDays(Carbon::parse($item->next_date)->startOfDay(), false);
-            return $item;
-        })->values();
-
-        // Alat jatuh tempo ≤ warningCepat
-        $alatJatuhTempo7Hari = $semuaAlat->filter(function ($item) use ($hariIni, $batasCepat) {
-            $nextDate = Carbon::parse($item->next_date)->startOfDay();
-            return $nextDate >= $hariIni && $nextDate <= $batasCepat;
-        })->map(function ($item) use ($hariIni) {
-            $item->sisa_hari = (int) $hariIni->diffInDays(Carbon::parse($item->next_date)->startOfDay(), false);
-            return $item;
-        })->values();
-
-        // Alat jatuh tempo antara warningCepat & warningStandar
-        $alatJatuhTempo30Hari = $semuaAlat->filter(function ($item) use ($batasCepat, $batasStandar) {
-            $nextDate = Carbon::parse($item->next_date)->startOfDay();
-            return $nextDate > $batasCepat && $nextDate <= $batasStandar;
-        })->map(function ($item) use ($hariIni) {
-            $item->sisa_hari = (int) $hariIni->diffInDays(Carbon::parse($item->next_date)->startOfDay(), false);
-            return $item;
-        })->values();
+        // Verifikasi dengan aktivitas yang belum dicatat pemeriksanya.
+        $verifikasiBelumDikonfirmasiQuery = Verifikasi::query()
+            ->where('tahun', $tahunIni)
+            ->whereNull('verified_at')
+            ->where('total', '>', 0);
+        $jumlahVerifikasiBelumDikonfirmasi = (clone $verifikasiBelumDikonfirmasiQuery)->count();
+        $verifikasiBelumDikonfirmasi = $verifikasiBelumDikonfirmasiQuery
+            ->orderBy('tool_name')->limit(5)->get();
 
         // ==========================================
         // KPI C: AKTIVITAS MINGGU INI
@@ -123,7 +120,7 @@ class KpiController extends Controller
             ->groupBy('category')
             ->get();
 
-        $totalNotifikasi = $alatTerlambat->count() + $alatJatuhTempo7Hari->count();
+        $totalNotifikasi = $jumlahTerlambat + $jumlahJatuhTempo7;
 
         return [
             'tahun' => $tahunIni,
@@ -134,18 +131,15 @@ class KpiController extends Controller
             'alatTerlambat' => $alatTerlambat,
             'alatJatuhTempo7Hari' => $alatJatuhTempo7Hari,
             'alatJatuhTempo30Hari' => $alatJatuhTempo30Hari,
-            'jumlahTerlambat' => $alatTerlambat->count(),
-            'jumlahJatuhTempo7' => $alatJatuhTempo7Hari->count(),
-            'jumlahJatuhTempo30' => $alatJatuhTempo30Hari->count(),
+            'jumlahTerlambat' => $jumlahTerlambat,
+            'jumlahJatuhTempo7' => $jumlahJatuhTempo7,
+            'jumlahJatuhTempo30' => $jumlahJatuhTempo30,
+            'verifikasiBelumDikonfirmasi' => $verifikasiBelumDikonfirmasi,
+            'jumlahVerifikasiBelumDikonfirmasi' => $jumlahVerifikasiBelumDikonfirmasi,
             'aktivitasMingguIni' => $aktivitasMingguIni,
             'aktivitasMingguLalu' => $aktivitasMingguLalu,
             'perubahanAktivitas' => $perubahanAktivitas,
             'breakdownKategori' => $breakdownKategori,
-            'totalTools' => Tool::where('tahun', $tahunIni)->count(),
-            'totalVerifikasi' => Verifikasi::where('tahun', $tahunIni)->count(),
-            'totalInternal' => Internal::where('tahun', $tahunIni)->count(),
-            'totalEksternal' => Eksternal::where('tahun', $tahunIni)->count(),
-            'totalMesin' => EksternalMesin::where('tahun', $tahunIni)->count(),
             'totalNotifikasi' => $totalNotifikasi,
             'warningCepat' => $warningCepat,
             'warningStandar' => $warningStandar,

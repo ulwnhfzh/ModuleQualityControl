@@ -3,7 +3,7 @@
 @section('content')
 
 @if(session('success'))
-<div class="bg-green-100 border border-green-400 text-green-700 rounded mb-3 px-4 py-3 text-sm">
+<div class="bg-blue-100 border border-blue-400 text-blue-700 rounded mb-3 px-4 py-3 text-sm">
     {{ session('success') }}
 </div>
 @endif
@@ -58,7 +58,7 @@
                     <td class="px-4 py-3 text-gray-600">{{ $user->email }}</td>
                     <td class="px-4 py-3 text-center">
                         @if($user->role === 'admin')
-                            <span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-semibold uppercase">Admin</span>
+                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-semibold uppercase">Admin</span>
                         @else
                             <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-[10px] font-semibold uppercase">User</span>
                         @endif

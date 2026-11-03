@@ -15,10 +15,12 @@ use App\Models\ToolStockMovement;
 use App\Models\VerifikasiInternalSchedule;
 use App\Models\VerifikasiQc2;
 use App\Exports\ActivityLogExport;
+use App\Exports\QualityControlWorkbookExport;
 use App\Models\User;
 use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
@@ -136,6 +138,7 @@ class ReportController extends Controller
             'eksternal-bulanan' => $this->monthlyChartData(Eksternal::class, $tahun, $bulanColumns, $bulanLabels),
             'mesin-bulanan' => $this->monthlyChartData(EksternalMesin::class, $tahun, $bulanColumns, $bulanLabels),
             'produksi-bulanan' => $this->monthlyChartData(DataAllProduksi::class, null, $bulanColumns, $bulanLabels),
+            'operasional-bulanan' => $this->monthlyComparisonChartData($tahun, $bulanColumns, $bulanLabels),
             'data-ng' => $this->defectChartData($tahun),
             'stock-bulanan' => $this->stockChartData($tahun, $bulanLabels),
             'verifikasi-periode' => $this->statusChartData(
@@ -146,10 +149,7 @@ class ReportController extends Controller
                 KalibrasiInternalListUp::where('tahun', $tahun)->get(['jgm', 'period2_jgm']),
                 ['jgm', 'period2_jgm']
             ),
-            'verifikasi-qc2' => $this->statusChartData(
-                VerifikasiQc2::where('tahun', $tahun)->get(['jgm']),
-                ['jgm']
-            ),
+            'verifikasi-qc2' => $this->qc2ChartData($tahun),
             'activity-actions' => $this->activityChartData($tahun),
             'daily-report' => $this->dailyReportChartData($tahun),
             default => abort(404),
@@ -182,25 +182,86 @@ class ReportController extends Controller
     }
 
     /**
+     * @param array<int, string> $columns
+     * @param array<int, string> $labels
+     * @return array{labels: array<int, string>, datasets: array<int, array{label: string, data: array<int, int>}>}
+     */
+    private function monthlyComparisonChartData(int $tahun, array $columns, array $labels): array
+    {
+        $series = [
+            'Verifikasi' => Verifikasi::class,
+            'Kalibrasi internal' => Internal::class,
+            'Kalibrasi eksternal' => Eksternal::class,
+            'Kalibrasi mesin' => EksternalMesin::class,
+        ];
+
+        $datasets = [];
+        foreach ($series as $label => $model) {
+            $monthly = $this->monthlyChartData($model, $tahun, $columns, $labels);
+            $datasets[] = ['label' => $label, 'data' => $monthly['values']];
+        }
+
+        return ['labels' => $labels, 'datasets' => $datasets];
+    }
+
+    /**
      * @return array{labels: array<int, string>, values: array<int, int>}
      */
     private function defectChartData(int $tahun): array
     {
         $fields = ToolDefect::COUNT_FIELDS;
-        $totals = ToolDefect::where('tahun', $tahun)
-            ->selectRaw(implode(', ', array_map(
-                fn (string $field): string => "COALESCE(SUM(`{$field}`), 0) as `{$field}`",
-                $fields
-            )))
-            ->first();
+        $availableFields = Schema::getColumnListing('tool_defects');
+        $errorField = in_array('error', $availableFields, true)
+            ? 'error'
+            : (in_array('erorr', $availableFields, true) ? 'erorr' : null);
+
+        $selects = [];
+        foreach ($fields as $field) {
+            if ($field === 'erorr') {
+                if ($errorField !== null) {
+                    $selects[] = "COALESCE(SUM(`{$errorField}`), 0) as `erorr`";
+                }
+                continue;
+            }
+            if (in_array($field, $availableFields, true)) {
+                $selects[] = "COALESCE(SUM(`{$field}`), 0) as `{$field}`";
+            }
+        }
+
+        $totals = empty($selects)
+            ? null
+            : ToolDefect::where('tahun', $tahun)->selectRaw(implode(', ', $selects))->first();
 
         return [
             'labels' => array_map(
-                fn (string $field): string => strtoupper(str_replace('_', ' ', $field)),
+                fn (string $field): string => $field === 'erorr' ? 'ERROR' : strtoupper(str_replace('_', ' ', $field)),
                 $fields
             ),
-            'values' => array_map(fn (string $field): int => (int) $totals->{$field}, $fields),
+            'values' => array_map(fn (string $field): int => (int) ($totals->{$field} ?? 0), $fields),
         ];
+    }
+
+    /**
+     * Supports both the single-period QC2 schema and the two-period schema.
+     *
+     * @return array{labels: array<int, string>, values: array<int, int>}
+     */
+    private function qc2ChartData(int $tahun): array
+    {
+        $availableColumns = Schema::getColumnListing('verifikasi_qc2');
+        $columns = array_values(array_filter(
+            ['jgm', 'period1_jgm', 'period2_jgm'],
+            fn (string $column): bool => in_array($column, $availableColumns, true)
+        ));
+
+        if (empty($columns)) {
+            return ['labels' => [], 'values' => []];
+        }
+
+        return $this->statusChartData(
+            VerifikasiQc2::where('tahun', $tahun)->get($columns),
+            $columns
+        );
     }
 
     /**
@@ -312,7 +373,12 @@ class ReportController extends Controller
     public function exportAllExcel(Request $request)
     {
         $tahun = $this->validatedYear($request);
-        return back()->with('info', 'Export All Excel tahun ' . $tahun . ' sedang dikembangkan.');
+        $this->logExport('report', 'Export seluruh data ke Excel tahun ' . $tahun);
+
+        return Excel::download(
+            new QualityControlWorkbookExport($tahun),
+            'quality-control-' . $tahun . '-' . date('Ymd-His') . '.xlsx'
+        );
     }
 
     public function exportAllPdf(Request $request)
