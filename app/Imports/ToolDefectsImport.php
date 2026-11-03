@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\ToolDefect;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -35,8 +36,32 @@ class ToolDefectsImport
             ->setReadDataOnly(false)
             ->load($filePath);
         $rowsByKey = [];
+        $detailRows = [];
 
-        foreach ($spreadsheet->getAllSheets() as $sheet) {
+        $sheets = $spreadsheet->getAllSheets();
+        $generalSheet = collect($sheets)->first(function (Worksheet $sheet): bool {
+            $normalizedName = preg_replace('/[^A-Z0-9]+/', '', strtoupper($sheet->getTitle()));
+            return $normalizedName === 'MASTERREKAPGENERAL';
+        });
+
+        // Prefer the single general source for totals, and read the explicitly
+        // enabled LIST UP NG sheet separately for tool-level chart details.
+        $detailSheet = collect($sheets)->first(function (Worksheet $sheet): bool {
+            $normalizedName = preg_replace('/[^A-Z0-9]+/', '', strtoupper($sheet->getTitle()));
+            return $normalizedName === 'LISTUPNG';
+        });
+
+        if ($generalSheet !== null) {
+            $sheets = [$generalSheet];
+        } else {
+            $sheets = array_values(array_filter($sheets, fn (Worksheet $sheet): bool => $sheet !== $detailSheet));
+        }
+
+        if ($detailSheet !== null) {
+            $detailRows = $this->readDetailSheet($detailSheet);
+        }
+
+        foreach ($sheets as $sheet) {
             $sheetRows = $this->readSheet($sheet);
             foreach ($sheetRows as $row) {
                 $key = $row['tahun'] . '|' . $row['bulan'] . '|' . $row['division'];
@@ -58,16 +83,32 @@ class ToolDefectsImport
         }
 
         $rows = array_values($rowsByKey);
-        DB::transaction(function () use ($rows): void {
+        DB::transaction(function () use ($rows, $detailRows): void {
+            $availableColumns = Schema::getColumnListing((new ToolDefect())->getTable());
+            $errorColumn = in_array('error', $availableColumns, true) ? 'error' : 'erorr';
             foreach ($rows as $row) {
+                $values = [];
+                foreach (ToolDefect::COUNT_FIELDS as $field) {
+                    $column = $field === 'erorr' ? $errorColumn : $field;
+                    if (in_array($column, $availableColumns, true)) {
+                        $values[$column] = (int) ($row[$field] ?? 0);
+                    }
+                }
                 ToolDefect::updateOrCreate(
                     [
                         'tahun' => $row['tahun'],
                         'bulan' => $row['bulan'],
                         'division' => $row['division'],
                     ],
-                    array_intersect_key($row, array_flip(ToolDefect::COUNT_FIELDS))
+                    $values
                 );
+            }
+
+            if (Schema::hasTable('tool_defect_details')) {
+                DB::table('tool_defect_details')->where('tahun', $this->tahun)->delete();
+                foreach (array_chunk($detailRows, 500) as $chunk) {
+                    DB::table('tool_defect_details')->insert($chunk);
+                }
             }
         });
 
@@ -233,5 +274,73 @@ class ToolDefectsImport
     private function normalizeText(mixed $value): string
     {
         return strtoupper(preg_replace('/\s+/', ' ', trim((string) $value)));
+    }
+
+    /**
+     * @return array<int, array<string, int|string|null>>
+     */
+    private function readDetailSheet(Worksheet $sheet): array
+    {
+        $highestRow = $sheet->getHighestRow();
+        $highestColumn = Coordinate::columnIndexFromString($sheet->getHighestColumn());
+        $headerRow = null;
+        $columns = [];
+        $aliases = [
+            'tool_name' => ['TOOL NAME', 'NAMA ALAT', 'ALAT UKUR', 'INSTRUMENT NAME'],
+            'division' => ['DIVISION', 'DEPARTMENT', 'DEPT', 'DEPT.', 'DIVISI'],
+            'defect_type' => ['JENIS KERUSAKAN', 'DEFECT', 'DEFECT TYPE', 'NG CATEGORY', 'CATEGORY', 'CATEGORY NG'],
+            'tanggal' => ['TANGGAL', 'DATE', 'NG DATE', 'TGL'],
+            'serial_no' => ['SERIAL NO', 'SERIAL NUMBER', 'SERIAL', 'NO SERI', 'NUMBER SERI'],
+        ];
+
+        for ($row = 1; $row <= min(15, $highestRow); $row++) {
+            $candidate = [];
+            for ($column = 1; $column <= $highestColumn; $column++) {
+                $label = $this->normalizeText($sheet->getCell([$column, $row])->getFormattedValue());
+                foreach ($aliases as $field => $names) {
+                    if (in_array($label, $names, true)) {
+                        $candidate[$field] = $column;
+                    }
+                }
+            }
+            if (isset($candidate['tool_name']) && (isset($candidate['division']) || isset($candidate['defect_type']))) {
+                $headerRow = $row;
+                $columns = $candidate;
+                break;
+            }
+        }
+
+        if ($headerRow === null) {
+            return [];
+        }
+
+        $rows = [];
+        for ($row = $headerRow + 1; $row <= $highestRow; $row++) {
+            $name = trim((string) $sheet->getCell([$columns['tool_name'], $row])->getFormattedValue());
+            if ($name === '') {
+                continue;
+            }
+            $dateValue = isset($columns['tanggal'])
+                ? $sheet->getCell([$columns['tanggal'], $row])->getValue()
+                : null;
+            if (is_numeric($dateValue) && $dateValue > 20000) {
+                $dateValue = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $dateValue)->format('Y-m-d');
+            } else {
+                $timestamp = strtotime((string) $dateValue);
+                $dateValue = $timestamp ? date('Y-m-d', $timestamp) : null;
+            }
+            $rows[] = [
+                'tahun' => $this->tahun,
+                'tool_name' => mb_substr($name, 0, 255),
+                'division' => isset($columns['division']) ? mb_substr(trim((string) $sheet->getCell([$columns['division'], $row])->getFormattedValue()), 0, 100) : null,
+                'defect_type' => isset($columns['defect_type']) ? mb_substr(trim((string) $sheet->getCell([$columns['defect_type'], $row])->getFormattedValue()), 0, 100) : null,
+                'tanggal' => $dateValue,
+                'serial_no' => isset($columns['serial_no']) ? mb_substr(trim((string) $sheet->getCell([$columns['serial_no'], $row])->getFormattedValue()), 0, 100) : null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        return $rows;
     }
 }

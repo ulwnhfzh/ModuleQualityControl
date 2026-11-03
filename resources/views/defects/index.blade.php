@@ -41,7 +41,7 @@
                      class="absolute right-0 z-50 mt-1 hidden w-44 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
                     <a href="{{ route('defects.export.excel', ['tahun' => $tahun, 'bulan' => $bulanFilter]) }}"
                        class="flex items-center gap-2 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:bg-blue-50">
-                        <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-emerald-700 text-[10px] font-bold text-white" aria-hidden="true">X</span> Export Excel
+                        <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-blue-700 text-[10px] font-bold text-white" aria-hidden="true">X</span> Export Excel
                     </a>
                     <a href="{{ route('defects.export.pdf', ['tahun' => $tahun, 'bulan' => $bulanFilter]) }}"
                        class="flex items-center gap-2 border-t border-gray-100 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:bg-blue-50">
@@ -58,7 +58,7 @@
 
 <div class="overflow-hidden rounded-lg bg-white p-3 shadow-sm sm:p-6">
     @if(session('success'))
-        <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{{ session('success') }}</div>
+        <div class="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">{{ session('success') }}</div>
     @endif
     @if(session('error'))
         <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{{ session('error') }}</div>
@@ -133,7 +133,94 @@
         </table>
     </div>
 </div>
+
+<section class="mb-5 mt-6">
+    <div class="mb-3">
+        <h2 class="text-base font-bold text-slate-800">Analisis NG {{ $tahun }}</h2>
+        <p class="text-xs text-slate-500">Tren bulanan dan kontribusi kerusakan berdasarkan rekap tahunan.</p>
+    </div>
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <article class="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
+            <h3 class="mb-3 text-sm font-semibold text-slate-700">Frekuensi NG per bulan</h3>
+            <div class="h-64"><canvas id="ngMonthlyChart"></canvas></div>
+        </article>
+        <article class="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
+            <h3 class="mb-3 text-sm font-semibold text-slate-700">Jenis kerusakan — semua divisi</h3>
+            <div class="h-64"><canvas id="ngDefectChart"></canvas></div>
+        </article>
+        <article class="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
+            <h3 class="mb-3 text-sm font-semibold text-slate-700">Kontribusi divisi</h3>
+            <div class="h-64"><canvas id="ngDivisionChart"></canvas></div>
+        </article>
+        <article class="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
+            <h3 class="mb-3 text-sm font-semibold text-slate-700">Nama alat penyumbang NG terbanyak</h3>
+            @if(count($toolNameTotals))
+                <div class="h-64"><canvas id="ngToolChart"></canvas></div>
+            @else
+                <div class="flex h-64 items-center justify-center rounded-md bg-slate-50 px-6 text-center text-sm text-slate-500">
+                    Belum ada detail nama alat. Impor workbook yang berisi sheet <strong class="mx-1">LIST UP NG</strong> untuk mengisi grafik ini.
+                </div>
+            @endif
+        </article>
+    </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    const ngMonths = @json(array_values($monthLabels));
+    const ngMonthlyValues = @json(array_values($monthlyTotals));
+    const ngDefectLabels = @json(collect(array_keys($defectTotals))->map(fn ($key) => strtoupper(str_replace('_', ' ', $key)))->values());
+    const ngDefectValues = @json(array_values($defectTotals));
+    const ngDivisionLabels = @json(array_keys($divisionTotals));
+    const ngDivisionValues = @json(array_values($divisionTotals));
+    const ngToolRows = @json($toolNameTotals);
+    const ngPalette = ['#2563eb', '#3b82f6', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2', '#4f46e5', '#65a30d', '#ea580c', '#db2777', '#475569', '#9333ea'];
+    const ngPercentShare = values => {
+        const total = values.reduce((sum, value) => sum + Number(value || 0), 0);
+        return values.map(value => total
+            ? Math.round((Number(value || 0) / total) * 1000) / 10
+            : 0);
+    };
+    const makePareto = (canvasId, labels, values, color = '#64748b') => {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || !window.Chart) return;
+        new Chart(canvas, {
+            data: {
+                labels,
+                datasets: [
+                    { type: 'bar', label: 'Frekuensi', data: values, backgroundColor: color, borderRadius: 4, yAxisID: 'y' },
+                    { type: 'line', label: '% dari Total NG', data: ngPercentShare(values), borderColor: '#dc2626', backgroundColor: '#dc2626', pointRadius: 3, tension: 0.25, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'top', align: 'end' } },
+                scales: {
+                    x: { ticks: { autoSkip: false, maxRotation: 55, minRotation: 0 } },
+                    y: { beginAtZero: true, title: { display: true, text: 'Frekuensi' }, ticks: { precision: 0 } },
+                    y1: { beginAtZero: true, max: 100, position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: value => value + '%' } }
+                }
+            }
+        });
+    };
+    if (window.Chart) {
+        Chart.defaults.font.family = 'Inter, ui-sans-serif, system-ui, sans-serif';
+        const monthlyCanvas = document.getElementById('ngMonthlyChart');
+        if (monthlyCanvas) {
+            new Chart(monthlyCanvas, {
+                data: { labels: ngMonths, datasets: [
+                    { type: 'bar', label: 'Frekuensi NG', data: ngMonthlyValues, backgroundColor: '#64748b', borderRadius: 4, yAxisID: 'y' },
+                    { type: 'line', label: '% dari Total NG Tahunan', data: ngPercentShare(ngMonthlyValues), borderColor: '#475569', backgroundColor: '#475569', pointRadius: 3, tension: 0.2, yAxisID: 'y1' }
+                ] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } }, scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } },
+                    y1: { beginAtZero: true, max: 100, position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: value => value + '%' } }
+                } }
+            });
+        }
+        makePareto('ngDefectChart', ngDefectLabels, ngDefectValues);
+        makePareto('ngDivisionChart', ngDivisionLabels, ngDivisionValues);
+        if (ngToolRows.length) makePareto('ngToolChart', ngToolRows.map(row => row.label), ngToolRows.map(row => row.value));
+    }
     function toggleExportNg() {
         const dropdown = document.getElementById('exportDropdownNg');
         const menu = document.getElementById('exportMenuNg');

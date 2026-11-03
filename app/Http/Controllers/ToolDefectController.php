@@ -8,6 +8,8 @@ use App\Exports\ToolDefectsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ToolDefectController extends Controller
 {
@@ -25,6 +27,37 @@ class ToolDefectController extends Controller
         $yearData = ToolDefect::where('tahun', $tahun)->get();
         $rawData = $yearData->where('bulan', $bulanFilter);
 
+        $monthLabels = ['JAN' => 'JAN', 'FEB' => 'FEB', 'MAR' => 'MAR', 'APR' => 'APR', 'MAY' => 'MAY', 'JUN' => 'JUN', 'JUL' => 'JUL', 'AUG' => 'AUG', 'SEP' => 'SEP', 'OCT' => 'OCT', 'NOV' => 'NOV', 'DEC' => 'DEC'];
+        $monthlyTotals = array_fill_keys(array_keys($monthLabels), 0);
+        $defectTotals = array_fill_keys($jenisKerusakan, 0);
+        $divisionTotals = [];
+        foreach ($yearData as $row) {
+            $month = strtoupper((string) $row->bulan);
+            foreach ($jenisKerusakan as $field) {
+                $value = $this->defectValue($row, $field);
+                if (isset($monthlyTotals[$month])) {
+                    $monthlyTotals[$month] += $value;
+                }
+                $defectTotals[$field] += $value;
+                $divisionTotals[$row->division] = ($divisionTotals[$row->division] ?? 0) + $value;
+            }
+        }
+        arsort($defectTotals);
+        arsort($divisionTotals);
+
+        $toolNameTotals = [];
+        if (Schema::hasTable('tool_defect_details')) {
+            $toolNameTotals = DB::table('tool_defect_details')
+                ->where('tahun', $tahun)
+                ->select('tool_name', DB::raw('COUNT(*) as total'))
+                ->groupBy('tool_name')
+                ->orderByDesc('total')
+                ->limit(20)
+                ->get()
+                ->map(fn ($row) => ['label' => $row->tool_name, 'value' => (int) $row->total])
+                ->all();
+        }
+
         $dataPerDivisi = [];
         foreach ($rawData as $row) {
             if (!isset($dataPerDivisi[$row->division])) {
@@ -33,7 +66,7 @@ class ToolDefectController extends Controller
                 $dataPerDivisi[$row->division]['grand_total'] = 0;
             }
             foreach ($jenisKerusakan as $jenis) {
-                $value = (int) $row->$jenis;
+                $value = $this->defectValue($row, $jenis);
                 $dataPerDivisi[$row->division][$jenis] += $value;
                 $dataPerDivisi[$row->division]['total'] += $value;
             }
@@ -43,7 +76,7 @@ class ToolDefectController extends Controller
         foreach ($yearData as $row) {
             $grandTotalsByDivision[$row->division] ??= 0;
             foreach ($jenisKerusakan as $jenis) {
-                $grandTotalsByDivision[$row->division] += (int) $row->$jenis;
+                $grandTotalsByDivision[$row->division] += $this->defectValue($row, $jenis);
             }
         }
 
@@ -85,8 +118,17 @@ class ToolDefectController extends Controller
         $existingDefects = $rawData->keyBy('division');
 
         return view('defects.index', compact(
-            'tahun', 'bulanFilter', 'jenisKerusakan', 'sortedData', 'footerTotals', 'existingDefects'
+            'tahun', 'bulanFilter', 'jenisKerusakan', 'sortedData', 'footerTotals', 'existingDefects',
+            'monthLabels', 'monthlyTotals', 'defectTotals', 'divisionTotals', 'toolNameTotals'
         ));
+    }
+
+    private function defectValue(ToolDefect $row, string $field): int
+    {
+        if ($field === 'erorr') {
+            return (int) ($row->getAttribute('error') ?? $row->getAttribute('erorr') ?? 0);
+        }
+        return (int) ($row->getAttribute($field) ?? 0);
     }
 
     public function create()
