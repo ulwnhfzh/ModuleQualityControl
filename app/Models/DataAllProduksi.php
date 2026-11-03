@@ -16,4 +16,21 @@ class DataAllProduksi extends Model
         'part_name', 'part_number', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 
         'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'note'
     ];
+
+    public function resultStatus(string $month): ?string
+    {
+        $value = strtoupper(trim((string) $this->getAttribute($month)));
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/(^|[^A-Z])NG([^A-Z]|$)/', $value)) {
+            return 'NG';
+        }
+        if (preg_match('/(^|[^A-Z])OK([^A-Z]|$)/', $value)) {
+            return 'OK';
+        }
+
+        return null;
+    }
 }

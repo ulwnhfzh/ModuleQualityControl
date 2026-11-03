@@ -42,11 +42,10 @@ class DataAllProduksiController extends Controller
             $query->where('tool_name', $searchTool);
         }
 
-        if ($selectedDivision === 'ALL') {
-            $data = $query->orderBy('division', 'asc')->orderBy('id', 'asc')->get();
-        } else {
-            $data = $query->orderBy('id', 'asc')->get();
-        }
+        $data = $query->orderBy($selectedDivision === 'ALL' ? 'division' : 'id', 'asc')
+            ->orderBy('id', 'asc')
+            ->simplePaginate(100)
+            ->withQueryString();
 
         return view('data-all-produksi.index', compact('data', 'divisionList', 'selectedDivision', 'toolNameList', 'searchTool'));
     }

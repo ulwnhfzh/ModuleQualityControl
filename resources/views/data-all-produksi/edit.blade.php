@@ -3,7 +3,7 @@
 @section('content')
 <div class="mx-auto max-w-5xl">
     <div class="mb-6">
-        <a href="{{ route('data-all-produksi.index', ['division' => $item->division]) }}" class="inline-flex items-center text-sm font-medium text-emerald-700 hover:text-emerald-800 transition">
+        <a href="{{ route('data-all-produksi.index', ['division' => $item->division]) }}" class="inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-800 transition">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             Kembali ke Data All Produksi
         </a>
@@ -32,7 +32,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Division *</label>
-                        <select name="division" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                        <select name="division" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="">-- Pilih Division --</option>
                             @foreach($divisionList as $division)
                                 <option value="{{ $division }}" {{ old('division', $item->division) == $division ? 'selected' : '' }}>{{ $division }}</option>
@@ -41,15 +41,15 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Tool Name *</label>
-                        <input type="text" name="tool_name" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" value="{{ old('tool_name', $item->tool_name) }}">
+                        <input type="text" name="tool_name" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ old('tool_name', $item->tool_name) }}">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Type *</label>
-                        <input type="text" name="type" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" value="{{ old('type', $item->type) }}">
+                        <input type="text" name="type" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ old('type', $item->type) }}">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Size *</label>
-                        <input type="text" name="size" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" value="{{ old('size', $item->size) }}">
+                        <input type="text" name="size" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ old('size', $item->size) }}">
                     </div>
                 </div>
             </div>
@@ -64,19 +64,19 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 bg-slate-50 p-4 rounded-lg border border-slate-200">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Part Name</label>
-                        <input type="text" name="part_name" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" value="{{ old('part_name', $item->part_name) }}">
+                        <input type="text" name="part_name" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ old('part_name', $item->part_name) }}">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Part Number</label>
-                        <input type="text" name="part_number" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" value="{{ old('part_number', $item->part_number) }}">
+                        <input type="text" name="part_number" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ old('part_number', $item->part_number) }}">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Number Seri</label>
-                        <input type="text" name="number_seri" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" value="{{ old('number_seri', $item->number_seri) }}">
+                        <input type="text" name="number_seri" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ old('number_seri', $item->number_seri) }}">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Number Reg</label>
-                        <input type="text" name="number_reg" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" value="{{ old('number_reg', $item->number_reg) }}">
+                        <input type="text" name="number_reg" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ old('number_reg', $item->number_reg) }}">
                     </div>
                 </div>
             </div>
@@ -93,21 +93,22 @@
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">{{ $label }}</label>
                             <!-- UBAH KE TYPE="TEXT" -->
-                            <input type="text" name="{{ $key }}" value="{{ old($key, $item->$key) }}" class="w-full rounded-lg border-slate-300 text-sm text-center focus:ring-emerald-500 focus:border-emerald-500">
+                            <input type="text" name="{{ $key }}" value="{{ old($key, $item->$key) }}" class="w-full rounded-lg border-slate-300 text-sm text-center focus:ring-blue-500 focus:border-blue-500" placeholder="OK / NG / 10">
                         </div>
                     @endforeach
                 </div>
+                <p class="mt-2 text-xs text-slate-500">Isi <strong>OK</strong> atau <strong>NG</strong> untuk status. Nilai angka atau catatan tetap dapat disimpan sebagai teks.</p>
             </div>
 
             <!-- BAGIAN 4: NOTE -->
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Note (Keterangan Tambahan)</label>
-                <textarea name="note" rows="2" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">{{ old('note', $item->note) }}</textarea>
+                <textarea name="note" rows="2" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">{{ old('note', $item->note) }}</textarea>
             </div>
 
             <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-slate-200">
                 <a href="{{ route('data-all-produksi.index', ['division' => $item->division]) }}" class="inline-flex justify-center items-center rounded-lg border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition">Batal</a>
-                <button type="submit" class="inline-flex justify-center items-center rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm transition">Perbarui Data</button>
+                <button type="submit" class="inline-flex justify-center items-center rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 shadow-sm transition">Perbarui Data</button>
             </div>
         </form>
     </div>

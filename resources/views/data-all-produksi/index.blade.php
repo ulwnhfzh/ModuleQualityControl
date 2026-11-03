@@ -16,7 +16,7 @@
                 <div class="flex items-center gap-2">
                     <label for="division-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">DIVISION</label>
                     <div class="w-full sm:w-auto min-w-[130px]">
-                        <select id="division-select" name="division" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                        <select id="division-select" name="division" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="ALL" {{ $selectedDivision === 'ALL' ? 'selected' : '' }}>Semua Division</option>
                             @foreach($divisionList as $division)
                                 <option value="{{ $division }}" {{ $selectedDivision === $division ? 'selected' : '' }}>{{ $division }}</option>
@@ -29,7 +29,7 @@
                 <div class="flex items-center gap-2">
                     <label for="tool-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">TOOL NAME</label>
                     <div class="w-full sm:w-auto min-w-[180px]">
-                        <select id="tool-select" name="tool_name" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                        <select id="tool-select" name="tool_name" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Semua Tool</option>
                             @foreach($toolNameList as $toolName)
                                 <option value="{{ $toolName }}" {{ $searchTool === $toolName ? 'selected' : '' }}>{{ $toolName }}</option>
@@ -48,7 +48,7 @@
 
         <!-- KANAN: Total dan Tombol Aksi -->
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            <p class="text-xs text-slate-500 mr-1">Total <span class="font-bold text-slate-700">{{ $data->count() }}</span></p>
+            <p class="text-xs text-slate-500 mr-1">Halaman ini <span class="font-bold text-slate-700">{{ $data->count() }}</span> baris</p>
             <a href="{{ route('data-all-produksi.import.form') }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-blue-600 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-50 sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.import') Import</a>
             <a href="{{ route('data-all-produksi.export', ['division' => $selectedDivision]) }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.export') Export</a>
             <a href="{{ route('data-all-produksi.create') }}" class="bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-3 py-1.5 text-xs sm:text-sm"><span>+</span> Tambah</a>
@@ -64,7 +64,7 @@
                 <tr class="uppercase tracking-wide text-[11px]">
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">No</th>
                     @if($selectedDivision === 'ALL')
-                        <th rowspan="2" class="border border-slate-600 px-2 py-3 text-center align-middle bg-emerald-800">Division</th>
+                        <th rowspan="2" class="border border-slate-600 px-2 py-3 text-center align-middle bg-blue-800">Division</th>
                     @endif
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 text-left align-middle">Tool Name</th>
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Type</th>
@@ -94,11 +94,11 @@
             </thead>
             <tbody>
                 @forelse($data as $index => $item)
-                    <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }} hover:bg-emerald-50/50 text-center">
-                        <td class="border border-slate-200 px-2 py-3">{{ $index + 1 }}</td>
+                    <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }} hover:bg-blue-50/50 text-center">
+                        <td class="border border-slate-200 px-2 py-3">{{ ($data->firstItem() ?? 1) + $index }}</td>
                         
                         @if($selectedDivision === 'ALL')
-                            <td class="border border-slate-200 px-2 py-3 font-semibold text-emerald-700">{{ $item->division }}</td>
+                            <td class="border border-slate-200 px-2 py-3 font-semibold text-blue-700">{{ $item->division }}</td>
                         @endif
                         
                         <td class="border border-slate-200 px-2 py-3 text-left font-semibold text-slate-800">{{ $item->tool_name }}</td>
@@ -109,18 +109,18 @@
                         <td class="border border-slate-200 px-2 py-3 text-left">{{ $item->part_name ?: '-' }}</td>
                         <td class="border border-slate-200 px-2 py-3 text-left">{{ $item->part_number ?: '-' }}</td>
                         
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->jan ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->feb ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->mar ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->apr ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->may ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->jun ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->jul ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->aug ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->sep ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->oct ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->nov ?: '' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->dec ?: '' }}</td>
+                        @foreach(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'] as $month)
+                            @php($resultStatus = $item->resultStatus($month))
+                            <td class="border border-slate-200 px-2 py-3">
+                                @if($resultStatus === 'NG')
+                                    <span class="rounded bg-rose-100 px-2 py-1 font-bold text-rose-700">NG</span>
+                                @elseif($resultStatus === 'OK')
+                                    <span class="rounded bg-blue-100 px-2 py-1 font-semibold text-blue-700">OK</span>
+                                @else
+                                    {{ $item->$month ?: '' }}
+                                @endif
+                            </td>
+                        @endforeach
                         
                         <td class="border border-slate-200 px-2 py-3 text-left">{{ $item->note ?: '-' }}</td>
                         
@@ -146,37 +146,39 @@
         </table>
     </div>
 </div>
+<div class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+    {{ $data->links() }}
+</div>
 @endsection
 
 @push('scripts')
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
 <script>
-    $(document).ready(function() {
-        // ===== FITUR AUTO-LIVE UNTUK DROPDOWN TOOL =====
-        // Saat Division diganti, ambil daftar Tool baru TANPA refresh
-        $('#division-select').on('change', function() {
-            let division = $(this).val();
-            let toolSelect = $('#tool-select');
-            let currentTool = toolSelect.val();
-            
-            toolSelect.empty().append('<option value="">Memuat data...</option>');
+    document.addEventListener('DOMContentLoaded', function () {
+        const divisionSelect = document.getElementById('division-select');
+        const toolSelect = document.getElementById('tool-select');
+        if (!divisionSelect || !toolSelect) return;
 
-            $.ajax({
-                url: "{{ route('data-all-produksi.get-tools') }}",
-                type: "GET",
-                data: { division: division },
-                success: function(data) {
-                    toolSelect.empty().append('<option value="">Semua Tool</option>');
-                    $.each(data, function(key, value) {
-                        let isSelected = (value === currentTool) ? 'selected' : '';
-                        toolSelect.append('<option value="' + value + '" ' + isSelected + '>' + value + '</option>');
-                    });
-                },
-                error: function() {
-                    toolSelect.empty().append('<option value="">Gagal memuat data</option>');
-                }
-            });
+        divisionSelect.addEventListener('change', async function () {
+            const division = divisionSelect.value;
+            const currentTool = toolSelect.value;
+            toolSelect.replaceChildren(new Option('Memuat data...', ''));
+
+            try {
+                const url = new URL(@json(route('data-all-produksi.get-tools')), window.location.origin);
+                url.searchParams.set('division', division);
+                const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                if (!response.ok) throw new Error('Request gagal');
+
+                const tools = await response.json();
+                toolSelect.replaceChildren(new Option('Semua Tool', ''));
+                tools.forEach(function (tool) {
+                    const option = new Option(tool, tool);
+                    option.selected = tool === currentTool;
+                    toolSelect.add(option);
+                });
+            } catch (error) {
+                toolSelect.replaceChildren(new Option('Gagal memuat data', ''));
+            }
         });
     });
 </script>
