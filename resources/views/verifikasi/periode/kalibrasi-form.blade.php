@@ -6,7 +6,7 @@
     
     <!-- HEADER HALAMAN -->
     <div class="mb-6">
-        <a href="{{ route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'kalibrasi']) }}" class="inline-flex items-center text-sm font-medium text-emerald-700 hover:text-emerald-800 transition">
+        <a href="{{ route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'kalibrasi']) }}" class="inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-800 transition">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
@@ -20,8 +20,8 @@
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         
         @if(session('success'))
-            <div class="bg-emerald-50 border-b border-emerald-200 px-6 py-4 text-sm text-emerald-800 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div class="bg-blue-50 border-b border-blue-200 px-6 py-4 text-sm text-blue-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 {{ session('success') }}
             </div>
         @endif
@@ -47,7 +47,7 @@
                 <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     <div class="lg:col-span-2">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Tool Name</label>
-                        <select name="tool_name" id="tool_name" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                        <select name="tool_name" id="tool_name" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="">-- Pilih atau Cari Alat --</option>
                             @foreach($tools as $tool)
                                 <option value="{{ $tool->tool_name }}" {{ old('tool_name', $editing ? $schedule->tool_name : '') == $tool->tool_name ? 'selected' : '' }}>
@@ -59,18 +59,18 @@
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Type</label>
-                        <select name="tool_type" id="tool_type" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" @change="isNewType = ($event.target.value === '__new')">
+                        <select name="tool_type" id="tool_type" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" @change="isNewType = ($event.target.value === '__new')">
                             <option value="">-- Pilih Tool Name Dulu --</option>
                         </select>
                         <input x-show="isNewType" x-cloak type="text" name="tool_type_new" value="{{ old('tool_type_new') }}"
                                :required="isNewType" maxlength="100" placeholder="Ketik type baru"
-                               class="mt-2 w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                               class="mt-2 w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">
                         <p class="text-xs text-slate-500 mt-1">Pilih tipe yang ada atau ketik tipe baru.</p>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Shop</label>
-                        <select name="shop" id="shop" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" @change="isNewShop = ($event.target.value === '__new')">
+                        <select name="shop" id="shop" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" @change="isNewShop = ($event.target.value === '__new')">
                             <option value="">Pilih shop</option>
                             @foreach($shops as $shop)
                                 <option value="{{ $shop }}" {{ old('shop', $editing ? $schedule->shop : '') == $shop ? 'selected' : '' }}>{{ $shop }}</option>
@@ -79,22 +79,22 @@
                         </select>
                         <input x-show="isNewShop" x-cloak type="text" name="shop_new" value="{{ old('shop_new') }}"
                                :required="isNewShop" maxlength="100" placeholder="Ketik shop baru"
-                               class="mt-2 w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                               class="mt-2 w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Specification</label>
-                        <input name="specification" value="{{ old('specification', $editing ? $schedule->specification : '') }}" maxlength="255" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" placeholder="Spesifikasi alat">
+                        <input name="specification" value="{{ old('specification', $editing ? $schedule->specification : '') }}" maxlength="255" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Spesifikasi alat">
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Number Seri</label>
-                        <input name="serial_number" value="{{ old('serial_number', $editing ? $schedule->serial_number : '') }}" maxlength="100" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" placeholder="Nomor seri">
+                        <input name="serial_number" value="{{ old('serial_number', $editing ? $schedule->serial_number : '') }}" maxlength="100" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Nomor seri">
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Number Registration</label>
-                        <input name="registration_number" value="{{ old('registration_number', $editing ? $schedule->registration_number : '') }}" maxlength="100" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" placeholder="Nomor registrasi">
+                        <input name="registration_number" value="{{ old('registration_number', $editing ? $schedule->registration_number : '') }}" maxlength="100" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Nomor registrasi">
                     </div>
                 </div>
             </div>
@@ -111,7 +111,7 @@
                         <label class="block text-sm font-medium text-slate-700 mb-1">Calibration Date</label>
                         <input type="date" name="calibration_date" id="period1_calibration_date" 
                                value="{{ old('calibration_date', $editing ? $schedule->calibration_date?->format('Y-m-d') : '') }}" 
-                               class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" onchange="hitungNextDate(1)">
+                               class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" onchange="hitungNextDate(1)">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Next Calibration Date</label>
@@ -121,7 +121,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">JGM</label>
-                        <input name="jgm" value="{{ old('jgm', $editing ? $schedule->jgm : '') }}" maxlength="30" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" placeholder="Contoh: OK">
+                        <input name="jgm" value="{{ old('jgm', $editing ? $schedule->jgm : '') }}" maxlength="30" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: OK">
                     </div>
                 </div>
             </div>
@@ -138,7 +138,7 @@
                         <label class="block text-sm font-medium text-slate-700 mb-1">Calibration Date</label>
                         <input type="date" name="period2_calibration_date" id="period2_calibration_date" 
                                value="{{ old('period2_calibration_date', $editing ? $schedule->period2_calibration_date?->format('Y-m-d') : '') }}" 
-                               class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" onchange="hitungNextDate(2)">
+                               class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" onchange="hitungNextDate(2)">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Next Calibration Date</label>
@@ -148,7 +148,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">JGM</label>
-                        <input name="period2_jgm" value="{{ old('period2_jgm', $editing ? $schedule->period2_jgm : '') }}" maxlength="30" class="w-full rounded-lg border-slate-300 text-sm focus:ring-emerald-500 focus:border-emerald-500" placeholder="Contoh: OK">
+                        <input name="period2_jgm" value="{{ old('period2_jgm', $editing ? $schedule->period2_jgm : '') }}" maxlength="30" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: OK">
                     </div>
                 </div>
             </div>
@@ -158,7 +158,7 @@
                 <a href="{{ route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'kalibrasi']) }}" class="inline-flex justify-center items-center rounded-lg border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition">
                     Batal
                 </a>
-                <button type="submit" class="inline-flex justify-center items-center rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm transition">
+                <button type="submit" class="inline-flex justify-center items-center rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 shadow-sm transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                     Simpan
                 </button>

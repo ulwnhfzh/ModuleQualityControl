@@ -13,6 +13,7 @@ use App\Traits\LogsActivity;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class VerifikasiController extends Controller
 {
@@ -136,6 +137,8 @@ class VerifikasiController extends Controller
             ]);
         }
 
+        $data['verified_by'] = $request->boolean('sudah_diverifikasi') ? Auth::user()->name : null;
+        $data['verified_at'] = $request->boolean('sudah_diverifikasi') ? now() : null;
         $verifikasi = Verifikasi::create($data);
 
         $this->logCreate(
@@ -226,6 +229,12 @@ class VerifikasiController extends Controller
             ]);
         }
 
+        // Jika data berubah setelah konfirmasi, wajib diperiksa dan dikonfirmasi ulang.
+        $wasVerified = (bool) $verifikasi->verified_at;
+        $dataChanged = collect($data)->contains(fn ($value, $key) => (string) ($verifikasi->{$key} ?? '') !== (string) ($value ?? ''));
+        $reopened = $wasVerified && $dataChanged;
+        $data['verified_by'] = $reopened ? null : $verifikasi->verified_by;
+        $data['verified_at'] = $reopened ? null : $verifikasi->verified_at;
         $verifikasi->update($data);
 
         $this->logUpdate(
@@ -237,7 +246,9 @@ class VerifikasiController extends Controller
         );
 
         return redirect()->route('verifikasi.index', ['mode' => $verifikasi->tipe])
-            ->with('success', 'Jadwal verifikasi berhasil diperbarui!');
+            ->with('success', $reopened
+                ? 'Data diperbarui. Status konfirmasi dibuka kembali dan perlu diperiksa ulang.'
+                : 'Jadwal verifikasi berhasil diperbarui!');
     }
 
     public function destroy(Verifikasi $verifikasi)
@@ -253,6 +264,51 @@ class VerifikasiController extends Controller
 
         return redirect()->route('verifikasi.index', ['mode' => $mode])
             ->with('success', 'Jadwal verifikasi berhasil dihapus!');
+    }
+
+    public function confirm(Verifikasi $verifikasi)
+    {
+        if ($verifikasi->verified_at) {
+            return back()->with('success', 'Data ini sudah dikonfirmasi sebelumnya.');
+        }
+
+        $dataLama = $verifikasi->toArray();
+        $verifikasi->update([
+            'verified_by' => Auth::user()->name,
+            'verified_at' => now(),
+        ]);
+
+        $this->logUpdate(
+            'verifikasi',
+            $verifikasi->id,
+            $verifikasi->tool_name . ' - Konfirmasi verifikasi',
+            $dataLama,
+            $verifikasi->fresh()->toArray()
+        );
+
+        return back()->with('success', 'Verifikasi berhasil dikonfirmasi dan nama pemeriksa dicatat.');
+    }
+
+    public function reopen(Verifikasi $verifikasi)
+    {
+        abort_unless(Auth::check() && Auth::user()->role === 'admin', 403);
+
+        if (!$verifikasi->verified_at) {
+            return back()->with('error', 'Data ini belum dikonfirmasi.');
+        }
+
+        $dataLama = $verifikasi->toArray();
+        $verifikasi->update(['verified_by' => null, 'verified_at' => null]);
+
+        $this->logUpdate(
+            'verifikasi',
+            $verifikasi->id,
+            $verifikasi->tool_name . ' - Konfirmasi dibuka kembali untuk koreksi',
+            $dataLama,
+            $verifikasi->fresh()->toArray()
+        );
+
+        return back()->with('success', 'Konfirmasi dibuka kembali. Silakan edit data, lalu konfirmasi ulang setelah diperiksa.');
     }
 
     // ==========================================

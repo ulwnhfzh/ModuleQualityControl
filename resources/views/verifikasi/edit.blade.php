@@ -37,6 +37,14 @@
             @endforeach
         </div>
 
+        <label class="mb-6 flex cursor-pointer items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <input type="checkbox" name="sudah_diverifikasi" value="1" @checked(old('sudah_diverifikasi', $verifikasi->verified_at ? '1' : '')) class="mt-1 rounded border-blue-400 text-blue-600 focus:ring-blue-500">
+            <span>
+                <span class="block text-sm font-semibold text-blue-900">Konfirmasi sudah diverifikasi</span>
+                <span class="mt-1 block text-xs text-blue-800">Pemeriksa: {{ $verifikasi->verified_by ?: 'belum dicatat' }}. Mencentang akan mencatat akun Anda; menghapus centang membatalkan konfirmasi.</span>
+            </span>
+        </label>
+
         <div class="flex gap-2">
             <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 transition">Update</button>
             <a href="{{ route('verifikasi.index') }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded font-semibold hover:bg-gray-300 transition">Batal</a>

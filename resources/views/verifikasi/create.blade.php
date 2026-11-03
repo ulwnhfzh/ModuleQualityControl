@@ -4,7 +4,7 @@
 <div class="bg-white p-6 rounded-lg shadow-sm mb-6 max-w-4xl mx-auto">
     <h2 class="text-xl font-bold mb-4">Tambah Jadwal Verifikasi {{ ucfirst($mode) }}</h2>
     @if(session('success'))
-        <div class="mb-4 rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('success') }}</div>
+        <div class="mb-4 rounded border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">{{ session('success') }}</div>
     @endif
 
     @if ($errors->any())
@@ -89,9 +89,17 @@
         </div>
         @endif
 
+        <label class="mb-6 flex cursor-pointer items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <input type="checkbox" name="sudah_diverifikasi" value="1" @checked(old('sudah_diverifikasi')) class="mt-1 rounded border-blue-400 text-blue-600 focus:ring-blue-500">
+            <span>
+                <span class="block text-sm font-semibold text-blue-900">Konfirmasi sudah diverifikasi</span>
+                <span class="mt-1 block text-xs text-blue-800">Jika dicentang, akun Anda dan waktu konfirmasi akan dicatat sebagai pemeriksa.</span>
+            </span>
+        </label>
+
         <div class="flex flex-wrap gap-2">
             <button type="submit" class="bg-black text-white px-6 py-2 rounded font-semibold hover:bg-gray-800 transition">Simpan</button>
-            <button type="submit" name="save_mode" value="another" class="rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Simpan & Tambah Lagi</button>
+            <button type="submit" name="save_mode" value="another" class="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Simpan & Tambah Lagi</button>
             <a href="{{ route('verifikasi.index', ['mode' => $mode]) }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded font-semibold hover:bg-gray-300 transition">Batal</a>
         </div>
     </form>

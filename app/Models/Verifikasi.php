@@ -18,6 +18,10 @@ class Verifikasi extends Model
         // Harian
         'qa_1', 'qa_1_2', 'qa_inc', 'qa_insp',
         'ppic_1', 'ppic_2', 'line_scc',
-        'p1', 'p2', 'p3', 'p5', 'p6', 'p7', 'p8', 'eng'
+        'p1', 'p2', 'p3', 'p5', 'p6', 'p7', 'p8', 'eng', 'verified_by', 'verified_at'
+    ];
+
+    protected $casts = [
+        'verified_at' => 'datetime',
     ];
 }
