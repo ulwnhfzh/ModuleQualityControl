@@ -203,7 +203,7 @@
         <label class="flex flex-col gap-1 text-xs font-semibold text-slate-600 sm:min-w-64">
             PILIH GRAFIK
             <select id="chartFilter" class="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-700 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100">
-                <option value="{{ route('reports.api.pareto.fitur') }}" data-title="Total Data per Fitur" data-description="Jumlah data tersimpan di setiap fitur QC." data-axis="Fitur">Total Data per Fitur</option>
+                <option value="{{ route('reports.api.pareto.fitur') }}" data-title="Total Data per Fitur" data-description="Jumlah data tersimpan di setiap fitur QC. Data All Produksi tidak memiliki kolom tahun, sehingga menghitung seluruh data." data-axis="Fitur">Total Data per Fitur</option>
                 <option value="{{ route('reports.api.pareto.kategori') }}" data-title="Distribusi Kategori Alat" data-description="Jumlah alat pada setiap kategori Daftar Induk." data-axis="Alat">Distribusi Kategori Alat</option>
                 <option value="{{ route('reports.api.chart', 'operasional-bulanan') }}" data-title="Perbandingan Aktivitas Bulanan" data-description="Bandingkan jumlah aktivitas verifikasi dan kalibrasi per bulan. Setiap garis batang menunjukkan kategori terpisah." data-axis="Aktivitas">Perbandingan Aktivitas Bulanan</option>
                 <option value="{{ route('reports.api.pareto.departemen') }}" data-title="Distribusi Data per Departemen" data-description="Jumlah data verifikasi untuk setiap departemen." data-axis="Data">Distribusi Data per Departemen</option>
@@ -215,8 +215,8 @@
                 <option value="{{ route('reports.api.chart', 'kalibrasi-periode') }}" data-title="Hasil Kalibrasi Internal" data-description="Distribusi hasil kalibrasi internal per periode." data-axis="Periode">Hasil Kalibrasi Internal</option>
                 <option value="{{ route('reports.api.chart', 'verifikasi-qc2') }}" data-title="Hasil Verifikasi QC2" data-description="Distribusi hasil verifikasi QC2." data-axis="Alat">Hasil Verifikasi QC2</option>
                 <option value="{{ route('reports.api.chart', 'data-ng') }}" data-title="Jenis Kerusakan Data NG" data-description="Total tiap jenis kerusakan untuk tahun yang dipilih." data-axis="Jumlah">Jenis Kerusakan Data NG</option>
-                <option value="{{ route('reports.api.chart', 'stock-bulanan') }}" data-title="Pergerakan Stock per Bulan" data-description="Jumlah unit yang masuk dan keluar dari persediaan setiap bulan." data-axis="Unit">Pergerakan Stock per Bulan</option>
-                <option value="{{ route('reports.api.chart', 'produksi-bulanan') }}" data-title="Data Produksi per Bulan" data-description="Jumlah data bulanan pada Data All Produksi. Tabel ini belum menyimpan tahun." data-axis="Jumlah">Data Produksi per Bulan</option>
+                <option value="{{ route('reports.api.chart', 'stock-bulanan') }}" data-title="Pergerakan Stock per Bulan" data-description="Perbandingan unit barang masuk dan barang keluar setiap bulan." data-axis="Unit">Pergerakan Stock per Bulan</option>
+                <option value="{{ route('reports.api.chart', 'produksi-bulanan') }}" data-title="Data Produksi per Bulan" data-description="Jumlah hasil bulanan yang terisi pada Data All Produksi (termasuk OK/NG). Tabel ini belum menyimpan tahun." data-axis="Jumlah data">Data Produksi per Bulan</option>
                 <option value="{{ route('reports.api.chart', 'daily-report') }}" data-title="Laporan Harian per Jenis Data" data-description="Jumlah aktivitas tahunan yang diringkas dalam laporan harian, dikelompokkan berdasarkan fitur." data-axis="Aktivitas">Laporan Harian per Jenis Data</option>
             </select>
         </label>

@@ -14,6 +14,7 @@ class ReportTest extends TestCase
 
     public function test_reports_open_on_filtered_chart_view_without_summary_tab_or_overlapping_charts(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin']);
 
         $this->actingAs($admin)
@@ -34,6 +35,7 @@ class ReportTest extends TestCase
 
     public function test_reports_keep_activity_log_tab_available(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin']);
 
         $this->actingAs($admin)
@@ -45,6 +47,7 @@ class ReportTest extends TestCase
 
     public function test_each_graph_filter_endpoint_returns_chart_data(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin']);
         $endpoints = [
             'reports.api.pareto.fitur',
@@ -63,6 +66,7 @@ class ReportTest extends TestCase
 
     public function test_each_supported_feature_chart_returns_chart_data(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin']);
         $charts = [
             'verifikasi-bulanan',
@@ -89,6 +93,7 @@ class ReportTest extends TestCase
 
     public function test_data_ng_and_production_charts_use_their_own_table_values(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin']);
         ToolDefect::create([
             'tahun' => 2026,
@@ -116,7 +121,7 @@ class ReportTest extends TestCase
         $this->getJson(route('reports.api.chart', ['chart' => 'produksi-bulanan', 'tahun' => 2026]))
             ->assertOk()
             ->assertJsonPath('labels.0', 'Jan')
-            ->assertJsonPath('values.0', 4)
-            ->assertJsonPath('values.1', 7);
+            ->assertJsonPath('values.0', 1)
+            ->assertJsonPath('values.1', 1);
     }
 }

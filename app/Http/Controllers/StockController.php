@@ -77,9 +77,11 @@ class StockController extends Controller
         $filters = $request->validate([
             'tahun' => 'nullable|integer|min:2000|max:2100',
             'kategori' => 'nullable|in:Small Tool,Machine,Jig',
+            'bulan' => 'nullable|integer|between:1,12',
         ]);
         $tahun = (int) ($filters['tahun'] ?? date('Y'));
         $kategori = $filters['kategori'] ?? 'Small Tool';
+        $selectedMonth = (int) ($filters['bulan'] ?? date('n'));
         $months = [
             1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
             7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des',
@@ -89,73 +91,74 @@ class StockController extends Controller
             ->where('category', $kategori)
             ->orderBy('id')
             ->get();
+        $stockIds = $stocks->modelKeys();
 
-        $yearStart = "{$tahun}-01-01";
+        $yearStart = sprintf('%04d-01-01', $tahun);
+        $yearEnd = sprintf('%04d-12-31', $tahun);
+        $yearOpeningMovements = ToolStockMovement::query()
+            ->whereIn('stock_id', $stockIds)
+            ->where('movement_date', '<', $yearStart)
+            ->select('stock_id')
+            ->selectRaw("SUM(CASE WHEN direction = 'in' THEN quantity ELSE -quantity END) as net_quantity")
+            ->groupBy('stock_id')
+            ->pluck('net_quantity', 'stock_id');
+        $yearNetMovements = ToolStockMovement::query()
+            ->whereIn('stock_id', $stockIds)
+            ->whereBetween('movement_date', [$yearStart, $yearEnd])
+            ->select('stock_id')
+            ->selectRaw("SUM(CASE WHEN direction = 'in' THEN quantity ELSE -quantity END) as net_quantity")
+            ->groupBy('stock_id')
+            ->pluck('net_quantity', 'stock_id');
+
+        $monthStart = sprintf('%04d-%02d-01', $tahun, $selectedMonth);
+        $monthEnd = \Illuminate\Support\Carbon::parse($monthStart)->endOfMonth()->toDateString();
         $priorMovements = ToolStockMovement::query()
-            ->whereDate('movement_date', '<', $yearStart)
-            ->when($kategori, fn ($query) => $query->whereHas('stockInfo', fn ($stockQuery) => $stockQuery->where('category', $kategori)))
-            ->get(['stock_id', 'direction', 'quantity'])
-            ->groupBy('stock_id');
-        $openingByTool = [];
-        foreach ($priorMovements as $toolId => $items) {
-            $openingByTool[$toolId] = $items->sum(fn ($item) => $item->direction === 'in' ? $item->quantity : -$item->quantity);
-        }
+            ->whereIn('stock_id', $stockIds)
+            ->where('movement_date', '<', $monthStart)
+            ->select('stock_id')
+            ->selectRaw("SUM(CASE WHEN direction = 'in' THEN quantity ELSE -quantity END) as net_quantity")
+            ->groupBy('stock_id')
+            ->pluck('net_quantity', 'stock_id');
 
-        $monthlyTotals = [];
-        $movements = ToolStockMovement::with('stockInfo')
-            ->whereBetween('movement_date', ["{$tahun}-01-01", "{$tahun}-12-31"])
-            ->when($kategori, fn ($query) => $query->whereHas('stockInfo', fn ($stockQuery) => $stockQuery->where('category', $kategori)))
+        $movements = ToolStockMovement::query()
+            ->whereIn('stock_id', $stockIds)
+            ->whereBetween('movement_date', [$monthStart, $monthEnd])
             ->orderByDesc('movement_date')->orderByDesc('id')->get();
 
+        $monthlyTotals = [];
         foreach ($movements as $movement) {
-            $month = (int) $movement->movement_date->format('n');
-            $monthlyTotals[$movement->stock_id][$month][$movement->direction] =
-                ($monthlyTotals[$movement->stock_id][$month][$movement->direction] ?? 0) + $movement->quantity;
+            $monthlyTotals[$movement->stock_id][$movement->direction] =
+                ($monthlyTotals[$movement->stock_id][$movement->direction] ?? 0) + (int) $movement->quantity;
         }
 
         $movementSlots = $movements->groupBy('stock_id')->map(function ($items) {
-            return $items->groupBy(fn ($item) => (int) $item->movement_date->format('n'))->map(function ($monthItems) {
-                return $monthItems->groupBy('direction')->map(fn ($directionItems) => $directionItems
+            return $items->groupBy('direction')->map(fn ($directionItems) => $directionItems
                     ->take(4)
                     ->map(fn ($item) => [
                         'quantity' => (int) $item->quantity,
                         'date' => $item->movement_date->format('d/m'),
                     ])->values()->all())->all();
-            });
         });
 
-        $movementDates = $movements->groupBy('stock_id')->map(function ($items) {
-            return $items->groupBy(fn ($item) => (int) $item->movement_date->format('n'))->map(function ($monthItems) {
-                return [
-                    'in' => $monthItems->where('direction', 'in')->map(fn ($item) => $item->movement_date->format('d/m'))->values()->all(),
-                    'out' => $monthItems->where('direction', 'out')->map(fn ($item) => $item->movement_date->format('d/m'))->values()->all(),
-                ];
-            });
-        });
-
-        $rows = $stocks->map(function (ToolStock $stock) use ($months, $monthlyTotals, $openingByTool, $movementDates, $movementSlots) {
-            $balance = (int) $stock->opening_stock + (int) ($openingByTool[$stock->id] ?? 0);
-            $monthly = [];
-            foreach ($months as $monthNumber => $monthName) {
-                $incoming = (int) ($monthlyTotals[$stock->id][$monthNumber]['in'] ?? 0);
-                $outgoing = (int) ($monthlyTotals[$stock->id][$monthNumber]['out'] ?? 0);
-                $opening = $balance;
-                $balance += $incoming - $outgoing;
-                $monthly[$monthNumber] = compact('opening', 'incoming', 'outgoing', 'balance');
-            }
-
-            $dates = collect($movementDates->get($stock->id, []));
+        $rows = $stocks->map(function (ToolStock $stock) use ($selectedMonth, $monthlyTotals, $priorMovements, $movementSlots, $yearOpeningMovements, $yearNetMovements) {
+            $opening = (int) $stock->opening_stock + (int) ($priorMovements[$stock->id] ?? 0);
+            $incoming = (int) ($monthlyTotals[$stock->id]['in'] ?? 0);
+            $outgoing = (int) ($monthlyTotals[$stock->id]['out'] ?? 0);
+            $balance = $opening + $incoming - $outgoing;
+            $stockAwalTahun = (int) $stock->opening_stock + (int) ($yearOpeningMovements[$stock->id] ?? 0);
+            $stockAkhirTahun = $stockAwalTahun + (int) ($yearNetMovements[$stock->id] ?? 0);
 
             return [
                 'stock' => $stock,
-                'monthly' => $monthly,
-                'movement_dates' => $dates,
+                'stock_awal_tahun' => $stockAwalTahun,
+                'stock_akhir_tahun' => $stockAkhirTahun,
+                'monthly' => [$selectedMonth => compact('opening', 'incoming', 'outgoing', 'balance')],
                 'movement_slots' => collect($movementSlots->get($stock->id, [])),
                 'closing_stock' => $balance,
             ];
         });
 
-        return view('stock.index', compact('tahun', 'kategori', 'months', 'stocks', 'rows', 'movements'));
+        return view('stock.index', compact('tahun', 'kategori', 'months', 'selectedMonth', 'stocks', 'rows', 'movements'));
     }
 
     public function store(Request $request)
@@ -201,6 +204,7 @@ class StockController extends Controller
         $data = $request->validate([
             'tahun' => 'required|integer|min:2000|max:2100',
             'kategori' => 'required|in:Small Tool,Machine,Jig',
+            'bulan' => 'required|integer|between:1,12',
             'entries' => 'nullable|array',
             'entries.*.stock_id' => 'nullable|integer|exists:tool_stocks,id',
             'entries.*.tool_name' => 'nullable|string|max:255',
@@ -259,7 +263,7 @@ class StockController extends Controller
 
                 foreach ($entry['months'] ?? [] as $month => $directions) {
                     $month = (int) $month;
-                    if ($month < 1 || $month > 12) {
+                    if ($month !== (int) $data['bulan']) {
                         throw ValidationException::withMessages(['entries' => 'Bulan transaksi tidak valid.']);
                     }
                     foreach (['in', 'out'] as $direction) {
@@ -300,7 +304,7 @@ class StockController extends Controller
             }
         });
 
-        $returnFilters = ['tahun' => $data['tahun'], 'kategori' => $data['kategori']];
+        $returnFilters = ['tahun' => $data['tahun'], 'kategori' => $data['kategori'], 'bulan' => $data['bulan']];
         if ($request->input('save_mode') === 'another') {
             $returnFilters['tambah'] = 1;
         }

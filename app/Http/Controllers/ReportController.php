@@ -21,6 +21,7 @@ use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
@@ -49,6 +50,31 @@ class ReportController extends Controller
     public function apiParetoFitur(Request $request)
     {
         $tahun = $this->validatedYear($request);
+        $startDate = sprintf('%d-01-01 00:00:00', $tahun);
+        $endDate = sprintf('%d-12-31 23:59:59', $tahun);
+        $query = DB::query();
+        $yearModels = [
+            'tools' => Tool::class,
+            'verifikasi' => Verifikasi::class,
+            'internal' => Internal::class,
+            'eksternal' => Eksternal::class,
+            'mesin' => EksternalMesin::class,
+            'periode' => VerifikasiInternalSchedule::class,
+            'list_up' => KalibrasiInternalListUp::class,
+            'qc2' => VerifikasiQc2::class,
+            'ng' => ToolDefect::class,
+        ];
+        foreach ($yearModels as $alias => $model) {
+            $query->selectSub($model::query()->where('tahun', $tahun)->selectRaw('COUNT(*)'), $alias);
+        }
+        $query->selectSub(
+            ToolStockMovement::query()->whereBetween('movement_date', [substr($startDate, 0, 10), substr($endDate, 0, 10)])->selectRaw('COUNT(*)'),
+            'stock'
+        );
+        $query->selectSub(DataAllProduksi::query()->selectRaw('COUNT(*)'), 'produksi');
+        $query->selectSub(ActivityLog::query()->whereBetween('created_at', [$startDate, $endDate])->selectRaw('COUNT(*)'), 'log');
+        $counts = $query->first();
+
         return response()->json([
             'labels' => [
                 'Daftar Induk', 'Verifikasi', 'Kalibrasi Internal', 'Kalibrasi Eksternal',
@@ -56,18 +82,18 @@ class ReportController extends Controller
                 'Data NG', 'Pergerakan Stock', 'Data All Produksi', 'Log Aktivitas',
             ],
             'values' => [
-                Tool::where('tahun', $tahun)->count(),
-                Verifikasi::where('tahun', $tahun)->count(),
-                Internal::where('tahun', $tahun)->count(),
-                Eksternal::where('tahun', $tahun)->count(),
-                EksternalMesin::where('tahun', $tahun)->count(),
-                VerifikasiInternalSchedule::where('tahun', $tahun)->count(),
-                KalibrasiInternalListUp::where('tahun', $tahun)->count(),
-                VerifikasiQc2::where('tahun', $tahun)->count(),
-                ToolDefect::where('tahun', $tahun)->count(),
-                ToolStockMovement::whereYear('movement_date', $tahun)->count(),
-                DataAllProduksi::count(),
-                ActivityLog::whereYear('created_at', $tahun)->count(),
+                (int) $counts->tools,
+                (int) $counts->verifikasi,
+                (int) $counts->internal,
+                (int) $counts->eksternal,
+                (int) $counts->mesin,
+                (int) $counts->periode,
+                (int) $counts->list_up,
+                (int) $counts->qc2,
+                (int) $counts->ng,
+                (int) $counts->stock,
+                (int) $counts->produksi,
+                (int) $counts->log,
             ]
         ]);
     }
@@ -75,13 +101,19 @@ class ReportController extends Controller
     public function apiParetoKategori(Request $request)
     {
         $tahun = $this->validatedYear($request);
+        $counts = Tool::where('tahun', $tahun)
+            ->select('category')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('category')
+            ->pluck('total', 'category');
+
         return response()->json([
             'labels' => ['Small Tool', 'Machine', 'Jig'],
             'values' => [
-                Tool::where('tahun', $tahun)->where('category', 'Small Tool')->count(),
-                Tool::where('tahun', $tahun)->where('category', 'Machine')->count(),
-                Tool::where('tahun', $tahun)->where('category', 'Jig')->count(),
-            ]
+                (int) ($counts['Small Tool'] ?? 0),
+                (int) ($counts['Machine'] ?? 0),
+                (int) ($counts['Jig'] ?? 0),
+            ],
         ]);
     }
 
@@ -91,13 +123,11 @@ class ReportController extends Controller
         $bulanColumns = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
         $bulanLabels  = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         
-        $values = [];
-        foreach ($bulanColumns as $col) {
-            $values[] = (int) Verifikasi::where('tahun', $tahun)->sum($col)
-                      + (int) Internal::where('tahun', $tahun)->sum($col)
-                      + (int) Eksternal::where('tahun', $tahun)->sum($col)
-                      + (int) EksternalMesin::where('tahun', $tahun)->sum($col);
-        }
+        $comparison = $this->monthlyComparisonChartData($tahun, $bulanColumns, $bulanLabels);
+        $values = array_map(
+            fn (int $index): int => array_sum(array_map(fn (array $dataset): int => (int) $dataset['data'][$index], $comparison['datasets'])),
+            array_keys($bulanLabels)
+        );
 
         return response()->json(['labels' => $bulanLabels, 'values' => $values]);
     }
@@ -137,18 +167,12 @@ class ReportController extends Controller
             'internal-bulanan' => $this->monthlyChartData(Internal::class, $tahun, $bulanColumns, $bulanLabels),
             'eksternal-bulanan' => $this->monthlyChartData(Eksternal::class, $tahun, $bulanColumns, $bulanLabels),
             'mesin-bulanan' => $this->monthlyChartData(EksternalMesin::class, $tahun, $bulanColumns, $bulanLabels),
-            'produksi-bulanan' => $this->monthlyChartData(DataAllProduksi::class, null, $bulanColumns, $bulanLabels),
+            'produksi-bulanan' => $this->productionChartData($bulanColumns, $bulanLabels),
             'operasional-bulanan' => $this->monthlyComparisonChartData($tahun, $bulanColumns, $bulanLabels),
             'data-ng' => $this->defectChartData($tahun),
             'stock-bulanan' => $this->stockChartData($tahun, $bulanLabels),
-            'verifikasi-periode' => $this->statusChartData(
-                VerifikasiInternalSchedule::where('tahun', $tahun)->get(['period1_jgm', 'period2_jgm']),
-                ['period1_jgm', 'period2_jgm']
-            ),
-            'kalibrasi-periode' => $this->statusChartData(
-                KalibrasiInternalListUp::where('tahun', $tahun)->get(['jgm', 'period2_jgm']),
-                ['jgm', 'period2_jgm']
-            ),
+            'verifikasi-periode' => $this->statusChartData(VerifikasiInternalSchedule::class, $tahun, ['period1_jgm', 'period2_jgm']),
+            'kalibrasi-periode' => $this->statusChartData(KalibrasiInternalListUp::class, $tahun, ['jgm', 'period2_jgm']),
             'verifikasi-qc2' => $this->qc2ChartData($tahun),
             'activity-actions' => $this->activityChartData($tahun),
             'daily-report' => $this->dailyReportChartData($tahun),
@@ -178,6 +202,28 @@ class ReportController extends Controller
         return [
             'labels' => $labels,
             'values' => array_map(fn (string $column): int => (int) $totals->{$column}, $columns),
+        ];
+    }
+
+    /**
+     * Data All Produksi stores values such as OK/NG as text, so SUM() would
+     * silently turn those results into zero. Count populated monthly cells instead.
+     *
+     * @param array<int, string> $columns
+     * @param array<int, string> $labels
+     * @return array{labels: array<int, string>, values: array<int, int>}
+     */
+    private function productionChartData(array $columns, array $labels): array
+    {
+        $selects = array_map(
+            fn (string $column): string => "SUM(CASE WHEN `{$column}` IS NOT NULL AND TRIM(CAST(`{$column}` AS CHAR)) <> '' THEN 1 ELSE 0 END) as `{$column}`",
+            $columns
+        );
+        $totals = DataAllProduksi::query()->selectRaw(implode(', ', $selects))->first();
+
+        return [
+            'labels' => $labels,
+            'values' => array_map(fn (string $column): int => (int) ($totals->{$column} ?? 0), $columns),
         ];
     }
 
@@ -258,10 +304,7 @@ class ReportController extends Controller
             return ['labels' => [], 'values' => []];
         }
 
-        return $this->statusChartData(
-            VerifikasiQc2::where('tahun', $tahun)->get($columns),
-            $columns
-        );
+        return $this->statusChartData(VerifikasiQc2::class, $tahun, $columns);
     }
 
     /**
@@ -272,15 +315,32 @@ class ReportController extends Controller
     {
         $startDate = sprintf('%d-01-01', $tahun);
         $endDate = sprintf('%d-12-31', $tahun);
-        $movements = ToolStockMovement::whereBetween('movement_date', [$startDate, $endDate])
-            ->get(['movement_date', 'quantity']);
-        $monthlyTotals = array_fill(1, 12, 0);
+        $rows = ToolStockMovement::query()
+            ->whereBetween('movement_date', [$startDate, $endDate])
+            ->selectRaw('MONTH(movement_date) as month_number')
+            ->selectRaw("SUM(CASE WHEN direction = 'in' THEN quantity ELSE 0 END) as incoming")
+            ->selectRaw("SUM(CASE WHEN direction = 'out' THEN quantity ELSE 0 END) as outgoing")
+            ->groupByRaw('MONTH(movement_date)')
+            ->get()
+            ->keyBy('month_number');
 
-        foreach ($movements as $movement) {
-            $monthlyTotals[(int) $movement->movement_date->format('n')] += (int) $movement->quantity;
-        }
-
-        return ['labels' => $labels, 'values' => array_values($monthlyTotals)];
+        return [
+            'labels' => $labels,
+            'values' => array_map(
+                fn (int $month): int => (int) ($rows[$month]->incoming ?? 0) + (int) ($rows[$month]->outgoing ?? 0),
+                range(1, 12)
+            ),
+            'datasets' => [
+                [
+                    'label' => 'Barang masuk',
+                    'data' => array_map(fn (int $month): int => (int) ($rows[$month]->incoming ?? 0), range(1, 12)),
+                ],
+                [
+                    'label' => 'Barang keluar',
+                    'data' => array_map(fn (int $month): int => (int) ($rows[$month]->outgoing ?? 0), range(1, 12)),
+                ],
+            ],
+        ];
     }
 
     /**
@@ -288,19 +348,41 @@ class ReportController extends Controller
      * @param array<int, string> $columns
      * @return array{labels: array<int, string>, values: array<int, int>}
      */
-    private function statusChartData(iterable $records, array $columns): array
+    private function statusChartData(string $model, int $tahun, array $columns): array
     {
-        $counts = [];
-        foreach ($records as $record) {
-            foreach ($columns as $column) {
-                $status = strtoupper(trim((string) ($record->{$column} ?? '')));
-                $status = $status !== '' ? $status : 'BELUM DIISI';
-                $counts[$status] = ($counts[$status] ?? 0) + 1;
-            }
+        $table = (new $model())->getTable();
+        $availableColumns = Schema::getColumnListing($table);
+        $columns = array_values(array_filter($columns, fn (string $column): bool => in_array($column, $availableColumns, true)));
+        if (empty($columns)) {
+            return ['labels' => [], 'values' => []];
         }
-        arsort($counts);
 
-        return ['labels' => array_keys($counts), 'values' => array_values($counts)];
+        $statusQueries = [];
+        foreach ($columns as $column) {
+            $statusQueries[] = DB::table($table)
+                ->where('tahun', $tahun)
+                ->selectRaw("UPPER(TRIM(COALESCE(NULLIF(`{$column}`, ''), 'BELUM DIISI'))) as status")
+                ->selectRaw('COUNT(*) as total')
+                ->groupBy('status');
+        }
+
+        $union = array_shift($statusQueries);
+        foreach ($statusQueries as $query) {
+            $union->unionAll($query);
+        }
+
+        $counts = DB::query()
+            ->fromSub($union, 'period_statuses')
+            ->select('status')
+            ->selectRaw('SUM(total) as total')
+            ->groupBy('status')
+            ->orderByDesc('total')
+            ->get();
+
+        return [
+            'labels' => $counts->pluck('status')->all(),
+            'values' => $counts->pluck('total')->map(fn ($total): int => (int) $total)->all(),
+        ];
     }
 
     /**
@@ -308,7 +390,9 @@ class ReportController extends Controller
      */
     private function activityChartData(int $tahun): array
     {
-        $counts = ActivityLog::whereYear('created_at', $tahun)
+        $startDate = sprintf('%d-01-01 00:00:00', $tahun);
+        $endDate = sprintf('%d-12-31 23:59:59', $tahun);
+        $counts = ActivityLog::whereBetween('created_at', [$startDate, $endDate])
             ->select('aksi')
             ->selectRaw('COUNT(*) as total')
             ->groupBy('aksi')
@@ -326,7 +410,9 @@ class ReportController extends Controller
      */
     private function dailyReportChartData(int $tahun): array
     {
-        $counts = ActivityLog::whereYear('created_at', $tahun)
+        $startDate = sprintf('%d-01-01 00:00:00', $tahun);
+        $endDate = sprintf('%d-12-31 23:59:59', $tahun);
+        $counts = ActivityLog::whereBetween('created_at', [$startDate, $endDate])
             ->whereIn('jenis_data', ['tools', 'verifikasi', 'internal', 'eksternal', 'mesin', 'user'])
             ->select('jenis_data')
             ->selectRaw('COUNT(*) as total')
