@@ -24,22 +24,25 @@ class VerifikasiPeriodeController extends Controller
         $filters = $request->validate([
             'tahun' => 'nullable|integer|between:2000,2100',
             'jenis' => 'nullable|in:kalibrasi,verifikasi,verifikasi_qc2',
+            'company' => 'nullable|in:HAMATETSU,NISSO GIKEN',
         ]);
         $tahun = (int) ($filters['tahun'] ?? date('Y'));
         $jenis = $filters['jenis'] ?? 'verifikasi';
+        $company = $filters['company'] ?? 'HAMATETSU';
 
         if ($jenis === 'kalibrasi') {
             $schedules = KalibrasiInternalListUp::where('tahun', $tahun)->orderBy('tool_name')->get();
-            return view('verifikasi.periode.kalibrasi', compact('schedules', 'tahun', 'jenis'));
+            return view('verifikasi.periode.kalibrasi', compact('schedules', 'tahun', 'jenis', 'company'));
         }
 
         if ($jenis === 'verifikasi_qc2') {
-            $schedules = VerifikasiQc2::where('tahun', $tahun)->orderBy('tool_name')->get();
-            return view('verifikasi.periode.verifikasi-qc2', compact('schedules', 'tahun', 'jenis'));
+            $schedules = VerifikasiQc2::where('tahun', $tahun)->where('company', $company)->orderBy('tool_name')->get();
+            return view('verifikasi.periode.verifikasi-qc2', compact('schedules', 'tahun', 'jenis', 'company'));
         }
 
         $schedules = VerifikasiInternalSchedule::query()
             ->where('tahun', $tahun)
+            ->where('company', $company)
             ->orderBy('tool_name')
             ->get();
         $types = VerifikasiInternalSchedule::whereNotNull('tool_type')
@@ -48,7 +51,7 @@ class VerifikasiPeriodeController extends Controller
             ->orderBy('tool_type')
             ->pluck('tool_type');
 
-        return view('verifikasi.periode.index', compact('schedules', 'tahun', 'types', 'jenis'));
+        return view('verifikasi.periode.index', compact('schedules', 'tahun', 'types', 'jenis', 'company'));
     }
 
     // ==========================================
@@ -58,6 +61,7 @@ class VerifikasiPeriodeController extends Controller
     public function internalCalibrationCreate(Request $request)
     {
         $tahun = $this->validatedYear($request);
+        $company = $this->validatedCompany($request);
         $tools = Tool::orderBy('tool_name')->get();
         $types = KalibrasiInternalListUp::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
@@ -66,7 +70,7 @@ class VerifikasiPeriodeController extends Controller
             
         $toolsWithTypes = $this->getToolsWithTypes('kalibrasi_internal_list_ups');
 
-        return view('verifikasi.periode.kalibrasi-form', compact('tahun', 'tools', 'types', 'shops', 'toolsWithTypes'));
+        return view('verifikasi.periode.kalibrasi-form', compact('tahun', 'company', 'tools', 'types', 'shops', 'toolsWithTypes'));
     }
 
     public function internalCalibrationStore(Request $request)
@@ -74,16 +78,16 @@ class VerifikasiPeriodeController extends Controller
         $data = $this->validatedCalibrationData($request);
         KalibrasiInternalListUp::create($data);
         if ($request->input('save_mode') === 'another') {
-            return redirect()->route('verifikasi.periode.kalibrasi.create', ['tahun' => $data['tahun']])
+            return redirect()->route('verifikasi.periode.kalibrasi.create', ['tahun' => $data['tahun'], 'company' => $data['company']])
                 ->with('success', 'Jadwal berhasil disimpan. Lanjutkan input berikutnya.');
         }
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'jenis' => 'kalibrasi'])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'jenis' => 'kalibrasi', 'company' => $data['company']])
             ->with('success', 'Jadwal kalibrasi internal berhasil ditambahkan.');
     }
 
     public function internalCalibrationEdit(KalibrasiInternalListUp $schedule)
     {
-        $tahun = $schedule->tahun;
+        $tahun = $schedule->tahun; $company = $schedule->company;
         $tools = Tool::orderBy('tool_name')->get();
         $types = KalibrasiInternalListUp::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
@@ -91,14 +95,14 @@ class VerifikasiPeriodeController extends Controller
             ->distinct()->orderBy('shop')->pluck('shop');
         $toolsWithTypes = $this->getToolsWithTypes('kalibrasi_internal_list_ups');
 
-        return view('verifikasi.periode.kalibrasi-form', compact('schedule', 'tahun', 'tools', 'types', 'shops', 'toolsWithTypes'));
+        return view('verifikasi.periode.kalibrasi-form', compact('schedule', 'tahun', 'company', 'tools', 'types', 'shops', 'toolsWithTypes'));
     }
 
     public function internalCalibrationUpdate(Request $request, KalibrasiInternalListUp $schedule)
     {
         $data = $this->validatedCalibrationData($request);
         $schedule->update($data);
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $schedule->tahun, 'jenis' => 'kalibrasi'])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $schedule->tahun, 'jenis' => 'kalibrasi', 'company' => $schedule->company])
             ->with('success', 'Jadwal kalibrasi internal berhasil diperbarui.');
     }
 
@@ -106,36 +110,39 @@ class VerifikasiPeriodeController extends Controller
     {
         $tahun = $schedule->tahun;
         $schedule->delete();
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'kalibrasi'])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'kalibrasi', 'company' => $schedule->company])
             ->with('success', 'Jadwal kalibrasi internal berhasil dihapus.');
     }
 
     public function internalCalibrationImportForm(Request $request)
     {
         $tahun = $this->validatedYear($request);
-        return view('verifikasi.periode.kalibrasi-import', compact('tahun'));
+        $company = $this->validatedCompany($request);
+        return view('verifikasi.periode.kalibrasi-import', compact('tahun', 'company'));
     }
 
     public function internalCalibrationImport(Request $request)
     {
         $data = $request->validate([
             'tahun' => 'required|integer|between:2000,2100',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
             'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
         try {
             $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new KalibrasiInternalListUpImport((int) $data['tahun'], $rowHeader), $request->file('file'));
+            Excel::import(new KalibrasiInternalListUpImport((int) $data['tahun'], $data['company'], $rowHeader), $request->file('file'));
         } catch (\Throwable $exception) {
             return back()->withInput()->withErrors(['file' => 'Import dibatalkan: ' . $exception->getMessage()]);
         }
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'jenis' => 'kalibrasi'])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'jenis' => 'kalibrasi', 'company' => $data['company']])
             ->with('success', 'List Up Kalibrasi Internal berhasil diimpor.');
     }
 
     public function internalCalibrationExport(Request $request)
     {
         $tahun = $this->validatedYear($request);
-        return Excel::download(new KalibrasiInternalListUpExport($tahun), "list-up-kalibrasi-internal-{$tahun}.xlsx");
+        $company = $this->validatedCompany($request);
+        return Excel::download(new KalibrasiInternalListUpExport($tahun, $company), "list-up-kalibrasi-internal-{$tahun}.xlsx");
     }
 
     public function internalCalibrationExportPdf(Request $request)
@@ -163,6 +170,7 @@ class VerifikasiPeriodeController extends Controller
     public function create(Request $request)
     {
         $tahun = $this->validatedYear($request);
+        $company = $this->validatedCompany($request);
         $types = VerifikasiInternalSchedule::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
         $shops = VerifikasiInternalSchedule::whereNotNull('shop')->where('shop', '<>', '')
@@ -170,7 +178,7 @@ class VerifikasiPeriodeController extends Controller
         $tools = Tool::orderBy('tool_name')->get();
         $toolsWithTypes = $this->getToolsWithTypes('verifikasi_internal_schedules');
 
-        return view('verifikasi.periode.form', compact('tahun', 'types', 'shops', 'tools', 'toolsWithTypes'));
+        return view('verifikasi.periode.form', compact('tahun', 'company', 'types', 'shops', 'tools', 'toolsWithTypes'));
     }
 
     public function store(Request $request)
@@ -179,17 +187,17 @@ class VerifikasiPeriodeController extends Controller
         VerifikasiInternalSchedule::create($data);
 
         if ($request->input('save_mode') === 'another') {
-            return redirect()->route('verifikasi.periode.create', ['tahun' => $data['tahun']])
+            return redirect()->route('verifikasi.periode.create', ['tahun' => $data['tahun'], 'company' => $data['company']])
                 ->with('success', 'Jadwal berhasil disimpan. Lanjutkan input berikutnya.');
         }
 
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun']])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'company' => $data['company']])
             ->with('success', 'Jadwal periode berhasil ditambahkan.');
     }
 
     public function edit(VerifikasiInternalSchedule $schedule)
     {
-        $tahun = $schedule->tahun;
+        $tahun = $schedule->tahun; $company = $schedule->company;
         $types = VerifikasiInternalSchedule::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
         $shops = VerifikasiInternalSchedule::whereNotNull('shop')->where('shop', '<>', '')
@@ -197,14 +205,14 @@ class VerifikasiPeriodeController extends Controller
         $tools = Tool::orderBy('tool_name')->get();
         $toolsWithTypes = $this->getToolsWithTypes('verifikasi_internal_schedules');
 
-        return view('verifikasi.periode.form', compact('schedule', 'tahun', 'types', 'shops', 'tools', 'toolsWithTypes'));
+        return view('verifikasi.periode.form', compact('schedule', 'tahun', 'company', 'types', 'shops', 'tools', 'toolsWithTypes'));
     }
 
     public function update(Request $request, VerifikasiInternalSchedule $schedule)
     {
         $schedule->update($this->validatedData($request, $schedule));
 
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $schedule->tahun])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $schedule->tahun, 'company' => $schedule->company])
             ->with('success', 'Jadwal periode berhasil diperbarui.');
     }
 
@@ -213,38 +221,41 @@ class VerifikasiPeriodeController extends Controller
         $tahun = $schedule->tahun;
         $schedule->delete();
 
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $tahun])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $tahun, 'company' => $schedule->company])
             ->with('success', 'Jadwal periode berhasil dihapus.');
     }
 
     public function importForm(Request $request)
     {
         $tahun = $this->validatedYear($request);
-        return view('verifikasi.periode.import', compact('tahun'));
+        $company = $this->validatedCompany($request);
+        return view('verifikasi.periode.import', compact('tahun', 'company'));
     }
 
     public function import(Request $request)
     {
         $data = $request->validate([
             'tahun' => 'required|integer|between:2000,2100',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
             'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
         try {
             $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new VerifikasiPeriodeImport((int) $data['tahun'], $rowHeader), $request->file('file'));
+            Excel::import(new VerifikasiPeriodeImport((int) $data['tahun'], $data['company'], $rowHeader), $request->file('file'));
         } catch (\Throwable $exception) {
-            return redirect()->route('verifikasi.periode.import.form', ['tahun' => $data['tahun']])
+            return redirect()->route('verifikasi.periode.import.form', ['tahun' => $data['tahun'], 'company' => $data['company']])
                 ->withErrors(['file' => 'Import dibatalkan: ' . $exception->getMessage()]);
         }
 
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun']])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'company' => $data['company']])
             ->with('success', 'Data List Up berhasil diimpor.');
     }
 
     public function export(Request $request)
     {
         $tahun = $this->validatedYear($request);
-        return Excel::download(new VerifikasiPeriodeExport($tahun), "list-up-verifikasi-{$tahun}.xlsx");
+        $company = $this->validatedCompany($request);
+        return Excel::download(new VerifikasiPeriodeExport($tahun, $company), "list-up-verifikasi-{$company}-{$tahun}.xlsx");
     }
 
     public function exportPdf(Request $request)
@@ -272,6 +283,7 @@ class VerifikasiPeriodeController extends Controller
     public function qc2Create(Request $request)
     {
         $tahun = $this->validatedYear($request);
+        $company = $this->validatedCompany($request);
         $tools = Tool::orderBy('tool_name')->get();
         $types = VerifikasiQc2::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
@@ -279,7 +291,7 @@ class VerifikasiPeriodeController extends Controller
             ->distinct()->orderBy('shop')->pluck('shop');
         $toolsWithTypes = $this->getToolsWithTypes('verifikasi_qc2');
 
-        return view('verifikasi.periode.form-qc2', compact('tahun', 'tools', 'types', 'shops', 'toolsWithTypes'));
+        return view('verifikasi.periode.form-qc2', compact('tahun', 'company', 'tools', 'types', 'shops', 'toolsWithTypes'));
     }
 
     public function qc2Store(Request $request)
@@ -288,17 +300,17 @@ class VerifikasiPeriodeController extends Controller
         VerifikasiQc2::create($data);
 
         if ($request->input('save_mode') === 'another') {
-            return redirect()->route('verifikasi.qc2.create', ['tahun' => $data['tahun']])
+            return redirect()->route('verifikasi.qc2.create', ['tahun' => $data['tahun'], 'company' => $data['company']])
                 ->with('success', 'Jadwal QC2 berhasil disimpan. Lanjutkan input berikutnya.');
         }
 
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'jenis' => 'verifikasi_qc2'])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'jenis' => 'verifikasi_qc2', 'company' => $data['company']])
             ->with('success', 'Jadwal QC2 berhasil ditambahkan.');
     }
 
     public function qc2Edit(VerifikasiQc2 $schedule)
     {
-        $tahun = $schedule->tahun;
+        $tahun = $schedule->tahun; $company = $schedule->company;
         $tools = Tool::orderBy('tool_name')->get();
         $types = VerifikasiQc2::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
@@ -306,14 +318,14 @@ class VerifikasiPeriodeController extends Controller
             ->distinct()->orderBy('shop')->pluck('shop');
         $toolsWithTypes = $this->getToolsWithTypes('verifikasi_qc2');
 
-        return view('verifikasi.periode.form-qc2', compact('schedule', 'tahun', 'tools', 'types', 'shops', 'toolsWithTypes'));
+        return view('verifikasi.periode.form-qc2', compact('schedule', 'tahun', 'company', 'tools', 'types', 'shops', 'toolsWithTypes'));
     }
 
     public function qc2Update(Request $request, VerifikasiQc2 $schedule)
     {
         $schedule->update($this->validatedQc2Data($request));
 
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $schedule->tahun, 'jenis' => 'verifikasi_qc2'])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $schedule->tahun, 'jenis' => 'verifikasi_qc2', 'company' => $schedule->company])
             ->with('success', 'Jadwal QC2 berhasil diperbarui.');
     }
 
@@ -322,36 +334,39 @@ class VerifikasiPeriodeController extends Controller
         $tahun = $schedule->tahun;
         $schedule->delete();
 
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'verifikasi_qc2'])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'verifikasi_qc2', 'company' => $schedule->company])
             ->with('success', 'Jadwal QC2 berhasil dihapus.');
     }
 
     public function qc2ImportForm(Request $request)
     {
         $tahun = $this->validatedYear($request);
-        return view('verifikasi.periode.qc2-import', compact('tahun'));
+        $company = $this->validatedCompany($request);
+        return view('verifikasi.periode.qc2-import', compact('tahun', 'company'));
     }
 
     public function qc2Import(Request $request)
     {
         $data = $request->validate([
             'tahun' => 'required|integer|between:2000,2100',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
             'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
         try {
             $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new VerifikasiQc2Import((int) $data['tahun'], $rowHeader), $request->file('file'));
+            Excel::import(new VerifikasiQc2Import((int) $data['tahun'], $data['company'], $rowHeader), $request->file('file'));
         } catch (\Throwable $exception) {
             return back()->withInput()->withErrors(['file' => 'Import dibatalkan: ' . $exception->getMessage()]);
         }
-        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'jenis' => 'verifikasi_qc2'])
+        return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'jenis' => 'verifikasi_qc2', 'company' => $data['company']])
             ->with('success', 'Data List Up QC2 berhasil diimpor.');
     }
 
     public function qc2ExportExcel(Request $request)
     {
         $tahun = $this->validatedYear($request);
-        return Excel::download(new VerifikasiQc2Export($tahun), "list-up-qc2-{$tahun}.xlsx");
+        $company = $this->validatedCompany($request);
+        return Excel::download(new VerifikasiQc2Export($tahun, $company), "list-up-qc2-{$company}-{$tahun}.xlsx");
     }
 
     public function qc2ExportPdf(Request $request)
@@ -372,9 +387,15 @@ class VerifikasiPeriodeController extends Controller
     private function downloadPeriodPdf(Request $request, string $model, string $title, array $columns, string $filename)
     {
         $tahun = $this->validatedYear($request);
-        $schedules = $model::query()->where('tahun', $tahun)->orderBy('tool_name')->get();
+        $isCalibration = $model === KalibrasiInternalListUp::class;
+        $company = $isCalibration ? '' : $this->validatedCompany($request);
+        $query = $model::query()->where('tahun', $tahun);
+        if (!$isCalibration) {
+            $query->where('company', $company);
+        }
+        $schedules = $query->orderBy('tool_name')->get();
 
-        return Pdf::loadView('verifikasi.periode.pdf', compact('schedules', 'tahun', 'title', 'columns'))
+        return Pdf::loadView('verifikasi.periode.pdf', compact('schedules', 'tahun', 'title', 'columns', 'company'))
             ->setPaper('a4', 'landscape')
             ->download("{$filename}-{$tahun}.pdf");
     }
@@ -402,6 +423,7 @@ class VerifikasiPeriodeController extends Controller
     {
         $validated = $request->validate([
             'tahun' => 'required|integer|between:2000,2100',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
             'tool_name' => 'required|string|max:255',
             'tool_type' => 'required|string|max:100',
             'tool_type_new' => 'required_if:tool_type,__new|nullable|string|max:100',
@@ -438,6 +460,7 @@ class VerifikasiPeriodeController extends Controller
     {
         $validated = $request->validate([
             'tahun' => 'required|integer|between:2000,2100',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
             'tool_name' => 'required|string|max:255',
             'tool_type' => 'required|string|max:100',
             'tool_type_new' => 'required_if:tool_type,__new|nullable|string|max:100',
@@ -473,10 +496,16 @@ class VerifikasiPeriodeController extends Controller
         return (int) ($data['tahun'] ?? date('Y'));
     }
 
+    private function validatedCompany(Request $request): string
+    {
+        return $request->validate(['company' => 'nullable|in:HAMATETSU,NISSO GIKEN'])['company'] ?? 'HAMATETSU';
+    }
+
     private function validatedCalibrationData(Request $request): array
     {
         $data = $request->validate([
             'tahun' => 'required|digits:4',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
             'tool_name' => 'required|string|max:255',
             'tool_type' => 'required|string|max:100',
             'tool_type_new' => 'required_if:tool_type,__new|nullable|string|max:100',

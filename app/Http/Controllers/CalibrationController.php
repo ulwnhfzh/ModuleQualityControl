@@ -26,14 +26,15 @@ class CalibrationController extends Controller
     // ==========================================
     public function eksternalSmall(Request $request)
     {
-        $filters = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $filters = $request->validate(['tahun' => 'nullable|integer|between:2000,2100', 'company' => 'nullable|in:HAMATETSU,NISSO GIKEN']);
         $tahun = $filters['tahun'] ?? date('Y');
+        $company = $filters['company'] ?? 'HAMATETSU';
 
         $schedules = Eksternal::where('tahun', $tahun)
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        return view('eksternal.small', compact('schedules', 'tahun'));
+        return view('eksternal.small', compact('schedules', 'tahun', 'company'));
     }
 
     public function eksternalSmallCreate(Request $request)
@@ -43,15 +44,17 @@ class CalibrationController extends Controller
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100', 'company' => 'nullable|in:HAMATETSU,NISSO GIKEN']);
         $tahun = (int) ($yearData['tahun'] ?? date('Y'));
-        return view('eksternal.create', compact('tools', 'tahun'));
+        $company = $yearData['company'] ?? 'HAMATETSU';
+        return view('eksternal.create', compact('tools', 'tahun', 'company'));
     }
 
     public function eksternalSmallStore(Request $request)
     {
         $data = $request->validate([
             'tool_name' => 'required|string|max:255',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
             'tahun' => 'required|integer|between:2000,2100',
             'jan' => 'integer|min:0|max:2147483647', 'feb' => 'integer|min:0|max:2147483647', 'mar' => 'integer|min:0|max:2147483647', 'apr' => 'integer|min:0|max:2147483647',
             'may' => 'integer|min:0|max:2147483647', 'jun' => 'integer|min:0|max:2147483647', 'jul' => 'integer|min:0|max:2147483647', 'aug' => 'integer|min:0|max:2147483647',
@@ -74,11 +77,11 @@ class CalibrationController extends Controller
         );
 
         if ($request->input('save_mode') === 'another') {
-            return redirect()->route('eksternal.small.create', ['tahun' => $data['tahun']])
+            return redirect()->route('eksternal.small.create', ['tahun' => $data['tahun'], 'company' => $data['company']])
                 ->with('success', 'Jadwal berhasil disimpan. Lanjutkan input berikutnya.');
         }
 
-        return redirect()->route('eksternal.small', ['tahun' => $data['tahun']])
+        return redirect()->route('eksternal.small', ['tahun' => $data['tahun'], 'company' => $data['company']])
             ->with('success', 'Jadwal kalibrasi eksternal berhasil ditambahkan!');
     }
 
@@ -93,6 +96,7 @@ class CalibrationController extends Controller
 
         $data = $request->validate([
             'tool_name' => 'required|string|max:255',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
             'tahun' => 'required|integer|between:2000,2100',
             'jan' => 'integer|min:0|max:2147483647', 'feb' => 'integer|min:0|max:2147483647', 'mar' => 'integer|min:0|max:2147483647', 'apr' => 'integer|min:0|max:2147483647',
             'may' => 'integer|min:0|max:2147483647', 'jun' => 'integer|min:0|max:2147483647', 'jul' => 'integer|min:0|max:2147483647', 'aug' => 'integer|min:0|max:2147483647',
@@ -115,7 +119,7 @@ class CalibrationController extends Controller
             $eksternal->fresh()->toArray()
         );
 
-        return redirect()->route('eksternal.small')->with('success', 'Jadwal kalibrasi eksternal berhasil diperbarui!');
+        return redirect()->route('eksternal.small', ['tahun' => $eksternal->tahun, 'company' => $eksternal->company])->with('success', 'Jadwal kalibrasi eksternal berhasil diperbarui!');
     }
 
     public function eksternalSmallDestroy(Eksternal $eksternal)
@@ -128,13 +132,14 @@ class CalibrationController extends Controller
 
         $this->logDelete('eksternal', $eksternalId, $keterangan, $dataLama);
 
-        return redirect()->route('eksternal.small')->with('success', 'Jadwal kalibrasi eksternal berhasil dihapus!');
+        return redirect()->route('eksternal.small', ['tahun' => $eksternal->tahun, 'company' => $eksternal->company])->with('success', 'Jadwal kalibrasi eksternal berhasil dihapus!');
     }
 
     // ===== IMPORT EKSTERNAL SMALL =====
-    public function eksternalSmallImportForm()
+    public function eksternalSmallImportForm(Request $request)
     {
-        return view('eksternal.import');
+        $company = $request->validate(['company' => 'nullable|in:HAMATETSU,NISSO GIKEN'])['company'] ?? 'HAMATETSU';
+        return view('eksternal.import', compact('company'));
     }
 
     public function eksternalSmallImportStore(Request $request)
@@ -142,11 +147,12 @@ class CalibrationController extends Controller
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv|max:2048',
             'tahun' => 'required|digits:4',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
         ]);
 
         try {
             $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new EksternalImport($request->tahun, $rowHeader), $request->file('file'));
+            Excel::import(new EksternalImport($request->tahun, $request->company, $rowHeader), $request->file('file'));
 
             $this->logActivity(
                 'CREATE',
@@ -157,7 +163,7 @@ class CalibrationController extends Controller
                 ['tahun' => $request->tahun, 'file' => $request->file('file')->getClientOriginalName()]
             );
 
-            return redirect()->route('eksternal.small', ['tahun' => $request->tahun])
+            return redirect()->route('eksternal.small', ['tahun' => $request->tahun, 'company' => $request->company])
                 ->with('success', 'Data berhasil di-import untuk tahun ' . $request->tahun);
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal import: ' . $e->getMessage());
@@ -167,13 +173,14 @@ class CalibrationController extends Controller
     // ===== EXPORT EKSTERNAL SMALL =====
     public function eksternalSmallExportExcel(Request $request)
     {
-        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100', 'company' => 'nullable|in:HAMATETSU,NISSO GIKEN']);
         $tahun = $yearData['tahun'] ?? date('Y');
-        $filename = 'eksternal-small-' . $tahun . '.xlsx';
+        $company = $yearData['company'] ?? 'HAMATETSU';
+        $filename = 'kalibrasi-small-tool-' . $tahun . '.xlsx';
 
         $this->logExport('eksternal', 'Export Excel Eksternal Small Tool tahun ' . $tahun);
 
-        return Excel::download(new EksternalExport($tahun), $filename);
+        return Excel::download(new EksternalExport($tahun, $company), $filename);
     }
 
     /**
@@ -181,8 +188,9 @@ class CalibrationController extends Controller
      */
     public function eksternalSmallExportPdf(Request $request)
     {
-        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100', 'company' => 'nullable|in:HAMATETSU,NISSO GIKEN']);
         $tahun = $yearData['tahun'] ?? date('Y');
+        $company = $yearData['company'] ?? 'HAMATETSU';
 
         $data = Eksternal::where('tahun', $tahun)
             ->orderBy('tool_name', 'asc')
@@ -195,12 +203,12 @@ class CalibrationController extends Controller
         $this->logExport('eksternal', 'Export PDF Eksternal Small Tool - Nomor: ' . $nomorDokumen);
 
         // ===== GENERATE PDF =====
-        $pdf = Pdf::loadView('eksternal.pdf', compact('data', 'tahun', 'nomorDokumen'))
+        $pdf = Pdf::loadView('eksternal.pdf', compact('data', 'tahun', 'company', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
 
         DocumentPdfLayout::addPageNumbers($pdf);
 
-        return $pdf->download('eksternal-small-' . $tahun . '.pdf');
+        return $pdf->download('kalibrasi-small-tool-' . $tahun . '.pdf');
     }
 
     public function eksternalSmallDownloadTemplate()
@@ -236,27 +244,30 @@ class CalibrationController extends Controller
     // ==========================================
     public function mesin(Request $request)
     {
-        $filters = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $filters = $request->validate(['tahun' => 'nullable|integer|between:2000,2100', 'company' => 'nullable|in:HAMATETSU,NISSO GIKEN']);
         $tahun = $filters['tahun'] ?? date('Y');
+        $company = $filters['company'] ?? 'HAMATETSU';
 
         $machines = EksternalMesin::where('tahun', $tahun)
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        return view('mesin.index', compact('machines', 'tahun'));
+        return view('mesin.index', compact('machines', 'tahun', 'company'));
     }
 
     public function mesinCreate(Request $request)
     {
-        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100', 'company' => 'nullable|in:HAMATETSU,NISSO GIKEN']);
         $tahun = (int) ($yearData['tahun'] ?? date('Y'));
-        return view('mesin.create', compact('tahun'));
+        $company = $yearData['company'] ?? 'HAMATETSU';
+        return view('mesin.create', compact('tahun', 'company'));
     }
 
     public function mesinStore(Request $request)
     {
         $data = $request->validate([
             'tool_name'      => 'required|string|max:255',
+            'company'        => 'required|in:HAMATETSU,NISSO GIKEN',
             'machine_model'  => 'nullable|string|max:255',
             'code_number'    => 'nullable|string|max:255',
             'serial_number'  => 'nullable|string|max:255',
@@ -287,11 +298,11 @@ class CalibrationController extends Controller
         );
 
         if ($request->input('save_mode') === 'another') {
-            return redirect()->route('mesin.create', ['tahun' => $data['tahun']])
+            return redirect()->route('mesin.create', ['tahun' => $data['tahun'], 'company' => $data['company']])
                 ->with('success', 'Data mesin berhasil disimpan. Lanjutkan input berikutnya.');
         }
 
-        return redirect()->route('mesin.index', ['tahun' => $data['tahun']])
+        return redirect()->route('mesin.index', ['tahun' => $data['tahun'], 'company' => $data['company']])
             ->with('success', 'Data mesin berhasil ditambahkan!');
     }
 
@@ -306,6 +317,7 @@ class CalibrationController extends Controller
 
         $data = $request->validate([
             'tool_name'      => 'required|string|max:255',
+            'company'        => 'required|in:HAMATETSU,NISSO GIKEN',
             'machine_model'  => 'nullable|string|max:255',
             'code_number'    => 'nullable|string|max:255',
             'serial_number'  => 'nullable|string|max:255',
@@ -336,7 +348,7 @@ class CalibrationController extends Controller
             $mesin->fresh()->toArray()
         );
 
-        return redirect()->route('mesin.index')
+        return redirect()->route('mesin.index', ['tahun' => $mesin->tahun, 'company' => $mesin->company])
             ->with('success', 'Data mesin berhasil diperbarui!');
     }
 
@@ -350,14 +362,15 @@ class CalibrationController extends Controller
 
         $this->logDelete('mesin', $mesinId, $keterangan, $dataLama);
 
-        return redirect()->route('mesin.index')
+        return redirect()->route('mesin.index', ['tahun' => $mesin->tahun, 'company' => $mesin->company])
             ->with('success', 'Data mesin berhasil dihapus!');
     }
 
     // ===== IMPORT EKSTERNAL MESIN =====
-    public function mesinImportForm()
+    public function mesinImportForm(Request $request)
     {
-        return view('mesin.import');
+        $company = $request->validate(['company' => 'nullable|in:HAMATETSU,NISSO GIKEN'])['company'] ?? 'HAMATETSU';
+        return view('mesin.import', compact('company'));
     }
 
     public function mesinImportStore(Request $request)
@@ -365,11 +378,12 @@ class CalibrationController extends Controller
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv|max:2048',
             'tahun' => 'required|digits:4',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
         ]);
 
         try {
             $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new MesinImport($request->tahun, $rowHeader), $request->file('file'));
+            Excel::import(new MesinImport($request->tahun, $request->company, $rowHeader), $request->file('file'));
 
             $this->logActivity(
                 'CREATE',
@@ -380,7 +394,7 @@ class CalibrationController extends Controller
                 ['tahun' => $request->tahun, 'file' => $request->file('file')->getClientOriginalName()]
             );
 
-            return redirect()->route('mesin.index', ['tahun' => $request->tahun])
+            return redirect()->route('mesin.index', ['tahun' => $request->tahun, 'company' => $request->company])
                 ->with('success', 'Data berhasil di-import untuk tahun ' . $request->tahun);
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal import: ' . $e->getMessage());
@@ -390,13 +404,14 @@ class CalibrationController extends Controller
     // ===== EXPORT EKSTERNAL MESIN =====
     public function mesinExportExcel(Request $request)
     {
-        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100', 'company' => 'nullable|in:HAMATETSU,NISSO GIKEN']);
         $tahun = $yearData['tahun'] ?? date('Y');
-        $filename = 'eksternal-mesin-' . $tahun . '.xlsx';
+        $company = $yearData['company'] ?? 'HAMATETSU';
+        $filename = 'kalibrasi-mesin-' . $tahun . '.xlsx';
 
         $this->logExport('mesin', 'Export Excel Mesin Alat Ukur tahun ' . $tahun);
 
-        return Excel::download(new MesinExport($tahun), $filename);
+        return Excel::download(new MesinExport($tahun, $company), $filename);
     }
 
     /**
@@ -404,8 +419,9 @@ class CalibrationController extends Controller
      */
     public function mesinExportPdf(Request $request)
     {
-        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100']);
+        $yearData = $request->validate(['tahun' => 'nullable|integer|between:2000,2100', 'company' => 'nullable|in:HAMATETSU,NISSO GIKEN']);
         $tahun = $yearData['tahun'] ?? date('Y');
+        $company = $yearData['company'] ?? 'HAMATETSU';
 
         $data = EksternalMesin::where('tahun', $tahun)
             ->orderBy('tool_name', 'asc')
@@ -418,12 +434,12 @@ class CalibrationController extends Controller
         $this->logExport('mesin', 'Export PDF Eksternal Mesin - Nomor: ' . $nomorDokumen);
 
         // ===== GENERATE PDF =====
-        $pdf = Pdf::loadView('mesin.pdf', compact('data', 'tahun', 'nomorDokumen'))
+        $pdf = Pdf::loadView('mesin.pdf', compact('data', 'tahun', 'company', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
 
         DocumentPdfLayout::addPageNumbers($pdf);
 
-        return $pdf->download('eksternal-mesin-' . $tahun . '.pdf');
+        return $pdf->download('kalibrasi-mesin-' . $tahun . '.pdf');
     }
 
     public function mesinDownloadTemplate()

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\DataAllProduksi;
+use App\Models\VerifikasiInternalSchedule;
 use Illuminate\Http\Request;
 use App\Exports\DataAllProduksiExport;
 use App\Imports\DataAllProduksiImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
 
 class DataAllProduksiController extends Controller
 {
@@ -15,7 +17,7 @@ class DataAllProduksiController extends Controller
         $divisionList = [
             'QA 1', 'QA 1.2', 'QA 2', 'QA INC', 'QA INSP', 
             'PPIC 1', 'PPIC 2', 'LINE SCC', 'P1', 'P2', 
-            'P3', 'P5', 'P6', 'P7', 'P8'
+            'P3', 'P5', 'P6', 'P7', 'P8', 'ENG', 'NISSHO'
         ];
 
         $selectedDivision = $request->get('division', 'ALL'); 
@@ -70,7 +72,7 @@ class DataAllProduksiController extends Controller
 
     public function create()
     {
-        $divisionList = ['QA 1', 'QA 1.2', 'QA 2', 'QA INC', 'QA INSP', 'PPIC 1', 'PPIC 2', 'LINE SCC', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8'];
+        $divisionList = ['QA 1', 'QA 1.2', 'QA 2', 'QA INC', 'QA INSP', 'PPIC 1', 'PPIC 2', 'LINE SCC', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'ENG', 'NISSHO'];
         return view('data-all-produksi.create', compact('divisionList'));
     }
 
@@ -87,7 +89,8 @@ class DataAllProduksiController extends Controller
             $validated[$month] = $request->input($month); // Tidak dipaksa 0
         }
 
-        DataAllProduksi::create($validated);
+        $productionRow = DataAllProduksi::create($validated);
+        VerifikasiInternalSchedule::syncForProductionRow($productionRow);
 
         if ($request->input('save_mode') === 'another') {
             return redirect()->route('data-all-produksi.create')->with('success', 'Data berhasil disimpan.');
@@ -97,7 +100,7 @@ class DataAllProduksiController extends Controller
 
     public function edit(DataAllProduksi $dataAllProduksi)
     {
-        $divisionList = ['QA 1', 'QA 1.2', 'QA 2', 'QA INC', 'QA INSP', 'PPIC 1', 'PPIC 2', 'LINE SCC', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8'];
+        $divisionList = ['QA 1', 'QA 1.2', 'QA 2', 'QA INC', 'QA INSP', 'PPIC 1', 'PPIC 2', 'LINE SCC', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'ENG', 'NISSHO'];
         return view('data-all-produksi.edit', ['item' => $dataAllProduksi, 'divisionList' => $divisionList]);
     }
 
@@ -114,6 +117,7 @@ class DataAllProduksiController extends Controller
         }
 
         $dataAllProduksi->update($validated);
+        VerifikasiInternalSchedule::syncForProductionRow($dataAllProduksi->fresh());
         return redirect()->route('data-all-produksi.index', ['division' => $request->division])->with('success', 'Data berhasil diperbarui.');
     }
 
@@ -138,7 +142,10 @@ class DataAllProduksiController extends Controller
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:5120']);
         try {
             $filePath = $request->file('file')->getRealPath();
-            Excel::import(new DataAllProduksiImport($filePath), $request->file('file'));
+            DB::transaction(function () use ($filePath, $request): void {
+                Excel::import(new DataAllProduksiImport($filePath), $request->file('file'));
+                VerifikasiInternalSchedule::syncAllProductionRows();
+            });
             return redirect()->route('data-all-produksi.index')->with('success', 'Data berhasil di-import!');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal import: ' . $e->getMessage());

@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 class VerifikasiController extends Controller
 {
@@ -27,23 +28,23 @@ class VerifikasiController extends Controller
         $filters = $request->validate([
             'tahun' => 'nullable|integer|between:2000,2100',
             'mode' => 'nullable|in:bulanan,harian',
+            'company' => 'nullable|in:HAMATETSU,NISSO GIKEN',
         ]);
         $tahun = $filters['tahun'] ?? date('Y');
         $mode = $filters['mode'] ?? 'bulanan';
+        $company = $filters['company'] ?? 'HAMATETSU';
 
-        if ($mode == 'harian') {
-            $schedules = Verifikasi::where('tahun', $tahun)
-                ->where('tipe', 'harian')
-                ->orderBy('tool_name', 'asc')
-                ->get();
-        } else {
-            $schedules = Verifikasi::where('tahun', $tahun)
-                ->where('tipe', 'bulanan')
-                ->orderBy('tool_name', 'asc')
-                ->get();
+        if ($company === 'NISSO GIKEN' && $mode !== 'harian') {
+            return redirect()->route('verifikasi.index', ['tahun' => $tahun, 'mode' => 'harian', 'company' => $company]);
         }
 
-        return view('verifikasi.index', compact('schedules', 'tahun', 'mode'));
+        $schedules = Verifikasi::where('tahun', $tahun)
+            ->where('company', $company)
+            ->where('tipe', $mode)
+            ->orderBy('tool_name', 'asc')
+            ->get();
+
+        return view('verifikasi.index', compact('schedules', 'tahun', 'mode', 'company'));
     }
 
     // ==========================================
@@ -54,16 +55,22 @@ class VerifikasiController extends Controller
         $filters = $request->validate([
             'mode' => 'nullable|in:bulanan,harian',
             'tahun' => 'nullable|integer|between:2000,2100',
+            'company' => 'nullable|in:HAMATETSU,NISSO GIKEN',
         ]);
         $mode = $filters['mode'] ?? 'bulanan';
         $tahun = (int) ($filters['tahun'] ?? date('Y'));
+        $company = $filters['company'] ?? 'HAMATETSU';
+
+        if ($company === 'NISSO GIKEN') {
+            $mode = 'harian';
+        }
 
         $tools = Tool::select('tool_name')
             ->distinct()
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        return view('verifikasi.create', compact('tools', 'mode', 'tahun'));
+        return view('verifikasi.create', compact('tools', 'mode', 'tahun', 'company'));
     }
 
     // ==========================================
@@ -71,11 +78,18 @@ class VerifikasiController extends Controller
     // ==========================================
     public function store(Request $request)
     {
-        $modeData = $request->validate(['tipe' => 'required|in:bulanan,harian']);
+        $modeData = $request->validate([
+            'tipe' => 'required|in:bulanan,harian',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
+        ]);
         $mode = $modeData['tipe'];
+        if ($modeData['company'] === 'NISSO GIKEN' && $mode !== 'harian') {
+            return back()->withInput()->withErrors(['tipe' => 'NISSO GIKEN menggunakan jadwal verifikasi enam bulanan. Pilih mode Bulanan.']);
+        }
         $data['tool_name'] = strtoupper($request->tool_name);
         $data['tahun'] = $request->tahun;
         $data['tipe'] = $mode;
+        $data['company'] = $modeData['company'];
 
         if ($mode == 'harian') {
             $request->validate([
@@ -139,6 +153,11 @@ class VerifikasiController extends Controller
 
         $data['verified_by'] = $request->boolean('sudah_diverifikasi') ? Auth::user()->name : null;
         $data['verified_at'] = $request->boolean('sudah_diverifikasi') ? now() : null;
+
+        if ($message = $this->validateNissoCycle($data)) {
+            return back()->withInput()->withErrors(['tanggal' => $message]);
+        }
+
         $verifikasi = Verifikasi::create($data);
 
         $this->logCreate(
@@ -149,11 +168,11 @@ class VerifikasiController extends Controller
         );
 
         if ($request->input('save_mode') === 'another') {
-            return redirect()->route('verifikasi.create', ['tahun' => $data['tahun'], 'mode' => $mode])
+            return redirect()->route('verifikasi.create', ['tahun' => $data['tahun'], 'mode' => $mode, 'company' => $data['company']])
                 ->with('success', 'Data berhasil disimpan. Lanjutkan input berikutnya.');
         }
 
-        return redirect()->route('verifikasi.index', ['tahun' => $data['tahun'], 'mode' => $mode])
+        return redirect()->route('verifikasi.index', ['tahun' => $data['tahun'], 'mode' => $mode, 'company' => $data['company']])
             ->with('success', 'Jadwal verifikasi berhasil ditambahkan!');
     }
 
@@ -166,8 +185,14 @@ class VerifikasiController extends Controller
     {
         $dataLama = $verifikasi->toArray();
 
+        $data['company'] = $request->validate(['company' => 'required|in:HAMATETSU,NISSO GIKEN'])['company'];
+        if ($data['company'] === 'NISSO GIKEN' && $verifikasi->tipe !== 'harian') {
+            return redirect()->route('verifikasi.index', ['tahun' => $verifikasi->tahun, 'mode' => 'harian', 'company' => 'NISSO GIKEN'])
+                ->with('error', 'Jadwal tahunan NISSO GIKEN tidak digunakan. Buat jadwal melalui mode Bulanan.');
+        }
         $data['tool_name'] = strtoupper($request->tool_name);
         $data['tahun'] = $request->tahun;
+        $data['tipe'] = $verifikasi->tipe;
 
         if ($verifikasi->tipe == 'harian') {
             $request->validate([
@@ -230,6 +255,10 @@ class VerifikasiController extends Controller
         }
 
         // Jika data berubah setelah konfirmasi, wajib diperiksa dan dikonfirmasi ulang.
+        if ($message = $this->validateNissoCycle($data, $verifikasi)) {
+            return back()->withInput()->withErrors(['tanggal' => $message]);
+        }
+
         $wasVerified = (bool) $verifikasi->verified_at;
         $dataChanged = collect($data)->contains(fn ($value, $key) => (string) ($verifikasi->{$key} ?? '') !== (string) ($value ?? ''));
         $reopened = $wasVerified && $dataChanged;
@@ -245,7 +274,7 @@ class VerifikasiController extends Controller
             $verifikasi->fresh()->toArray()
         );
 
-        return redirect()->route('verifikasi.index', ['mode' => $verifikasi->tipe])
+        return redirect()->route('verifikasi.index', ['tahun' => $verifikasi->tahun, 'mode' => $verifikasi->tipe, 'company' => $verifikasi->company])
             ->with('success', $reopened
                 ? 'Data diperbarui. Status konfirmasi dibuka kembali dan perlu diperiksa ulang.'
                 : 'Jadwal verifikasi berhasil diperbarui!');
@@ -262,7 +291,7 @@ class VerifikasiController extends Controller
 
         $this->logDelete('verifikasi', $verifikasiId, $keterangan, $dataLama);
 
-        return redirect()->route('verifikasi.index', ['mode' => $mode])
+        return redirect()->route('verifikasi.index', ['tahun' => $verifikasi->tahun, 'mode' => $mode, 'company' => $verifikasi->company])
             ->with('success', 'Jadwal verifikasi berhasil dihapus!');
     }
 
@@ -316,9 +345,16 @@ class VerifikasiController extends Controller
     // ==========================================
     public function importForm(Request $request)
     {
-        $filters = $request->validate(['mode' => 'nullable|in:bulanan,harian']);
+        $filters = $request->validate([
+            'mode' => 'nullable|in:bulanan,harian',
+            'company' => 'nullable|in:HAMATETSU,NISSO GIKEN',
+        ]);
         $mode = $filters['mode'] ?? 'bulanan';
-        return view('verifikasi.import', compact('mode'));
+        $company = $filters['company'] ?? 'HAMATETSU';
+        if ($company === 'NISSO GIKEN') {
+            $mode = 'harian';
+        }
+        return view('verifikasi.import', compact('mode', 'company'));
     }
 
     public function importStore(Request $request)
@@ -327,15 +363,22 @@ class VerifikasiController extends Controller
             'file' => 'required|mimes:xlsx,xls,csv|max:2048',
             'tahun' => 'required|digits:4',
             'mode' => 'required|in:bulanan,harian',
+            'company' => 'required|in:HAMATETSU,NISSO GIKEN',
         ]);
 
+        if ($request->company === 'NISSO GIKEN' && $request->mode !== 'harian') {
+            return back()->withInput()->withErrors(['mode' => 'Import NISSO GIKEN harus menggunakan format jadwal Bulanan/enam bulanan.']);
+        }
+
         try {
+            $import = new VerifikasiImport(
+                $request->tahun,
+                $request->mode,
+                $request->company,
+                SpreadsheetHeaderRowDetector::detect($request->file('file'))
+            );
             Excel::import(
-                new VerifikasiImport(
-                    $request->tahun,
-                    $request->mode,
-                    SpreadsheetHeaderRowDetector::detect($request->file('file'))
-                ),
+                $import,
                 $request->file('file')
             );
 
@@ -350,7 +393,8 @@ class VerifikasiController extends Controller
 
             return redirect()->route('verifikasi.index', [
                 'tahun' => $request->tahun,
-                'mode' => $request->mode
+                'mode' => $request->mode,
+                'company' => $request->company,
             ])->with('success', 'Data berhasil di-import.');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal import: ' . $e->getMessage());
@@ -365,16 +409,21 @@ class VerifikasiController extends Controller
         $filters = $request->validate([
             'tahun' => 'nullable|integer|between:2000,2100',
             'mode' => 'nullable|in:bulanan,harian',
+            'company' => 'nullable|in:HAMATETSU,NISSO GIKEN',
         ]);
         $tahun = $filters['tahun'] ?? date('Y');
         $mode = $filters['mode'] ?? 'bulanan';
+        $company = $filters['company'] ?? 'HAMATETSU';
+        if ($company === 'NISSO GIKEN') {
+            $mode = 'harian';
+        }
 
         $labelMode = $mode === 'bulanan' ? 'tahunan' : 'bulanan';
-        $filename = 'verifikasi-' . $labelMode . '-' . $tahun . '.xlsx';
+        $filename = 'verifikasi-' . $labelMode . '-' . strtolower(str_replace(' ', '-', $company)) . '-' . $tahun . '.xlsx';
 
         $this->logExport('verifikasi', 'Export Excel mode ' . strtoupper($mode) . ' tahun ' . $tahun);
 
-        return Excel::download(new VerifikasiExport($tahun, $mode), $filename);
+        return Excel::download(new VerifikasiExport($tahun, $mode, $company), $filename);
     }
 
     /**
@@ -385,11 +434,17 @@ class VerifikasiController extends Controller
         $filters = $request->validate([
             'tahun' => 'nullable|integer|between:2000,2100',
             'mode' => 'nullable|in:bulanan,harian',
+            'company' => 'nullable|in:HAMATETSU,NISSO GIKEN',
         ]);
         $tahun = $filters['tahun'] ?? date('Y');
         $mode = $filters['mode'] ?? 'bulanan';
+        $company = $filters['company'] ?? 'HAMATETSU';
+        if ($company === 'NISSO GIKEN') {
+            $mode = 'harian';
+        }
 
         $data = Verifikasi::where('tahun', $tahun)
+            ->where('company', $company)
             ->where('tipe', $mode)
             ->orderBy('tool_name', 'asc')
             ->get();
@@ -401,19 +456,22 @@ class VerifikasiController extends Controller
         $this->logExport('verifikasi', 'Export PDF Verifikasi mode ' . strtoupper($mode) . ' - Nomor: ' . $nomorDokumen);
 
         // ===== GENERATE PDF =====
-        $pdf = Pdf::loadView('verifikasi.pdf', compact('data', 'tahun', 'mode', 'nomorDokumen'))
+        $pdf = Pdf::loadView('verifikasi.pdf', compact('data', 'tahun', 'mode', 'company', 'nomorDokumen'))
             ->setPaper('a4', 'landscape');
 
         DocumentPdfLayout::addPageNumbers($pdf);
 
         $labelMode = $mode === 'bulanan' ? 'tahunan' : 'bulanan';
-        return $pdf->download('verifikasi-' . $labelMode . '-' . $tahun . '.pdf');
+        return $pdf->download('verifikasi-' . $labelMode . '-' . strtolower(str_replace(' ', '-', $company)) . '-' . $tahun . '.pdf');
     }
 
     public function downloadTemplate(Request $request)
     {
         $filters = $request->validate(['mode' => 'nullable|in:bulanan,harian']);
         $mode = $filters['mode'] ?? 'bulanan';
+        if ($request->input('company') === 'NISSO GIKEN') {
+            $mode = 'harian';
+        }
 
         $labelMode = $mode === 'bulanan' ? 'tahunan' : 'bulanan';
         $filename = 'template-import-verifikasi-' . $labelMode . '.csv';
@@ -452,5 +510,45 @@ class VerifikasiController extends Controller
         return response()->streamDownload($callback, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    /** Enforce two NISSO GIKEN records per tool and a six-month gap between dates. */
+    private function validateNissoCycle(array $data, ?Verifikasi $current = null): ?string
+    {
+        if (($data['company'] ?? null) !== 'NISSO GIKEN' || ($data['tipe'] ?? null) !== 'harian') {
+            return null;
+        }
+
+        if (empty($data['tanggal'])) {
+            return 'Tanggal jadwal NISSO GIKEN wajib diisi.';
+        }
+
+        $records = Verifikasi::query()
+            ->where('company', 'NISSO GIKEN')
+            ->where('tipe', 'harian')
+            ->where('tool_name', strtoupper($data['tool_name']))
+            ->whereNotNull('tanggal')
+            ->when($current, fn ($query) => $query->where('id', '!=', $current->getKey()))
+            ->get(['id', 'tahun', 'tanggal']);
+
+        $sameYearCount = $records->where('tahun', (int) $data['tahun'])->count();
+        if ($sameYearCount >= 2) {
+            return 'NISSO GIKEN hanya memiliki maksimal dua jadwal untuk alat ini dalam satu tahun.';
+        }
+
+        $proposed = Carbon::parse($data['tanggal'])->startOfDay();
+        if ($proposed->year !== (int) $data['tahun']) {
+            return 'Tahun jadwal harus sama dengan tahun pada tanggal verifikasi.';
+        }
+        foreach ($records as $record) {
+            $existing = Carbon::parse($record->tanggal)->startOfDay();
+            $earlier = $proposed->lessThan($existing) ? $proposed : $existing;
+            $later = $proposed->greaterThan($existing) ? $proposed : $existing;
+            if ($earlier->copy()->addMonthsNoOverflow(6)->greaterThan($later)) {
+                return 'Jadwal NISSO GIKEN untuk alat yang sama harus berjarak minimal enam bulan.';
+            }
+        }
+
+        return null;
     }
 }
