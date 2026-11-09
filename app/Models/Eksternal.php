@@ -14,6 +14,7 @@ class Eksternal extends Model
     protected $fillable = [
         'tool_name',
         'tahun',
+        'company',
         'jan', 'feb', 'mar', 'apr', 'may', 'jun',
         'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
         'qty_set',

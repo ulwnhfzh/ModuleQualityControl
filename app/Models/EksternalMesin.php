@@ -22,6 +22,7 @@ class EksternalMesin extends Model
         'start_date',
         'next_date',
         'tahun',
+        'company',
         'jan', 'feb', 'mar', 'apr', 'may', 'jun',
         'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
         'total',

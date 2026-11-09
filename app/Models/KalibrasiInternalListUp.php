@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class KalibrasiInternalListUp extends Model
 {
     protected $fillable = [
-        'tahun', 'tool_name', 'tool_type', 'specification', 'serial_number',
+        'tahun', 'company', 'tool_name', 'tool_type', 'specification', 'serial_number',
         'registration_number', 'shop', 'calibration_date', 'next_calibration_date', 'jgm',
         'period2_calibration_date', 'period2_next_calibration_date', 'period2_jgm',
     ];
