@@ -10,7 +10,7 @@ class Verifikasi extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tool_name', 'tahun', 'tipe', 'tanggal',
+        'tool_name', 'tahun', 'company', 'tipe', 'tanggal',
         // Bulanan
         'jan', 'feb', 'mar', 'apr', 'may', 'jun',
         'jul', 'aug', 'sep', 'oct', 'nov', 'dec',

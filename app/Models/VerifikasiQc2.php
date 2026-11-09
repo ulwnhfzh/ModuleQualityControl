@@ -13,7 +13,7 @@ class VerifikasiQc2 extends Model
     
     protected $fillable = [
         'tool_id', 'tool_name', 'tool_type', 'specification', 'serial_number',
-        'registration_number', 'tahun', 'shop',
+        'registration_number', 'tahun', 'company', 'shop',
         'verification_date', 'next_verification_date', 'jgm', // Hanya 1 periode
     ];
 
