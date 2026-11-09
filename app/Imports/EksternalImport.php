@@ -9,11 +9,13 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 class EksternalImport implements ToModel, WithHeadingRow
 {
     protected string $tahun;
+    protected string $company;
     protected int $rowHeader;
 
-    public function __construct(string $tahun, int $rowHeader = 1)
+    public function __construct(string $tahun, string $company = 'HAMATETSU', int $rowHeader = 1)
     {
         $this->tahun = $tahun;
+        $this->company = $company;
         $this->rowHeader = $rowHeader;
     }
 
@@ -28,6 +30,7 @@ class EksternalImport implements ToModel, WithHeadingRow
         $data = [
             'tool_name' => strtoupper($row['tool_name']),
             'tahun'     => $this->tahun,
+            'company'   => $this->company,
         ];
         foreach (SpreadsheetInput::MONTH_FIELDS as $month) {
             $data[$month] = SpreadsheetInput::integer($row[$month] ?? null, "{$row['tool_name']} / {$month}");

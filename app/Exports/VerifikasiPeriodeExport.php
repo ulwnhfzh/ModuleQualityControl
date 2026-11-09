@@ -15,7 +15,7 @@ class VerifikasiPeriodeExport implements FromCollection, WithHeadings, WithMappi
 {
     private int $number = 0;
 
-    public function __construct(private readonly int $tahun)
+    public function __construct(private readonly int $tahun, private readonly string $company = 'HAMATETSU')
     {
     }
 
@@ -23,7 +23,7 @@ class VerifikasiPeriodeExport implements FromCollection, WithHeadings, WithMappi
 
     public function collection(): Collection
     {
-        return VerifikasiInternalSchedule::where('tahun', $this->tahun)->orderBy('tool_name')->get();
+        return VerifikasiInternalSchedule::where('tahun', $this->tahun)->where('company', $this->company)->orderBy('tool_name')->get();
     }
 
     public function headings(): array

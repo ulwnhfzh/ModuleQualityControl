@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class KalibrasiInternalListUpImport implements ToCollection, WithHeadingRow
 {
-    public function __construct(private readonly int $tahun, private readonly int $rowHeader = 1) {}
+    public function __construct(private readonly int $tahun, private readonly string $company = 'HAMATETSU', private readonly int $rowHeader = 1) {}
 
     public function headingRow(): int { return $this->rowHeader; }
 
@@ -26,7 +26,7 @@ class KalibrasiInternalListUpImport implements ToCollection, WithHeadingRow
                 if ($type === null) throw new \RuntimeException("Tipe alat wajib diisi pada baris {$name}.");
 
                 $serial = $this->value($data, ['serial_number', 'number_seri', 'nomor_seri']);
-                $identity = ['tahun' => $this->tahun, 'tool_name' => $name, 'serial_number' => $serial];
+                $identity = ['tahun' => $this->tahun, 'company' => $this->company, 'tool_name' => $name, 'serial_number' => $serial];
                 KalibrasiInternalListUp::updateOrCreate($identity, [
                     'tool_type' => mb_strtoupper($type),
                     'specification' => $this->value($data, ['specification', 'spesifikasi']),

@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class VerifikasiPeriodeImport implements ToCollection, WithHeadingRow
 {
-    public function __construct(private readonly int $tahun, private readonly int $rowHeader = 1) {}
+    public function __construct(private readonly int $tahun, private readonly string $company = 'HAMATETSU', private readonly int $rowHeader = 1) {}
 
     public function headingRow(): int { return $this->rowHeader; }
 
@@ -29,7 +29,7 @@ class VerifikasiPeriodeImport implements ToCollection, WithHeadingRow
                 }
 
                 $serial = $this->nullableString($data['serial_number'] ?? $data['number_seri'] ?? null);
-                $identity = ['tahun' => $this->tahun, 'tool_name' => $name];
+                $identity = ['tahun' => $this->tahun, 'company' => $this->company, 'tool_name' => $name];
                 if ($serial !== null) {
                     $identity['serial_number'] = $serial;
                 }

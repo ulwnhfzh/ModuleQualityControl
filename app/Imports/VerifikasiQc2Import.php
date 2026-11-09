@@ -11,12 +11,16 @@ class VerifikasiQc2Import implements ToModel, WithHeadingRow, WithCalculatedForm
 {
     protected $tahun;
     protected $rowHeader;
+    protected $company;
 
-    public function __construct($tahun, $rowHeader = 1)
+    public function __construct($tahun, $company = 'HAMATETSU', $rowHeader = 1)
     {
         $this->tahun = $tahun;
+        $this->company = $company;
         $this->rowHeader = $rowHeader;
     }
+
+    public function headingRow(): int { return (int) $this->rowHeader; }
 
     public function model(array $row)
     {
@@ -26,6 +30,7 @@ class VerifikasiQc2Import implements ToModel, WithHeadingRow, WithCalculatedForm
 
         return new VerifikasiQc2([
             'tahun' => $this->tahun,
+            'company' => $this->company,
             'tool_name' => strtoupper(trim($row['tool_name'])),
             'tool_type' => isset($row['type']) ? strtoupper(trim($row['type'])) : null,
             'specification' => $row['specification'] ?? null,

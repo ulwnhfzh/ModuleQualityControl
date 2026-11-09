@@ -17,11 +17,13 @@ use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 class InternalExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithEvents, WithTitle
 {
     protected string $tahun;
+    protected string $company;
     protected $data;
 
-    public function __construct(string $tahun)
+    public function __construct(string $tahun, string $company = 'HAMATETSU')
     {
         $this->tahun = $tahun;
+        $this->company = $company;
     }
 
     public function title(): string { return 'Kalibrasi Internal'; }

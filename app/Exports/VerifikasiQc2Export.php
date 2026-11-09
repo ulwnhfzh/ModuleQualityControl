@@ -13,17 +13,19 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class VerifikasiQc2Export implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles, WithTitle
 {
     protected $tahun;
+    protected $company;
 
-    public function __construct($tahun)
+    public function __construct($tahun, $company = 'HAMATETSU')
     {
         $this->tahun = $tahun;
+        $this->company = $company;
     }
 
     public function title(): string { return 'Verifikasi QC2'; }
 
     public function collection()
     {
-        $data = VerifikasiQc2::where('tahun', $this->tahun)->orderBy('tool_name')->get();
+        $data = VerifikasiQc2::where('tahun', $this->tahun)->where('company', $this->company)->orderBy('tool_name')->get();
         
         return $data->map(function($item, $key) {
             return [

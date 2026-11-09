@@ -18,12 +18,14 @@ class VerifikasiExport implements FromCollection, WithHeadings, WithMapping, Wit
 {
     protected string $tahun;
     protected string $mode;
+    protected string $company;
     protected $data;
 
-    public function __construct(string $tahun, string $mode = 'bulanan')
+    public function __construct(string $tahun, string $mode = 'bulanan', string $company = 'HAMATETSU')
     {
         $this->tahun = $tahun;
         $this->mode = $mode;
+        $this->company = $company;
     }
 
     public function title(): string
@@ -44,6 +46,7 @@ class VerifikasiExport implements FromCollection, WithHeadings, WithMapping, Wit
     public function collection()
     {
         $this->data = Verifikasi::where('tahun', $this->tahun)
+            ->where('company', $this->company)
             ->where('tipe', $this->mode)
             ->orderBy('tool_name', 'asc')
             ->get();

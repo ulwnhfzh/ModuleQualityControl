@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Events\AfterSheet;
 
 class KalibrasiInternalListUpExport implements FromCollection, WithHeadings, WithMapping, WithEvents, WithTitle
 {
-    public function __construct(private readonly int $tahun) {}
+    public function __construct(private readonly int $tahun, private readonly string $company = 'HAMATETSU') {}
 
     public function title(): string { return 'Kalibrasi List Up'; }
 

@@ -37,6 +37,12 @@ class DataAllProduksiImport implements WithMultipleSheets
 /** Reads each sheet by its actual header labels, including the two-level month header. */
 class DataAllProduksiSheetImport implements WithEvents
 {
+    private const VALID_DIVISIONS = [
+        'QA 1', 'QA 1.2', 'QA 2', 'QA INC', 'QA INSP',
+        'PPIC 1', 'PPIC 2', 'LINE SCC',
+        'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'ENG', 'NISSHO',
+    ];
+
     private const MONTHS = [
         'JAN' => 'jan', 'JANUARI' => 'jan',
         'FEB' => 'feb', 'FEBRUARI' => 'feb',
@@ -97,6 +103,12 @@ class DataAllProduksiSheetImport implements WithEvents
                 throw new RuntimeException('Sheet "' . $sheet->getTitle() . '" memiliki header alat, tetapi header bulan JAN–DEC tidak ditemukan.');
             }
 
+            $sheetDivision = $this->normalize($sheet->getTitle());
+            $division = $this->canonicalDivision($sheetDivision);
+            if (!in_array($division, self::VALID_DIVISIONS, true)) {
+                throw new RuntimeException('Division "' . $sheet->getTitle() . '" tidak dikenal. Import dibatalkan. Gunakan nama sheet division yang terdaftar, misalnya QA 1, LINE SCC, P1, atau ENG.');
+            }
+
             $fieldColumns = [
                 'tool_name' => $headers['TOOL NAME'],
                 'type' => $headers['TYPE'],
@@ -106,14 +118,18 @@ class DataAllProduksiSheetImport implements WithEvents
                 'part_name' => $headers['PART NAME'] ?? null,
                 'part_number' => $headers['PART NUMBER'] ?? null,
                 'note' => $headers['NOTE'] ?? null,
+                'division' => $headers['DIVISION'] ?? null,
             ];
             $firstDataRow = max($headerRow, $monthHeaderRow ?? $headerRow) + 1;
-            $division = mb_strtoupper(trim($sheet->getTitle()));
-
             DB::transaction(function () use ($sheet, $lastRow, $fieldColumns, $monthColumns, $firstDataRow, $division): void {
                 for ($row = $firstDataRow; $row <= $lastRow; $row++) {
                     $toolName = $this->cellText($sheet, $fieldColumns['tool_name'], $row);
                     if ($toolName === null || $toolName === '') continue;
+
+                    $rowDivision = $this->cellText($sheet, $fieldColumns['division'], $row);
+                    if ($rowDivision !== null && $this->canonicalDivision($rowDivision) !== $division) {
+                        throw new RuntimeException('Division pada baris ' . $row . ' di sheet "' . $sheet->getTitle() . '" tidak sesuai dengan division sheet. Seluruh import dibatalkan.');
+                    }
 
                     $record = [
                         'division' => $division,
@@ -137,6 +153,7 @@ class DataAllProduksiSheetImport implements WithEvents
                         'tool_name' => $record['tool_name'],
                         'size' => $record['size'],
                     ], $record);
+
                 }
             });
         }];
@@ -155,5 +172,24 @@ class DataAllProduksiSheetImport implements WithEvents
     {
         $value = mb_strtoupper(trim((string) $value));
         return preg_replace('/\s+/', ' ', str_replace(["\r", "\n"], ' ', $value));
+    }
+
+    private function canonicalDivision(string $value): string
+    {
+        $value = $this->normalize($value);
+        return match ($value) {
+            'LSCC', 'L.SCC' => 'LINE SCC',
+            'QA INCOMING' => 'QA INC',
+            'QA INSPECTION' => 'QA INSP',
+            'ENGINEERING' => 'ENG',
+            'PRODUKSI 1' => 'P1',
+            'PRODUKSI 2' => 'P2',
+            'PRODUKSI 3' => 'P3',
+            'PRODUKSI 5' => 'P5',
+            'PRODUKSI 6' => 'P6',
+            'PRODUKSI 7' => 'P7',
+            'PRODUKSI 8' => 'P8',
+            default => $value,
+        };
     }
 }
