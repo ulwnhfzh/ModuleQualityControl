@@ -17,6 +17,8 @@ use App\Http\Controllers\StockController;
 use App\Http\Controllers\ToolDefectController;
 use App\Http\Controllers\DataAllProduksiController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MasterCalibratorController;
+use App\Http\Controllers\ExternalCalibrationListUpController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +36,8 @@ Route::get('/verifikasi/periode', [VerifikasiPeriodeController::class, 'index'])
 Route::get('/internal', [InternalController::class, 'index'])->name('internal.index');
 Route::get('/eksternal-small', [CalibrationController::class, 'eksternalSmall'])->name('eksternal.small');
 Route::get('/mesin', [CalibrationController::class, 'mesin'])->name('mesin.index');
+Route::get('/master-kalibrator', [MasterCalibratorController::class, 'index'])->name('master-calibrator.index');
+Route::get('/external-calibration-list-up', [ExternalCalibrationListUpController::class, 'index'])->name('external-list-up.index');
 
 /*
 |--------------------------------------------------------------------------
@@ -175,6 +179,24 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/eksternal-small/export/excel', [CalibrationController::class, 'eksternalSmallExportExcel'])->name('eksternal.small.export.excel');
     Route::get('/eksternal-small/export/pdf', [CalibrationController::class, 'eksternalSmallExportPdf'])->name('eksternal.small.export.pdf');
     Route::get('/eksternal-small/download-template', [CalibrationController::class, 'eksternalSmallDownloadTemplate'])->name('eksternal.small.template');
+
+    // ===== KALIBRASI EKSTERNAL MESIN =====
+    Route::post('/external-calibration-list-up/import', [ExternalCalibrationListUpController::class, 'import'])->name('external-list-up.import');
+    Route::get('/external-calibration-list-up/export', [ExternalCalibrationListUpController::class, 'export'])->name('external-list-up.export');
+    Route::get('/external-calibration-list-up/create', [ExternalCalibrationListUpController::class, 'create'])->name('external-list-up.create');
+    Route::post('/external-calibration-list-up', [ExternalCalibrationListUpController::class, 'store'])->name('external-list-up.store');
+    Route::get('/external-calibration-list-up/{item}/edit', [ExternalCalibrationListUpController::class, 'edit'])->name('external-list-up.edit');
+    Route::put('/external-calibration-list-up/{item}', [ExternalCalibrationListUpController::class, 'update'])->name('external-list-up.update');
+    Route::delete('/external-calibration-list-up/{item}', [ExternalCalibrationListUpController::class, 'destroy'])->name('external-list-up.destroy');
+
+    // ===== KALIBRASI EKSTERNAL MESIN =====
+    Route::post('/master-kalibrator/import', [MasterCalibratorController::class, 'import'])->name('master-calibrator.import');
+    Route::get('/master-kalibrator/export', [MasterCalibratorController::class, 'export'])->name('master-calibrator.export');
+    Route::get('/master-kalibrator/create', [MasterCalibratorController::class, 'create'])->name('master-calibrator.create');
+    Route::post('/master-kalibrator', [MasterCalibratorController::class, 'store'])->name('master-calibrator.store');
+    Route::get('/master-kalibrator/{masterCalibrator}/edit', [MasterCalibratorController::class, 'edit'])->name('master-calibrator.edit');
+    Route::put('/master-kalibrator/{masterCalibrator}', [MasterCalibratorController::class, 'update'])->name('master-calibrator.update');
+    Route::delete('/master-kalibrator/{masterCalibrator}', [MasterCalibratorController::class, 'destroy'])->name('master-calibrator.destroy');
 
     // ===== KALIBRASI EKSTERNAL MESIN =====
     Route::get('/mesin/create', [CalibrationController::class, 'mesinCreate'])->name('mesin.create');

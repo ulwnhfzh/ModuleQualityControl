@@ -331,7 +331,7 @@
            x-data="{
                verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
-               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'true' : 'false' }}
+               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('external-list-up.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'true' : 'false' }}
            }">
         <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
             
@@ -394,7 +394,7 @@
                 </div>
 
                 <button type="button" @click="kalibrasiOpen = !kalibrasiOpen"
-                        class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'active' : '' }}">
+                        class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('external-list-up.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
                     <span class="flex-1 text-left">Kalibrasi Alat</span>
                     <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''"
@@ -406,6 +406,10 @@
                 <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
                         <span class="dot"></span><span>Eksternal</span>
+                    </a>
+
+                    <a href="{{ route('external-list-up.index') }}" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') ? 'active' : '' }}">
+                        <span class="dot"></span><span>List Up External Calibration</span>
                     </a>
                     
                     <!-- HANYA KALIBRASI INTERNAL YANG DIPINDAHKAN KE SINI -->
@@ -479,7 +483,7 @@
            x-data="{
                verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
-               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'true' : 'false' }}
+               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('external-list-up.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'true' : 'false' }}
            }">
         <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
             
@@ -536,7 +540,7 @@
                 </div>
 
                 <button type="button" @click="kalibrasiOpen = !kalibrasiOpen"
-                        class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'active' : '' }}">
+                        class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('external-list-up.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
                     <span class="flex-1 text-left">Kalibrasi Alat</span>
                     <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''"
@@ -548,6 +552,10 @@
                 <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
                         <span class="dot"></span><span>Eksternal</span>
+                    </a>
+
+                    <a href="{{ route('external-list-up.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') ? 'active' : '' }}">
+                        <span class="dot"></span><span>List Up External Calibration</span>
                     </a>
                     
                     <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi' ? 'active' : '' }}">
