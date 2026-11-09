@@ -94,7 +94,8 @@
             </thead>
             <tbody>
                 @forelse($data as $index => $item)
-                    <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }} hover:bg-blue-50/50 text-center">
+                    @php($hasNg = collect(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'])->contains(fn ($month) => $item->resultStatus($month) === 'NG'))
+                    <tr class="{{ $hasNg ? 'bg-rose-100 text-rose-900 hover:bg-rose-200' : ($index % 2 ? 'bg-slate-50' : 'bg-white') . ' hover:bg-blue-50/50' }} text-center">
                         <td class="border border-slate-200 px-2 py-3">{{ ($data->firstItem() ?? 1) + $index }}</td>
                         
                         @if($selectedDivision === 'ALL')

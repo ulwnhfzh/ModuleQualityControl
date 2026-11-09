@@ -23,6 +23,7 @@
                     class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="{{ route('eksternal.small') }}" selected>Small Tool</option>
                 <option value="{{ route('mesin.index') }}">Mesin Alat Ukur</option>
+                <option value="{{ route('master-calibrator.index') }}">Master Kalibrator</option>
             </select>
             <label for="tahun-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
             <select id="tahun-eksternal" name="tahun" onchange="this.form.submit()"
@@ -39,7 +40,7 @@
             </p>
 
             @if(Auth::check() && Auth::user()->role === 'admin')
-                <a href="{{ route('eksternal.small.import.form') }}"
+                <a href="{{ route('eksternal.small.import.form', ['tahun' => $tahun, 'company' => $company]) }}"
                    class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap
                           px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
                     @include('components.icons.import') Import
@@ -57,7 +58,7 @@
                     <div id="exportMenuEks"
                          class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
 
-                        <a href="{{ route('eksternal.small.export.excel', ['tahun' => $tahun]) }}"
+                        <a href="{{ route('eksternal.small.export.excel', ['tahun' => $tahun, 'company' => $company]) }}"
                            class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                 <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
@@ -67,7 +68,7 @@
                             <span class="font-medium">Export Excel</span>
                         </a>
 
-                        <a href="{{ route('eksternal.small.export.pdf', ['tahun' => $tahun]) }}"
+                        <a href="{{ route('eksternal.small.export.pdf', ['tahun' => $tahun, 'company' => $company]) }}"
                            class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                 <path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
@@ -80,7 +81,7 @@
                 </div>
             @endif
 
-            <a href="{{ route('eksternal.small.create', ['tahun' => $tahun]) }}"
+            <a href="{{ route('eksternal.small.create', ['tahun' => $tahun, 'company' => $company]) }}"
                class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
                       px-3 py-1.5 text-[11px] sm:px-4 sm:py-2 sm:text-sm">
                 <span>+</span> Tambah Jadwal

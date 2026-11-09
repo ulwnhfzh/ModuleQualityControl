@@ -6,7 +6,7 @@
     
     <!-- HEADER HALAMAN -->
     <div class="mb-6">
-        <a href="{{ route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'verifikasi_qc2']) }}" class="inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-800 transition">
+        <a href="{{ route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'verifikasi_qc2', 'company' => $company]) }}" class="inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-800 transition">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
@@ -36,6 +36,7 @@
         <form method="POST" action="{{ $editing ? route('verifikasi.qc2.update', $schedule) : route('verifikasi.qc2.store') }}" class="p-6 sm:p-8 space-y-8" x-data="{ isNewType: false, isNewShop: false }">
             @csrf @if($editing) @method('PUT') @endif
             <input type="hidden" name="tahun" value="{{ $tahun }}">
+            @include('components.company-select-field', ['selectedCompany' => old('company', $company)])
 
             <!-- BAGIAN 1: INFORMASI ALAT -->
             <div>
@@ -128,7 +129,7 @@
 
             <!-- TOMBOL AKSI -->
             <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-slate-200">
-                <a href="{{ route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'verifikasi_qc2']) }}" class="inline-flex justify-center items-center rounded-lg border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition">
+                <a href="{{ route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'verifikasi_qc2', 'company' => $company]) }}" class="inline-flex justify-center items-center rounded-lg border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition">
                     Batal
                 </a>
                 <button type="submit" class="inline-flex justify-center items-center rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 shadow-sm transition">

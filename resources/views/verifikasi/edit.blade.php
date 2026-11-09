@@ -4,9 +4,16 @@
 <div class="bg-white p-6 rounded-lg shadow-sm mb-6 max-w-4xl mx-auto">
     <h2 class="text-xl font-bold mb-4">Edit Jadwal Verifikasi</h2>
 
+    @if ($errors->any())
+        <div class="mb-4 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {{ $errors->first() }}
+        </div>
+    @endif
+
     <form action="{{ route('verifikasi.update', $verifikasi->id) }}" method="POST">
         @csrf
         @method('PUT')
+        @include('components.company-select-field', ['selectedCompany' => old('company', $verifikasi->company)])
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>

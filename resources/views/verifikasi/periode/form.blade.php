@@ -6,7 +6,7 @@
     
     <!-- HEADER HALAMAN -->
     <div class="mb-6">
-        <a href="{{ route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'verifikasi']) }}" class="inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-800 transition">
+        <a href="{{ route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'verifikasi', 'company' => $company]) }}" class="inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-800 transition">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
@@ -36,6 +36,7 @@
         <form method="POST" action="{{ $editing ? route('verifikasi.periode.update', $schedule) : route('verifikasi.periode.store') }}" class="p-6 sm:p-8 space-y-8" x-data="{ isNewType: false, isNewShop: false }">
             @csrf @if($editing) @method('PUT') @endif
             <input type="hidden" name="tahun" value="{{ $tahun }}">
+            @include('components.company-select-field', ['selectedCompany' => old('company', $company)])
 
             <!-- BAGIAN 1: INFORMASI ALAT -->
             <div>

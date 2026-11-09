@@ -14,7 +14,7 @@
 
         <form action="{{ route('mesin.import.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-
+        <input type="hidden" name="company" value="{{ old('company', $company) }}">
             <div class="mb-4">
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Tahun</label>
                 <select name="tahun" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">

@@ -10,6 +10,12 @@
     @endif
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <form method="GET" action="{{ route('verifikasi.periode.index') }}" class="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3 gap-y-3 sm:flex sm:flex-wrap">
+            <label for="company-list-up" class="text-xs font-semibold text-slate-500">PERUSAHAAN</label>
+            <select id="company-list-up" name="company" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
+                @foreach(['HAMATETSU', 'NISSO GIKEN'] as $companyOption)
+                    <option value="{{ $companyOption }}" @selected($company === $companyOption)>{{ $companyOption }}</option>
+                @endforeach
+            </select>
             
             <label for="jenis-list-up" class="text-xs font-semibold text-slate-500">JENIS LIST UP</label>
             <select id="jenis-list-up" name="jenis" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
@@ -30,7 +36,7 @@
             
             @if(Auth::check() && Auth::user()->role === 'admin')
                 <!-- TOMBOL IMPORT: Diubah ke route yang benar -->
-                <a href="{{ route('verifikasi.qc2.import.form', ['tahun' => $tahun]) }}" class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.import') Import</a>
+                <a href="{{ route('verifikasi.qc2.import.form', ['tahun' => $tahun, 'company' => $company]) }}" class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.import') Import</a>
                 
                 <div class="relative inline-block" id="exportDropdownVerif">
                     <button type="button" onclick="toggleExportVerif()" class="bg-slate-800 text-white rounded font-semibold hover:bg-slate-900 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
@@ -39,18 +45,18 @@
                     </button>
                     <div id="exportMenuVerif" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
                         <!-- TOMBOL EXPORT EXCEL: Diubah ke route yang benar -->
-                        <a href="{{ route('verifikasi.qc2.export.excel', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
+                        <a href="{{ route('verifikasi.qc2.export.excel', ['tahun' => $tahun, 'company' => $company]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0"><path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/><path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/><text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="9">X</text></svg>
                             <span class="font-medium">Export Excel</span>
                         </a>
-                        <a href="{{ route('verifikasi.qc2.export.pdf', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
+                        <a href="{{ route('verifikasi.qc2.export.pdf', ['tahun' => $tahun, 'company' => $company]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
                             <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-red-600 text-[8px] font-bold text-white">PDF</span>
                             <span class="font-medium">Export PDF</span>
                         </a>
                     </div>
                 </div>
 
-                <a href="{{ route('verifikasi.qc2.create', ['tahun' => $tahun]) }}" class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm"><span>+</span> Tambah</a>
+                <a href="{{ route('verifikasi.qc2.create', ['tahun' => $tahun, 'company' => $company]) }}" class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm"><span>+</span> Tambah</a>
             @endif
         </div>
     </div>

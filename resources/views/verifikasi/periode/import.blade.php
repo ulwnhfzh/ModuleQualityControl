@@ -11,6 +11,7 @@
 
     <form action="{{ route('verifikasi.periode.import') }}" method="POST" enctype="multipart/form-data">
         @csrf
+        @include('components.company-select-field', ['selectedCompany' => old('company', $company)])
         <div class="mb-4">
             <label for="tahun" class="mb-1 block text-sm font-semibold text-slate-700">Tahun Data</label>
             <select id="tahun" name="tahun" required class="w-full rounded-lg border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500">

@@ -10,6 +10,13 @@
     @endif
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <form method="GET" action="{{ route('verifikasi.periode.index') }}" class="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3 gap-y-3 sm:flex sm:flex-wrap">
+
+            <label for="company-list-up" class="text-xs font-semibold text-slate-500">PERUSAHAAN</label>
+            <select id="company-list-up" name="company" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
+                @foreach(['HAMATETSU', 'NISSO GIKEN'] as $companyOption)
+                    <option value="{{ $companyOption }}" @selected($company === $companyOption)>{{ $companyOption }}</option>
+                @endforeach
+            </select>
             
             <label for="jenis-list-up" class="text-xs font-semibold text-slate-500">JENIS LIST UP</label>
             <select id="jenis-list-up" name="jenis" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
@@ -30,7 +37,7 @@
             
             @if(Auth::check() && Auth::user()->role === 'admin')
                 <!-- Tombol Import -->
-                <a href="{{ route('verifikasi.periode.import.form', ['tahun' => $tahun]) }}" class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                <a href="{{ route('verifikasi.periode.import.form', ['tahun' => $tahun, 'company' => $company]) }}" class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
                     @include('components.icons.import') Import
                 </a>
 
@@ -43,7 +50,7 @@
                         </svg>
                     </button>
                     <div id="exportMenuVerif" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                        <a href="{{ route('verifikasi.periode.export', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
+                        <a href="{{ route('verifikasi.periode.export', ['tahun' => $tahun, 'company' => $company]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                 <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
                                 <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
@@ -51,7 +58,7 @@
                             </svg>
                             <span class="font-medium">Export Excel</span>
                         </a>
-                        <a href="{{ route('verifikasi.periode.export.pdf', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
+                        <a href="{{ route('verifikasi.periode.export.pdf', ['tahun' => $tahun, 'company' => $company]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
                             <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-red-600 text-[8px] font-bold text-white">PDF</span>
                             <span class="font-medium">Export PDF</span>
                         </a>
@@ -59,7 +66,7 @@
                 </div>
 
                 <!-- Tombol Tambah -->
-                <a href="{{ route($jenis === 'kalibrasi' ? 'verifikasi.periode.kalibrasi.create' : 'verifikasi.periode.create', ['tahun' => $tahun]) }}" class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                <a href="{{ route($jenis === 'kalibrasi' ? 'verifikasi.periode.kalibrasi.create' : 'verifikasi.periode.create', ['tahun' => $tahun, 'company' => $company]) }}" class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
                     <span>+</span> Tambah
                 </a>
             @endif
@@ -112,7 +119,8 @@
             </thead>
             <tbody>
                 @forelse($schedules as $index => $schedule)
-                    <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }} hover:bg-blue-50/50">
+                    @php($hasNg = strtoupper(trim((string) $schedule->period1_jgm)) === 'NG' || strtoupper(trim((string) $schedule->period2_jgm)) === 'NG')
+                    <tr class="{{ $hasNg ? 'bg-rose-100 text-rose-900 hover:bg-rose-200' : ($index % 2 ? 'bg-slate-50' : 'bg-white') . ' hover:bg-blue-50/50' }}">
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $index + 1 }}</td>
                         <td class="border border-slate-200 px-3 py-3 font-semibold text-slate-800">{{ $schedule->tool_name ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->tool_type ?: '-' }}</td>
@@ -124,12 +132,12 @@
                         <!-- Data Periode 1 -->
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period1_verification_date?->format('d M Y') ?? '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period1_next_verification_date?->format('d M Y') ?? '-' }}</td>
-                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period1_jgm ?: '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">@if(strtoupper(trim((string) $schedule->period1_jgm)) === 'NG')<span class="rounded bg-rose-600 px-2 py-1 font-bold text-white">NG</span>@elseif(strtoupper(trim((string) $schedule->period1_jgm)) === 'OK')<span class="rounded bg-blue-600 px-2 py-1 font-semibold text-white">OK</span>@else{{ $schedule->period1_jgm ?: '-' }}@endif</td>
                         
                         <!-- Data Periode 2 -->
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period2_verification_date?->format('d M Y') ?? '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period2_next_verification_date?->format('d M Y') ?? '-' }}</td>
-                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period2_jgm ?: '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">@if(strtoupper(trim((string) $schedule->period2_jgm)) === 'NG')<span class="rounded bg-rose-600 px-2 py-1 font-bold text-white">NG</span>@elseif(strtoupper(trim((string) $schedule->period2_jgm)) === 'OK')<span class="rounded bg-blue-600 px-2 py-1 font-semibold text-white">OK</span>@else{{ $schedule->period2_jgm ?: '-' }}@endif</td>
                         
                         @if(Auth::check() && Auth::user()->role === 'admin')
                             <td class="border border-slate-200 px-3 py-3">

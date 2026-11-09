@@ -22,23 +22,33 @@
                 Jadwal Verifikasi Internal
             </h1>
 
+            @if($company === 'HAMATETSU')
             <div class="flex bg-gray-100 rounded-lg p-0.5 w-full sm:w-auto sm:inline-flex">
-                <a href="{{ route('verifikasi.index', ['tahun' => $tahun, 'mode' => 'bulanan']) }}"
+                <a href="{{ route('verifikasi.index', ['tahun' => $tahun, 'mode' => 'bulanan', 'company' => $company]) }}"
                 class="flex-1 sm:flex-initial text-center rounded transition px-3 py-1 text-[11px] sm:text-xs font-semibold
                         {{ $mode == 'bulanan' ? 'bg-black text-white shadow' : 'text-gray-600 hover:text-black' }}">
                     📅 Tahunan
                 </a>
-                <a href="{{ route('verifikasi.index', ['tahun' => $tahun, 'mode' => 'harian']) }}"
+                <a href="{{ route('verifikasi.index', ['tahun' => $tahun, 'mode' => 'harian', 'company' => $company]) }}"
                 class="flex-1 sm:flex-initial text-center rounded transition px-3 py-1 text-[11px] sm:text-xs font-semibold
                         {{ $mode == 'harian' ? 'bg-black text-white shadow' : 'text-gray-600 hover:text-black' }}">
                     📆 Bulanan
                 </a>
             </div>
+            @else
+            <div class="rounded border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-800 sm:text-xs">Jadwal NISSO GIKEN — dua kali setahun, jarak minimal 6 bulan</div>
+            @endif
         </div>
 
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
             <form method="GET" action="{{ route('verifikasi.index') }}" class="flex items-center gap-1.5">
                 <input type="hidden" name="mode" value="{{ $mode }}">
+                <label class="text-[10px] sm:text-xs font-semibold text-gray-500">PERUSAHAAN</label>
+                <select name="company" onchange="this.form.submit()" class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5">
+                    @foreach(['HAMATETSU', 'NISSO GIKEN'] as $companyOption)
+                        <option value="{{ $companyOption }}" @selected($company === $companyOption)>{{ $companyOption }}</option>
+                    @endforeach
+                </select>
                 <label class="text-[10px] sm:text-xs font-semibold text-gray-500">TAHUN</label>
                 <select name="tahun" onchange="this.form.submit()"
                         class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -58,7 +68,7 @@
                     @if(Auth::check() && Auth::user()->role === 'admin')
 
                         <!-- Tombol Import -->
-                        <a href="{{ route('verifikasi.import.form', ['mode' => $mode]) }}"
+                        <a href="{{ route('verifikasi.import.form', ['mode' => $mode, 'company' => $company, 'tahun' => $tahun]) }}"
                            class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap
                                   px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
                             @include('components.icons.import') Import
@@ -77,7 +87,7 @@
                             <div id="exportMenuVerif"
                                  class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
 
-                                <a href="{{ route('verifikasi.export.excel', ['tahun' => $tahun, 'mode' => $mode]) }}"
+                                <a href="{{ route('verifikasi.export.excel', ['tahun' => $tahun, 'mode' => $mode, 'company' => $company]) }}"
                                    class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                         <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
@@ -87,7 +97,7 @@
                                     <span class="font-medium">Export Excel</span>
                                 </a>
 
-                                <a href="{{ route('verifikasi.export.pdf', ['tahun' => $tahun, 'mode' => $mode]) }}"
+                                <a href="{{ route('verifikasi.export.pdf', ['tahun' => $tahun, 'mode' => $mode, 'company' => $company]) }}"
                                    class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                         <path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
@@ -100,7 +110,7 @@
                         </div>
 
                         <!-- Tombol Tambah -->
-                        <a href="{{ route('verifikasi.create', ['mode' => $mode, 'tahun' => $tahun]) }}"
+                        <a href="{{ route('verifikasi.create', ['mode' => $mode, 'tahun' => $tahun, 'company' => $company]) }}"
                            class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
                                   px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
                             <span>+</span> Tambah

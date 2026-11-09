@@ -40,7 +40,8 @@
                 </h4>
                 <ul class="list-disc list-inside text-xs text-blue-700 space-y-1">
                     <li>Anda bisa meng-upload <strong>satu file Excel dengan banyak Sheet</strong> sekaligus.</li>
-                    <li>Sistem akan otomatis membaca <strong>Nama Sheet</strong> sebagai <strong>Division</strong> (contoh: "QA 1", "LINE SCC").</li>
+                    <li>Sistem membaca <strong>Nama Sheet</strong> sebagai <strong>Division</strong> dan menolak seluruh file jika ada sheet data dengan division tidak dikenal.</li>
+                    <li>Division yang diterima: <strong>QA 1, QA 1.2, QA 2, QA INC, QA INSP, PPIC 1, PPIC 2, LINE SCC, P1, P2, P3, P5, P6, P7, P8, ENG, NISSHO</strong>. Nama setara seperti LSCC dan PRODUKSI 1 akan dipetakan otomatis.</li>
                     <li>Sistem mencari header <strong>TOOL NAME, TYPE, SIZE</strong> dan nama bulan di setiap sheet; posisi/baris header boleh berbeda.</li>
                     <li>Jika ada data dengan <strong>Division, Tool Name, dan Size</strong> yang sama, data lama akan otomatis diperbarui.</li>
                 </ul>

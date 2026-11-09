@@ -21,6 +21,7 @@
     <form action="{{ route('verifikasi.store') }}" method="POST">
         @csrf
         <input type="hidden" name="tipe" value="{{ $mode }}">
+        @include('components.company-select-field', ['selectedCompany' => old('company', $company)])
 
         <!-- Pilih Alat & Tahun -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -104,4 +105,15 @@
         </div>
     </form>
 </div>
+<script>
+document.querySelector('select[name="company"]')?.addEventListener('change', function () {
+    const year = document.querySelector('input[name="tahun"], select[name="tahun"]')?.value || new Date().getFullYear();
+    const mode = this.value === 'NISSO GIKEN' ? 'harian' : @json($mode);
+    const url = new URL(@json(route('verifikasi.create')), window.location.origin);
+    url.searchParams.set('company', this.value);
+    url.searchParams.set('mode', mode);
+    url.searchParams.set('tahun', year);
+    window.location.href = url;
+});
+</script>
 @endsection

@@ -20,7 +20,7 @@
 
     <form action="{{ route('internal.store') }}" method="POST">
         @csrf
-
+        <input type="hidden" name="company" value="{{ old('company', $company) }}">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
                 <label class="block text-sm font-semibold mb-1">Nama Alat Ukur</label>

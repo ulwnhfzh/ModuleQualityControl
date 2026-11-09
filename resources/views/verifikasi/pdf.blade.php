@@ -22,7 +22,7 @@
 
     {{-- ===== KOP SURAT ===== --}}
     @include('pdf.kop-surat', [
-        'judul' => 'JADWAL VERIFIKASI INTERNAL - MODE ' . $labelMode,
+        'judul' => 'JADWAL VERIFIKASI INTERNAL - ' . $company . ' - MODE ' . $labelMode,
         'nomorDokumen' => $nomorDokumen ?? null,
     ])
 

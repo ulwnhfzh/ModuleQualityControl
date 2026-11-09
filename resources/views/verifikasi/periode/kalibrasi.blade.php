@@ -24,7 +24,7 @@
             
             @if(Auth::check() && Auth::user()->role === 'admin')
                 <!-- Tombol Import -->
-                <a href="{{ route('verifikasi.periode.kalibrasi.import.form', ['tahun' => $tahun]) }}" class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-blue-600 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:px-3 sm:py-2 sm:text-sm">
+                <a href="{{ route('verifikasi.periode.kalibrasi.import.form', ['tahun' => $tahun, 'company' => $company]) }}" class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-blue-600 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:px-3 sm:py-2 sm:text-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L8 8m4-4 4 4M4 16v4h16v-4" />
                     </svg>
@@ -43,7 +43,7 @@
                         </svg>
                     </button>
                     <div id="exportMenuKalibrasi" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                        <a href="{{ route('verifikasi.periode.kalibrasi.export', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 border-b border-gray-100 px-3 py-2.5 text-xs text-gray-700 transition hover:bg-blue-50">
+                        <a href="{{ route('verifikasi.periode.kalibrasi.export', ['tahun' => $tahun, 'company' => $company]) }}" class="flex items-center gap-2.5 border-b border-gray-100 px-3 py-2.5 text-xs text-gray-700 transition hover:bg-blue-50">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                 <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
                                 <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
@@ -51,7 +51,7 @@
                             </svg>
                             <span class="font-medium">Export Excel</span>
                         </a>
-                        <a href="{{ route('verifikasi.periode.kalibrasi.export.pdf', ['tahun' => $tahun]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 transition hover:bg-blue-50">
+                        <a href="{{ route('verifikasi.periode.kalibrasi.export.pdf', ['tahun' => $tahun, 'company' => $company]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 transition hover:bg-blue-50">
                             <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-red-600 text-[8px] font-bold text-white">PDF</span>
                             <span class="font-medium">Export PDF</span>
                         </a>
@@ -59,7 +59,7 @@
                 </div>
 
                 <!-- Tombol Tambah -->
-                <a href="{{ route('verifikasi.periode.kalibrasi.create', ['tahun' => $tahun]) }}" class="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:px-3 sm:py-2 sm:text-sm">
+                <a href="{{ route('verifikasi.periode.kalibrasi.create', ['tahun' => $tahun, 'company' => $company]) }}" class="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:px-3 sm:py-2 sm:text-sm">
                     <span>+</span> Tambah
                 </a>
             @endif

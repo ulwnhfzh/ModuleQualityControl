@@ -14,7 +14,7 @@
 </head>
 <body>
     <h1>{{ $title }}</h1>
-    <p>Tahun {{ $tahun }} &middot; {{ $schedules->count() }} jadwal</p>
+    <p>{{ $company }} &middot; Tahun {{ $tahun }} &middot; {{ $schedules->count() }} jadwal</p>
     <table>
         <thead>
             <tr>

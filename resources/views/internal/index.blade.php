@@ -32,7 +32,7 @@
             </p>
 
             @if(Auth::check() && Auth::user()->role === 'admin')
-                <a href="{{ route('internal.import.form') }}"
+                        <a href="{{ route('internal.import.form', ['tahun' => $tahun, 'company' => $company]) }}"
                    class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap
                           px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
                     @include('components.icons.import') Import
@@ -50,7 +50,7 @@
                     <div id="exportMenuInternal"
                          class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
 
-                        <a href="{{ route('internal.export.excel', ['tahun' => $tahun]) }}"
+                        <a href="{{ route('internal.export.excel', ['tahun' => $tahun, 'company' => $company]) }}"
                            class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                 <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
@@ -60,7 +60,7 @@
                             <span class="font-medium">Export Excel</span>
                         </a>
 
-                        <a href="{{ route('internal.export.pdf', ['tahun' => $tahun]) }}"
+                        <a href="{{ route('internal.export.pdf', ['tahun' => $tahun, 'company' => $company]) }}"
                            class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
                                 <path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
@@ -73,7 +73,7 @@
                 </div>
             @endif
 
-            <a href="{{ route('internal.create', ['tahun' => $tahun]) }}"
+            <a href="{{ route('internal.create', ['tahun' => $tahun, 'company' => $company]) }}"
                class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
                       px-3 py-1.5 text-[11px] sm:px-4 sm:py-2 sm:text-sm">
                 <span>+</span> Tambah Jadwal
