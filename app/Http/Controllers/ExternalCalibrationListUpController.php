@@ -55,6 +55,15 @@ class ExternalCalibrationListUpController extends Controller
         return redirect()->route('external-list-up.index', ['tahun' => $year])->with('success', 'Data berhasil dihapus.');
     }
 
+    /**
+     * Menampilkan halaman form upload file Excel.
+     */
+    public function importForm(Request $request)
+    {
+        $tahun = $request->input('tahun', date('Y'));
+        return view('external-calibration-list-up.import', compact('tahun'));
+    }
+
     public function import(Request $request)
     {
         $data = $request->validate(['tahun' => 'required|integer|between:2000,2100', 'file' => 'required|file|mimes:xls,xlsx|max:10240']);

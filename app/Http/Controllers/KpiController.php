@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Tool;
 use App\Models\Internal;
-use App\Models\Eksternal;
-use App\Models\EksternalMesin;
+use App\Models\External;
+use App\Models\ExternalMachine;
 use App\Models\ActivityLog;
-use App\Models\Verifikasi;
-use App\Models\Pengaturan;
+use App\Models\Verification;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,9 +21,9 @@ class KpiController extends Controller
         $tahunIni = $now->year;
         $bulanLabel = $now->translatedFormat('F Y');
 
-        // Pengaturan warning
-        $warningCepat = Pengaturan::warningCepat();
-        $warningStandar = Pengaturan::warningStandar();
+        // Setting warning
+        $warningCepat = Setting::warningCepat();
+        $warningStandar = Setting::warningStandar();
 
         // ==========================================
         // KPI A: PROGRESS KALIBRASI BULAN INI
@@ -36,12 +36,12 @@ class KpiController extends Controller
         $kolom = $kolomBulan[$now->month] ?? 'jan';
 
         $totalAlatKalibrasi = Internal::where('tahun', $tahunIni)->count()
-                             + Eksternal::where('tahun', $tahunIni)->count()
-                             + EksternalMesin::where('tahun', $tahunIni)->count();
+                             + External::where('tahun', $tahunIni)->count()
+                             + ExternalMachine::where('tahun', $tahunIni)->count();
 
         $totalKalibrasiBulanIni = (Internal::where('tahun', $tahunIni)->sum($kolom) ?? 0)
-                                + (Eksternal::where('tahun', $tahunIni)->sum($kolom) ?? 0)
-                                + (EksternalMesin::where('tahun', $tahunIni)->sum($kolom) ?? 0);
+                                + (External::where('tahun', $tahunIni)->sum($kolom) ?? 0)
+                                + (ExternalMachine::where('tahun', $tahunIni)->sum($kolom) ?? 0);
 
         $progressKalibrasi = $totalAlatKalibrasi > 0
             ? min(round(($totalKalibrasiBulanIni / $totalAlatKalibrasi) * 100, 1), 100)
@@ -57,7 +57,7 @@ class KpiController extends Controller
 
         // Filter verifikasi di SQL agar tidak menarik seluruh tabel ke PHP.
         $alatPerluPerhatian = static function () use ($tahunIni, $batasStandar) {
-            return EksternalMesin::query()
+            return ExternalMachine::query()
                 ->whereNotNull('next_date')
                 ->where('next_date', '<=', $batasStandar)
                 ->whereNotExists(function ($query) use ($tahunIni) {
@@ -88,12 +88,12 @@ class KpiController extends Controller
                 return $item;
             });
 
-        // Verifikasi dengan aktivitas yang belum dicatat pemeriksanya.
-        $verifikasiBelumDikonfirmasiQuery = Verifikasi::query()
+        // Verification dengan aktivitas yang belum dicatat pemeriksanya.
+        $verifikasiBelumDikonfirmasiQuery = Verification::query()
             ->where('tahun', $tahunIni)
             ->whereNull('verified_at')
             ->where('total', '>', 0);
-        $jumlahVerifikasiBelumDikonfirmasi = (clone $verifikasiBelumDikonfirmasiQuery)->count();
+        $jumlahVerificationBelumDikonfirmasi = (clone $verifikasiBelumDikonfirmasiQuery)->count();
         $verifikasiBelumDikonfirmasi = $verifikasiBelumDikonfirmasiQuery
             ->orderBy('tool_name')->limit(5)->get();
 
@@ -120,7 +120,7 @@ class KpiController extends Controller
             ->groupBy('category')
             ->get();
 
-        $totalNotifikasi = $jumlahTerlambat + $jumlahJatuhTempo7;
+        $totalNotification = $jumlahTerlambat + $jumlahJatuhTempo7;
 
         return [
             'tahun' => $tahunIni,
@@ -135,12 +135,12 @@ class KpiController extends Controller
             'jumlahJatuhTempo7' => $jumlahJatuhTempo7,
             'jumlahJatuhTempo30' => $jumlahJatuhTempo30,
             'verifikasiBelumDikonfirmasi' => $verifikasiBelumDikonfirmasi,
-            'jumlahVerifikasiBelumDikonfirmasi' => $jumlahVerifikasiBelumDikonfirmasi,
+            'jumlahVerificationBelumDikonfirmasi' => $jumlahVerificationBelumDikonfirmasi,
             'aktivitasMingguIni' => $aktivitasMingguIni,
             'aktivitasMingguLalu' => $aktivitasMingguLalu,
             'perubahanAktivitas' => $perubahanAktivitas,
             'breakdownKategori' => $breakdownKategori,
-            'totalNotifikasi' => $totalNotifikasi,
+            'totalNotification' => $totalNotification,
             'warningCepat' => $warningCepat,
             'warningStandar' => $warningStandar,
         ];

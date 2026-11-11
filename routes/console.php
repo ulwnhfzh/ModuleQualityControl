@@ -3,11 +3,11 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
-use App\Models\EksternalMesin;
+use App\Models\ExternalMachine;
 use App\Models\User;
-use App\Models\Verifikasi;
-use App\Models\Pengaturan;
-use App\Notifications\VerifikasiJatuhTempoNotification;
+use App\Models\Verification;
+use App\Models\Setting;
+use App\Notifications\VerificationDueDateNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -18,14 +18,14 @@ Artisan::command('inspire', function () {
 
 Artisan::command('verifikasi:reminders', function (): void {
     $today = Carbon::today();
-    $limit = $today->copy()->addDays(Pengaturan::warningStandar());
+    $limit = $today->copy()->addDays(Setting::warningStandar());
     $admins = User::where('role', 'admin')->whereNotNull('email')->get();
     if ($admins->isEmpty()) {
         $this->warn('Tidak ada akun admin dengan email.');
         return;
     }
 
-    $confirmedNames = Verifikasi::where('tahun', $today->year)
+    $confirmedNames = Verification::where('tahun', $today->year)
         ->whereNotNull('verified_at')
         ->pluck('tool_name')
         ->map(fn ($name) => mb_strtoupper(trim($name)))
@@ -33,7 +33,7 @@ Artisan::command('verifikasi:reminders', function (): void {
         ->all();
     $sent = 0;
 
-    EksternalMesin::whereNotNull('next_date')
+    ExternalMachine::whereNotNull('next_date')
         ->whereDate('next_date', '<=', $limit->toDateString())
         ->orderBy('id')
         ->chunkById(200, function ($tools) use ($today, $confirmedNames, $admins, &$sent): void {
@@ -54,7 +54,7 @@ Artisan::command('verifikasi:reminders', function (): void {
                     continue;
                 }
 
-                Notification::send($admins, new VerifikasiJatuhTempoNotification(
+                Notification::send($admins, new VerificationDueDateNotification(
                     $tool->tool_name,
                     $nextDate->toDateString(),
                     $level,

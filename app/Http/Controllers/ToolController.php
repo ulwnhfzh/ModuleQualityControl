@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Tool;
 use App\Models\ToolStock;
-use App\Models\DokumenCounter;
+use App\Models\DocumentCounter;
 use App\Models\User;
-use App\Notifications\AlatJatuhTempoNotification;
+use App\Notifications\ToolDueDateNotification;
 use App\Support\DocumentPdfLayout;
 use Illuminate\Http\Request;
 use App\Imports\ToolsImport;
@@ -118,7 +118,7 @@ class ToolController extends Controller
                 // Kirim Email ke Admin
                 $admins = User::where('role', 'admin')->get();
                 if ($admins->count() > 0) {
-                    Notification::send($admins, new AlatJatuhTempoNotification($tool, $sisaHari));
+                    Notification::send($admins, new ToolDueDateNotification($tool, $sisaHari));
                 }
             }
         }
@@ -207,7 +207,7 @@ class ToolController extends Controller
                 
                 $admins = User::where('role', 'admin')->get();
                 if ($admins->count() > 0) {
-                    Notification::send($admins, new AlatJatuhTempoNotification($tool, $sisaHari));
+                    Notification::send($admins, new ToolDueDateNotification($tool, $sisaHari));
                 }
             }
         }
@@ -303,7 +303,7 @@ class ToolController extends Controller
             ->orderBy('tool_name', 'asc')
             ->get();
 
-        $nomorDokumen = DokumenCounter::generateNomor('DIN', $tahun, 'QC');
+        $nomorDokumen = DocumentCounter::generateNomor('DIN', $tahun, 'QC');
 
         $this->logExport('tools', 'Export PDF Daftar Induk - ' . $kategori . ' - Nomor: ' . $nomorDokumen);
 

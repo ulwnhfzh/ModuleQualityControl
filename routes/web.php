@@ -2,20 +2,20 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ToolController;
-use App\Http\Controllers\VerifikasiController;
-use App\Http\Controllers\VerifikasiPeriodeController;
+use App\Http\Controllers\VerificationController;
+use App\Http\Controllers\VerificationPeriodController;
 use App\Http\Controllers\InternalController;
 use App\Http\Controllers\CalibrationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
-use App\Http\Controllers\LaporanHarianController;
-use App\Http\Controllers\NotifikasiController;
-use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\DailyReportController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\ToolDefectController;
-use App\Http\Controllers\DataAllProduksiController;
+use App\Http\Controllers\ProductionDataController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MasterCalibratorController;
 use App\Http\Controllers\ExternalCalibrationListUpController;
@@ -31,8 +31,8 @@ Route::get('/', function () {
 
 Route::get('/view', [GuestController::class, 'index'])->name('guest.index');
 Route::get('/tools', [ToolController::class, 'index'])->name('tools.index');
-Route::get('/verifikasi', [VerifikasiController::class, 'index'])->name('verifikasi.index');
-Route::get('/verifikasi/periode', [VerifikasiPeriodeController::class, 'index'])->name('verifikasi.periode.index');
+Route::get('/verifikasi', [VerificationController::class, 'index'])->name('verifikasi.index');
+Route::get('/verifikasi/periode', [VerificationPeriodController::class, 'index'])->name('verifikasi.periode.index');
 Route::get('/internal', [InternalController::class, 'index'])->name('internal.index');
 Route::get('/eksternal-small', [CalibrationController::class, 'eksternalSmall'])->name('eksternal.small');
 Route::get('/mesin', [CalibrationController::class, 'mesin'])->name('mesin.index');
@@ -54,10 +54,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/notifikasi', [NotifikasiController::class, 'index'])->name('notifikasi.index');
-    Route::post('/notifikasi/{alatId}/diproses', [NotifikasiController::class, 'tandaiDiproses'])->name('notifikasi.diproses');
-    Route::post('/notifikasi/{alatId}/selesai', [NotifikasiController::class, 'tandaiSelesai'])->name('notifikasi.selesai');
-    Route::post('/notifikasi/{alatId}/batal', [NotifikasiController::class, 'batal'])->name('notifikasi.batal');
+    Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
+    Route::post('/notifikasi/{alatId}/diproses', [NotificationController::class, 'tandaiDiproses'])->name('notifikasi.diproses');
+    Route::post('/notifikasi/{alatId}/selesai', [NotificationController::class, 'tandaiSelesai'])->name('notifikasi.selesai');
+    Route::post('/notifikasi/{alatId}/batal', [NotificationController::class, 'batal'])->name('notifikasi.batal');
 });
 
 /*
@@ -68,12 +68,12 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // ===== DATA ALL PRODUKSI (FITUR BARU) =====
-    Route::get('/data-all-produksi/get-tools', [DataAllProduksiController::class, 'getToolsByDivision'])->name('data-all-produksi.get-tools');
-    Route::get('/data-all-produksi/export', [DataAllProduksiController::class, 'export'])->name('data-all-produksi.export');
-    Route::get('/data-all-produksi/import/form', [DataAllProduksiController::class, 'importForm'])->name('data-all-produksi.import.form');
-    Route::post('/data-all-produksi/import', [DataAllProduksiController::class, 'importStore'])->name('data-all-produksi.import.store');
+    Route::get('/data-all-produksi/get-tools', [ProductionDataController::class, 'getToolsByDivision'])->name('data-all-produksi.get-tools');
+    Route::get('/data-all-produksi/export', [ProductionDataController::class, 'export'])->name('data-all-produksi.export');
+    Route::get('/data-all-produksi/import/form', [ProductionDataController::class, 'importForm'])->name('data-all-produksi.import.form');
+    Route::post('/data-all-produksi/import', [ProductionDataController::class, 'importStore'])->name('data-all-produksi.import.store');
     
-    Route::resource('data-all-produksi', DataAllProduksiController::class);
+    Route::resource('data-all-produksi', ProductionDataController::class);
 
     // ===== STOCK =====
     Route::post('/stock/movements', [StockController::class, 'store'])->name('stock.movements.store');
@@ -110,51 +110,51 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/defects/{defect}', [ToolDefectController::class, 'destroy'])->name('defects.destroy');
 
     // ===== JADWAL VERIFIKASI (Tahunan/Bulanan) =====
-    Route::get('/verifikasi/create', [VerifikasiController::class, 'create'])->name('verifikasi.create');
-    Route::post('/verifikasi', [VerifikasiController::class, 'store'])->name('verifikasi.store');
-    Route::get('/verifikasi/{verifikasi}/edit', [VerifikasiController::class, 'edit'])->name('verifikasi.edit');
-    Route::post('/verifikasi/{verifikasi}/confirm', [VerifikasiController::class, 'confirm'])->name('verifikasi.confirm');
-    Route::post('/verifikasi/{verifikasi}/reopen', [VerifikasiController::class, 'reopen'])->name('verifikasi.reopen');
-    Route::put('/verifikasi/{verifikasi}', [VerifikasiController::class, 'update'])->name('verifikasi.update');
-    Route::delete('/verifikasi/{verifikasi}', [VerifikasiController::class, 'destroy'])->name('verifikasi.destroy');
-    Route::get('/verifikasi/import/form', [VerifikasiController::class, 'importForm'])->name('verifikasi.import.form');
-    Route::post('/verifikasi/import', [VerifikasiController::class, 'importStore'])->name('verifikasi.import.store');
-    Route::get('/verifikasi/export/excel', [VerifikasiController::class, 'exportExcel'])->name('verifikasi.export.excel');
-    Route::get('/verifikasi/export/pdf', [VerifikasiController::class, 'exportPdf'])->name('verifikasi.export.pdf');
-    Route::get('/verifikasi/download-template', [VerifikasiController::class, 'downloadTemplate'])->name('verifikasi.template');
+    Route::get('/verifikasi/create', [VerificationController::class, 'create'])->name('verifikasi.create');
+    Route::post('/verifikasi', [VerificationController::class, 'store'])->name('verifikasi.store');
+    Route::get('/verifikasi/{verifikasi}/edit', [VerificationController::class, 'edit'])->name('verifikasi.edit');
+    Route::post('/verifikasi/{verifikasi}/confirm', [VerificationController::class, 'confirm'])->name('verifikasi.confirm');
+    Route::post('/verifikasi/{verifikasi}/reopen', [VerificationController::class, 'reopen'])->name('verifikasi.reopen');
+    Route::put('/verifikasi/{verifikasi}', [VerificationController::class, 'update'])->name('verifikasi.update');
+    Route::delete('/verifikasi/{verifikasi}', [VerificationController::class, 'destroy'])->name('verifikasi.destroy');
+    Route::get('/verifikasi/import/form', [VerificationController::class, 'importForm'])->name('verifikasi.import.form');
+    Route::post('/verifikasi/import', [VerificationController::class, 'importStore'])->name('verifikasi.import.store');
+    Route::get('/verifikasi/export/excel', [VerificationController::class, 'exportExcel'])->name('verifikasi.export.excel');
+    Route::get('/verifikasi/export/pdf', [VerificationController::class, 'exportPdf'])->name('verifikasi.export.pdf');
+    Route::get('/verifikasi/download-template', [VerificationController::class, 'downloadTemplate'])->name('verifikasi.template');
 
-    // ===== LIST UP PERIODE (Verifikasi Internal & Kalibrasi Internal) =====
-    Route::get('/verifikasi/periode/create', [VerifikasiPeriodeController::class, 'create'])->name('verifikasi.periode.create');
-    Route::get('/verifikasi/periode/import/form', [VerifikasiPeriodeController::class, 'importForm'])->name('verifikasi.periode.import.form');
-    Route::post('/verifikasi/periode/import', [VerifikasiPeriodeController::class, 'import'])->name('verifikasi.periode.import');
-    Route::get('/verifikasi/periode/export', [VerifikasiPeriodeController::class, 'export'])->name('verifikasi.periode.export');
-    Route::get('/verifikasi/periode/export/pdf', [VerifikasiPeriodeController::class, 'exportPdf'])->name('verifikasi.periode.export.pdf');
-    Route::post('/verifikasi/periode', [VerifikasiPeriodeController::class, 'store'])->name('verifikasi.periode.store');
-    Route::get('/verifikasi/periode/{schedule}/edit', [VerifikasiPeriodeController::class, 'edit'])->name('verifikasi.periode.edit');
-    Route::put('/verifikasi/periode/{schedule}', [VerifikasiPeriodeController::class, 'update'])->name('verifikasi.periode.update');
-    Route::delete('/verifikasi/periode/{schedule}', [VerifikasiPeriodeController::class, 'destroy'])->name('verifikasi.periode.destroy');
+    // ===== LIST UP PERIODE (Verification Internal & Kalibrasi Internal) =====
+    Route::get('/verifikasi/periode/create', [VerificationPeriodController::class, 'create'])->name('verifikasi.periode.create');
+    Route::get('/verifikasi/periode/import/form', [VerificationPeriodController::class, 'importForm'])->name('verifikasi.periode.import.form');
+    Route::post('/verifikasi/periode/import', [VerificationPeriodController::class, 'import'])->name('verifikasi.periode.import');
+    Route::get('/verifikasi/periode/export', [VerificationPeriodController::class, 'export'])->name('verifikasi.periode.export');
+    Route::get('/verifikasi/periode/export/pdf', [VerificationPeriodController::class, 'exportPdf'])->name('verifikasi.periode.export.pdf');
+    Route::post('/verifikasi/periode', [VerificationPeriodController::class, 'store'])->name('verifikasi.periode.store');
+    Route::get('/verifikasi/periode/{schedule}/edit', [VerificationPeriodController::class, 'edit'])->name('verifikasi.periode.edit');
+    Route::put('/verifikasi/periode/{schedule}', [VerificationPeriodController::class, 'update'])->name('verifikasi.periode.update');
+    Route::delete('/verifikasi/periode/{schedule}', [VerificationPeriodController::class, 'destroy'])->name('verifikasi.periode.destroy');
 
     // ===== LIST UP PERIODE: KALIBRASI INTERNAL =====
-    Route::get('/verifikasi/periode/kalibrasi/create', [VerifikasiPeriodeController::class, 'internalCalibrationCreate'])->name('verifikasi.periode.kalibrasi.create');
-    Route::post('/verifikasi/periode/kalibrasi', [VerifikasiPeriodeController::class, 'internalCalibrationStore'])->name('verifikasi.periode.kalibrasi.store');
-    Route::get('/verifikasi/periode/kalibrasi/{schedule}/edit', [VerifikasiPeriodeController::class, 'internalCalibrationEdit'])->name('verifikasi.periode.kalibrasi.edit');
-    Route::put('/verifikasi/periode/kalibrasi/{schedule}', [VerifikasiPeriodeController::class, 'internalCalibrationUpdate'])->name('verifikasi.periode.kalibrasi.update');
-    Route::delete('/verifikasi/periode/kalibrasi/{schedule}', [VerifikasiPeriodeController::class, 'internalCalibrationDestroy'])->name('verifikasi.periode.kalibrasi.destroy');
-    Route::get('/verifikasi/periode/kalibrasi/import/form', [VerifikasiPeriodeController::class, 'internalCalibrationImportForm'])->name('verifikasi.periode.kalibrasi.import.form');
-    Route::post('/verifikasi/periode/kalibrasi/import', [VerifikasiPeriodeController::class, 'internalCalibrationImport'])->name('verifikasi.periode.kalibrasi.import');
-    Route::get('/verifikasi/periode/kalibrasi/export', [VerifikasiPeriodeController::class, 'internalCalibrationExport'])->name('verifikasi.periode.kalibrasi.export');
-    Route::get('/verifikasi/periode/kalibrasi/export/pdf', [VerifikasiPeriodeController::class, 'internalCalibrationExportPdf'])->name('verifikasi.periode.kalibrasi.export.pdf');
+    Route::get('/verifikasi/periode/kalibrasi/create', [VerificationPeriodController::class, 'internalCalibrationCreate'])->name('verifikasi.periode.kalibrasi.create');
+    Route::post('/verifikasi/periode/kalibrasi', [VerificationPeriodController::class, 'internalCalibrationStore'])->name('verifikasi.periode.kalibrasi.store');
+    Route::get('/verifikasi/periode/kalibrasi/{schedule}/edit', [VerificationPeriodController::class, 'internalCalibrationEdit'])->name('verifikasi.periode.kalibrasi.edit');
+    Route::put('/verifikasi/periode/kalibrasi/{schedule}', [VerificationPeriodController::class, 'internalCalibrationUpdate'])->name('verifikasi.periode.kalibrasi.update');
+    Route::delete('/verifikasi/periode/kalibrasi/{schedule}', [VerificationPeriodController::class, 'internalCalibrationDestroy'])->name('verifikasi.periode.kalibrasi.destroy');
+    Route::get('/verifikasi/periode/kalibrasi/import/form', [VerificationPeriodController::class, 'internalCalibrationImportForm'])->name('verifikasi.periode.kalibrasi.import.form');
+    Route::post('/verifikasi/periode/kalibrasi/import', [VerificationPeriodController::class, 'internalCalibrationImport'])->name('verifikasi.periode.kalibrasi.import');
+    Route::get('/verifikasi/periode/kalibrasi/export', [VerificationPeriodController::class, 'internalCalibrationExport'])->name('verifikasi.periode.kalibrasi.export');
+    Route::get('/verifikasi/periode/kalibrasi/export/pdf', [VerificationPeriodController::class, 'internalCalibrationExportPdf'])->name('verifikasi.periode.kalibrasi.export.pdf');
 
     // ===== LIST UP PERIODE: VERIFIKASI QC2 =====
-    Route::get('/verifikasi/qc2/create', [VerifikasiPeriodeController::class, 'qc2Create'])->name('verifikasi.qc2.create');
-    Route::post('/verifikasi/qc2', [VerifikasiPeriodeController::class, 'qc2Store'])->name('verifikasi.qc2.store');
-    Route::get('/verifikasi/qc2/{schedule}/edit', [VerifikasiPeriodeController::class, 'qc2Edit'])->name('verifikasi.qc2.edit');
-    Route::put('/verifikasi/qc2/{schedule}', [VerifikasiPeriodeController::class, 'qc2Update'])->name('verifikasi.qc2.update');
-    Route::delete('/verifikasi/qc2/{schedule}', [VerifikasiPeriodeController::class, 'qc2Destroy'])->name('verifikasi.qc2.destroy');
-    Route::get('/verifikasi/qc2/import/form', [VerifikasiPeriodeController::class, 'qc2ImportForm'])->name('verifikasi.qc2.import.form');
-    Route::post('/verifikasi/qc2/import', [VerifikasiPeriodeController::class, 'qc2Import'])->name('verifikasi.qc2.import');
-    Route::get('/verifikasi/qc2/export/excel', [VerifikasiPeriodeController::class, 'qc2ExportExcel'])->name('verifikasi.qc2.export.excel');
-    Route::get('/verifikasi/qc2/export/pdf', [VerifikasiPeriodeController::class, 'qc2ExportPdf'])->name('verifikasi.qc2.export.pdf');
+    Route::get('/verifikasi/qc2/create', [VerificationPeriodController::class, 'qc2Create'])->name('verifikasi.qc2.create');
+    Route::post('/verifikasi/qc2', [VerificationPeriodController::class, 'qc2Store'])->name('verifikasi.qc2.store');
+    Route::get('/verifikasi/qc2/{schedule}/edit', [VerificationPeriodController::class, 'qc2Edit'])->name('verifikasi.qc2.edit');
+    Route::put('/verifikasi/qc2/{schedule}', [VerificationPeriodController::class, 'qc2Update'])->name('verifikasi.qc2.update');
+    Route::delete('/verifikasi/qc2/{schedule}', [VerificationPeriodController::class, 'qc2Destroy'])->name('verifikasi.qc2.destroy');
+    Route::get('/verifikasi/qc2/import/form', [VerificationPeriodController::class, 'qc2ImportForm'])->name('verifikasi.qc2.import.form');
+    Route::post('/verifikasi/qc2/import', [VerificationPeriodController::class, 'qc2Import'])->name('verifikasi.qc2.import');
+    Route::get('/verifikasi/qc2/export/excel', [VerificationPeriodController::class, 'qc2ExportExcel'])->name('verifikasi.qc2.export.excel');
+    Route::get('/verifikasi/qc2/export/pdf', [VerificationPeriodController::class, 'qc2ExportPdf'])->name('verifikasi.qc2.export.pdf');
 
     // ===== KALIBRASI INTERNAL (Jadwal Tahunan) =====
     Route::get('/internal/create', [InternalController::class, 'create'])->name('internal.create');
@@ -180,18 +180,25 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/eksternal-small/export/pdf', [CalibrationController::class, 'eksternalSmallExportPdf'])->name('eksternal.small.export.pdf');
     Route::get('/eksternal-small/download-template', [CalibrationController::class, 'eksternalSmallDownloadTemplate'])->name('eksternal.small.template');
 
-    // ===== KALIBRASI EKSTERNAL MESIN =====
+    // ===== KALIBRASI EKSTERNAL LIST UP =====
+    Route::get('/external-calibration-list-up/import/form', [ExternalCalibrationListUpController::class, 'importForm'])->name('external-list-up.import.form');
     Route::post('/external-calibration-list-up/import', [ExternalCalibrationListUpController::class, 'import'])->name('external-list-up.import');
     Route::get('/external-calibration-list-up/export', [ExternalCalibrationListUpController::class, 'export'])->name('external-list-up.export');
+    
+    // TAMBAHAN BARU: Route Export PDF List Up
+    Route::get('/external-calibration-list-up/export/pdf', [ExternalCalibrationListUpController::class, 'exportPdf'])->name('external-list-up.export.pdf');
+    
     Route::get('/external-calibration-list-up/create', [ExternalCalibrationListUpController::class, 'create'])->name('external-list-up.create');
     Route::post('/external-calibration-list-up', [ExternalCalibrationListUpController::class, 'store'])->name('external-list-up.store');
     Route::get('/external-calibration-list-up/{item}/edit', [ExternalCalibrationListUpController::class, 'edit'])->name('external-list-up.edit');
     Route::put('/external-calibration-list-up/{item}', [ExternalCalibrationListUpController::class, 'update'])->name('external-list-up.update');
     Route::delete('/external-calibration-list-up/{item}', [ExternalCalibrationListUpController::class, 'destroy'])->name('external-list-up.destroy');
 
-    // ===== KALIBRASI EKSTERNAL MESIN =====
+    // ===== MASTER KALIBRATOR =====
+    Route::get('/master-kalibrator/import/form', [MasterCalibratorController::class, 'importForm'])->name('master-calibrator.import.form');
     Route::post('/master-kalibrator/import', [MasterCalibratorController::class, 'import'])->name('master-calibrator.import');
     Route::get('/master-kalibrator/export', [MasterCalibratorController::class, 'export'])->name('master-calibrator.export');
+    Route::get('/master-kalibrator/export/pdf', [MasterCalibratorController::class, 'exportPdf'])->name('master-calibrator.export.pdf');
     Route::get('/master-kalibrator/create', [MasterCalibratorController::class, 'create'])->name('master-calibrator.create');
     Route::post('/master-kalibrator', [MasterCalibratorController::class, 'store'])->name('master-calibrator.store');
     Route::get('/master-kalibrator/{masterCalibrator}/edit', [MasterCalibratorController::class, 'edit'])->name('master-calibrator.edit');
@@ -225,10 +232,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/reports/export-log/pdf', [ReportController::class, 'exportLogPdf'])->name('reports.export.log.pdf');
 
     // ===== LAPORAN HARIAN =====
-    Route::get('/laporan-harian', [LaporanHarianController::class, 'index'])->name('laporan.harian.index');
-    Route::get('/laporan-harian/preview-nomor', [LaporanHarianController::class, 'previewNomor'])->name('laporan.harian.preview');
-    Route::get('/laporan-harian/export-pdf', [LaporanHarianController::class, 'exportPdf'])->name('laporan.harian.pdf');
-    Route::get('/laporan-harian/export-excel', [LaporanHarianController::class, 'exportExcel'])->name('laporan.harian.excel');
+    Route::get('/laporan-harian', [DailyReportController::class, 'index'])->name('laporan.harian.index');
+    Route::get('/laporan-harian/preview-nomor', [DailyReportController::class, 'previewNomor'])->name('laporan.harian.preview');
+    Route::get('/laporan-harian/export-pdf', [DailyReportController::class, 'exportPdf'])->name('laporan.harian.pdf');
+    Route::get('/laporan-harian/export-excel', [DailyReportController::class, 'exportExcel'])->name('laporan.harian.excel');
 
     // ===== SETTINGS =====
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
@@ -239,8 +246,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/settings/user/{user}', [SettingController::class, 'destroyUser'])->name('settings.user.destroy');
 
     // ===== PENGATURAN NOTIFIKASI =====
-    Route::get('/settings/notifikasi', [PengaturanController::class, 'notifikasi'])->name('settings.notifikasi');
-    Route::post('/settings/notifikasi', [PengaturanController::class, 'updateNotifikasi'])->name('settings.notifikasi.update');
+    Route::get('/settings/notifikasi', [NotificationSettingsController::class, 'notifikasi'])->name('settings.notifikasi');
+    Route::post('/settings/notifikasi', [NotificationSettingsController::class, 'updateNotification'])->name('settings.notifikasi.update');
 });
 
 require __DIR__.'/auth.php';

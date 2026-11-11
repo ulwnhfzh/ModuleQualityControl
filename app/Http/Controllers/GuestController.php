@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tool;
-use App\Models\Verifikasi;
+use App\Models\Verification;
 use App\Models\Internal;
-use App\Models\Eksternal;
-use App\Models\EksternalMesin;
+use App\Models\External;
+use App\Models\ExternalMachine;
 use Illuminate\Http\Request;
 
 class GuestController extends Controller
@@ -62,9 +62,9 @@ class GuestController extends Controller
             ];
         }
 
-        // ==== Tab: Verifikasi ====
+        // ==== Tab: Verification ====
         if ($tab === 'semua' || $tab === 'verifikasi') {
-            $q = Verifikasi::where('tahun', $tahun);
+            $q = Verification::where('tahun', $tahun);
             $q = $applySearch($q, ['tool_name', 'tipe', 'tanggal']);
             $verif = $q->orderBy('tool_name')->get();
 
@@ -98,9 +98,9 @@ class GuestController extends Controller
             ];
         }
 
-        // ==== Tab: Eksternal Small ====
+        // ==== Tab: External Small ====
         if ($tab === 'semua' || $tab === 'eksternal') {
-            $q = Eksternal::where('tahun', $tahun);
+            $q = External::where('tahun', $tahun);
             $q = $applySearch($q, ['tool_name']);
             $eksternal = $q->orderBy('tool_name')->get();
 
@@ -122,9 +122,9 @@ class GuestController extends Controller
             ];
         }
 
-        // ==== Tab: Mesin ====
+        // ==== Tab: Machine ====
         if ($tab === 'semua' || $tab === 'mesin') {
-            $q = EksternalMesin::where('tahun', $tahun);
+            $q = ExternalMachine::where('tahun', $tahun);
             $q = $applySearch($q, ['tool_name', 'machine_model', 'maker', 'serial_number', 'code_number']);
             $mesin = $q->orderBy('tool_name')->get();
 

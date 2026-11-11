@@ -3,17 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tool;
-use App\Models\Verifikasi;
+use App\Models\Verification;
 use App\Models\Internal;
-use App\Models\Eksternal;
-use App\Models\EksternalMesin;
+use App\Models\External;
+use App\Models\ExternalMachine;
 use App\Models\ActivityLog;
-use App\Models\DataAllProduksi;
-use App\Models\KalibrasiInternalListUp;
+use App\Models\ProductionData;
+use App\Models\InternalCalibrationListUp;
 use App\Models\ToolDefect;
 use App\Models\ToolStockMovement;
-use App\Models\VerifikasiInternalSchedule;
-use App\Models\VerifikasiQc2;
+use App\Models\InternalVerificationSchedule;
+use App\Models\Qc2Verification;
 use App\Exports\ActivityLogExport;
 use App\Exports\QualityControlWorkbookExport;
 use App\Models\User;
@@ -40,7 +40,7 @@ class ReportController extends Controller
             : null;
         $users = $tab === 'log' ? User::orderBy('name')->get() : collect();
 
-        return view('reports.index', compact('tahun', 'tab', 'logs', 'users'));
+        return view('reports.report', compact('tahun', 'tab', 'logs', 'users'));
     }
 
     // ==========================================
@@ -55,13 +55,13 @@ class ReportController extends Controller
         $query = DB::query();
         $yearModels = [
             'tools' => Tool::class,
-            'verifikasi' => Verifikasi::class,
+            'verifikasi' => Verification::class,
             'internal' => Internal::class,
-            'eksternal' => Eksternal::class,
-            'mesin' => EksternalMesin::class,
-            'periode' => VerifikasiInternalSchedule::class,
-            'list_up' => KalibrasiInternalListUp::class,
-            'qc2' => VerifikasiQc2::class,
+            'eksternal' => External::class,
+            'mesin' => ExternalMachine::class,
+            'periode' => InternalVerificationSchedule::class,
+            'list_up' => InternalCalibrationListUp::class,
+            'qc2' => Qc2Verification::class,
             'ng' => ToolDefect::class,
         ];
         foreach ($yearModels as $alias => $model) {
@@ -71,14 +71,14 @@ class ReportController extends Controller
             ToolStockMovement::query()->whereBetween('movement_date', [substr($startDate, 0, 10), substr($endDate, 0, 10)])->selectRaw('COUNT(*)'),
             'stock'
         );
-        $query->selectSub(DataAllProduksi::query()->selectRaw('COUNT(*)'), 'produksi');
+        $query->selectSub(ProductionData::query()->selectRaw('COUNT(*)'), 'produksi');
         $query->selectSub(ActivityLog::query()->whereBetween('created_at', [$startDate, $endDate])->selectRaw('COUNT(*)'), 'log');
         $counts = $query->first();
 
         return response()->json([
             'labels' => [
-                'Daftar Induk', 'Verifikasi', 'Kalibrasi Internal', 'Kalibrasi Eksternal',
-                'Kalibrasi Mesin', 'Verifikasi Periode', 'Kalibrasi List Up', 'Verifikasi QC2',
+                'Daftar Induk', 'Verification', 'Kalibrasi Internal', 'Kalibrasi External',
+                'Kalibrasi Machine', 'Verification Periode', 'Kalibrasi List Up', 'Verification QC2',
                 'Data NG', 'Pergerakan Stock', 'Data All Produksi', 'Log Aktivitas',
             ],
             'values' => [
@@ -137,7 +137,7 @@ class ReportController extends Controller
         $tahun = $this->validatedYear($request);
         
         // 1 Query saja untuk mengambil semua sum kolom departemen (Optimasi dari 15 Query)
-        $data = Verifikasi::where('tahun', $tahun)
+        $data = Verification::where('tahun', $tahun)
             ->selectRaw('
                 SUM(qa_1) as QA_1, SUM(qa_1_2) as QA_12, SUM(qa_inc) as QA_INC, 
                 SUM(qa_insp) as QA_INSP, SUM(ppic_1) as PPIC_1, SUM(ppic_2) as PPIC_2, 
@@ -163,16 +163,16 @@ class ReportController extends Controller
         $bulanLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
         $data = match ($chart) {
-            'verifikasi-bulanan' => $this->monthlyChartData(Verifikasi::class, $tahun, $bulanColumns, $bulanLabels),
+            'verifikasi-bulanan' => $this->monthlyChartData(Verification::class, $tahun, $bulanColumns, $bulanLabels),
             'internal-bulanan' => $this->monthlyChartData(Internal::class, $tahun, $bulanColumns, $bulanLabels),
-            'eksternal-bulanan' => $this->monthlyChartData(Eksternal::class, $tahun, $bulanColumns, $bulanLabels),
-            'mesin-bulanan' => $this->monthlyChartData(EksternalMesin::class, $tahun, $bulanColumns, $bulanLabels),
+            'eksternal-bulanan' => $this->monthlyChartData(External::class, $tahun, $bulanColumns, $bulanLabels),
+            'mesin-bulanan' => $this->monthlyChartData(ExternalMachine::class, $tahun, $bulanColumns, $bulanLabels),
             'produksi-bulanan' => $this->productionChartData($bulanColumns, $bulanLabels),
             'operasional-bulanan' => $this->monthlyComparisonChartData($tahun, $bulanColumns, $bulanLabels),
             'data-ng' => $this->defectChartData($tahun),
             'stock-bulanan' => $this->stockChartData($tahun, $bulanLabels),
-            'verifikasi-periode' => $this->statusChartData(VerifikasiInternalSchedule::class, $tahun, ['period1_jgm', 'period2_jgm']),
-            'kalibrasi-periode' => $this->statusChartData(KalibrasiInternalListUp::class, $tahun, ['jgm', 'period2_jgm']),
+            'verifikasi-periode' => $this->statusChartData(InternalVerificationSchedule::class, $tahun, ['period1_jgm', 'period2_jgm']),
+            'kalibrasi-periode' => $this->statusChartData(InternalCalibrationListUp::class, $tahun, ['jgm', 'period2_jgm']),
             'verifikasi-qc2' => $this->qc2ChartData($tahun),
             'activity-actions' => $this->activityChartData($tahun),
             'daily-report' => $this->dailyReportChartData($tahun),
@@ -219,7 +219,7 @@ class ReportController extends Controller
             fn (string $column): string => "SUM(CASE WHEN `{$column}` IS NOT NULL AND TRIM(CAST(`{$column}` AS CHAR)) <> '' THEN 1 ELSE 0 END) as `{$column}`",
             $columns
         );
-        $totals = DataAllProduksi::query()->selectRaw(implode(', ', $selects))->first();
+        $totals = ProductionData::query()->selectRaw(implode(', ', $selects))->first();
 
         return [
             'labels' => $labels,
@@ -235,10 +235,10 @@ class ReportController extends Controller
     private function monthlyComparisonChartData(int $tahun, array $columns, array $labels): array
     {
         $series = [
-            'Verifikasi' => Verifikasi::class,
+            'Verification' => Verification::class,
             'Kalibrasi internal' => Internal::class,
-            'Kalibrasi eksternal' => Eksternal::class,
-            'Kalibrasi mesin' => EksternalMesin::class,
+            'Kalibrasi eksternal' => External::class,
+            'Kalibrasi mesin' => ExternalMachine::class,
         ];
 
         $datasets = [];
@@ -304,7 +304,7 @@ class ReportController extends Controller
             return ['labels' => [], 'values' => []];
         }
 
-        return $this->statusChartData(VerifikasiQc2::class, $tahun, $columns);
+        return $this->statusChartData(Qc2Verification::class, $tahun, $columns);
     }
 
     /**
@@ -450,7 +450,7 @@ class ReportController extends Controller
 
         $this->logExport('log', 'Export Log Aktivitas ke PDF');
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.log-pdf', compact('logs'))
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.activity-log-pdf', compact('logs'))
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('log-aktivitas-' . date('Y-m-d-His') . '.pdf');

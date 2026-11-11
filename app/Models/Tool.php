@@ -28,6 +28,6 @@ class Tool extends Model
 
     public function verifikasiInternalSchedules()
     {
-        return $this->hasMany(VerifikasiInternalSchedule::class);
+        return $this->hasMany(InternalVerificationSchedule::class);
     }
 }

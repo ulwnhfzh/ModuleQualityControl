@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tool;
-use App\Models\Verifikasi;
+use App\Models\Verification;
 use App\Models\Internal;
-use App\Models\Eksternal;
-use App\Models\EksternalMesin;
+use App\Models\External;
+use App\Models\ExternalMachine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,10 +19,10 @@ class DashboardController extends Controller
 
         // ===== KARTU RINGKASAN =====
         $totalTools       = Tool::where('tahun', $tahun)->count();
-        $totalVerifikasi  = Verifikasi::where('tahun', $tahun)->count();
+        $totalVerification  = Verification::where('tahun', $tahun)->count();
         $totalInternal    = Internal::where('tahun', $tahun)->count();
-        $totalEksternal   = Eksternal::where('tahun', $tahun)->count();
-        $totalMesin       = EksternalMesin::where('tahun', $tahun)->count();
+        $totalExternal   = External::where('tahun', $tahun)->count();
+        $totalMachine       = ExternalMachine::where('tahun', $tahun)->count();
 
         // ===== KPI (dari KpiController) =====
         $kpi = KpiController::hitungSemuaKpi();
@@ -30,12 +30,12 @@ class DashboardController extends Controller
         // ===== DATA VIEW =====
         $viewData = compact(
             'tahun',
-            'totalTools', 'totalVerifikasi', 'totalInternal', 'totalEksternal', 'totalMesin',
+            'totalTools', 'totalVerification', 'totalInternal', 'totalExternal', 'totalMachine',
             'kpi'
         );
 
         if (Auth::check() && Auth::user()->role === 'admin') {
-            return view('dashboard.index', $viewData);
+            return view('dashboard.summary', $viewData);
         }
 
         return view('dashboard.user', $viewData);

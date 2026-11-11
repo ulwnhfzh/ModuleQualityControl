@@ -97,7 +97,7 @@
     </table>
 
     {{-- ===== FOOTER DOKUMEN ===== --}}
-    @include('pdf.footer-dokumen', ['nomorDokumen' => $nomorDokumen ?? null])
+    @include('pdf.document-footer', ['nomorDokumen' => $nomorDokumen ?? null])
 
 </body>
 </html>

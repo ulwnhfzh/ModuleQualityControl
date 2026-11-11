@@ -7,7 +7,7 @@
             <label for="calibration-category" class="text-xs font-semibold text-slate-600">KATEGORI</label>
             <select id="calibration-category" onchange="location.href=this.value" class="rounded border border-slate-300 bg-white px-3 py-2 text-sm">
                 <option value="{{ route('eksternal.small', ['tahun' => $tahun]) }}">Small Tool</option>
-                <option value="{{ route('mesin.index', ['tahun' => $tahun]) }}">Mesin Alat Ukur</option>
+                <option value="{{ route('mesin.index', ['tahun' => $tahun]) }}">Machine Alat Ukur</option>
                 <option value="{{ route('master-calibrator.index', ['tahun' => $tahun]) }}" selected>Master Kalibrator</option>
             </select>
             <label for="year" class="text-xs font-semibold text-slate-600">TAHUN</label>

@@ -250,9 +250,9 @@
                                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
 
-                        @if(isset($globalNotifikasi) && $globalNotifikasi > 0)
+                        @if(isset($globalNotification) && $globalNotification > 0)
                             <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center ring-2 ring-white px-1">
-                                {{ $globalNotifikasi > 99 ? '99+' : $globalNotifikasi }}
+                                {{ $globalNotification > 99 ? '99+' : $globalNotification }}
                             </span>
                         @endif
                     </a>
@@ -381,15 +381,15 @@
             <nav class="px-3 space-y-1">
                 <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
-                    <span class="flex-1 text-left">Jadwal Verifikasi</span>
+                    <span class="flex-1 text-left">Jadwal Verification</span>
                     <svg class="chevron w-4 h-4" :class="verifikasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div x-show="verifikasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('verifikasi.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Jadwal Tahunan/Bulanan</span>
+                        <span class="dot"></span><span>Jadwal Internal Verification</span>
                     </a>
                     <a href="{{ route('verifikasi.periode.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit') ? 'active' : '' }}">
-                        <span class="dot"></span><span>List Up Periode</span>
+                        <span class="dot"></span><span>List Up Internal Verification</span>
                     </a>
                 </div>
 
@@ -405,7 +405,7 @@
                 
                 <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Eksternal</span>
+                        <span class="dot"></span><span>Jadwal Kalibrasi</span>
                     </a>
 
                     <a href="{{ route('external-list-up.index') }}" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') ? 'active' : '' }}">
@@ -441,7 +441,7 @@
 
             {{-- LAPORAN & PENGATURAN --}}
             @if(Auth::check() && Auth::user()->role === 'admin')
-            <p class="sidebar-section">Analitik & Pengaturan</p>
+            <p class="sidebar-section">Analitik & Setting</p>
             <nav class="px-3 space-y-1">
                 <a href="{{ route('reports.index') }}" class="sidebar-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></span>
@@ -527,15 +527,15 @@
             <nav class="px-3 space-y-1">
                 <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
-                    <span class="flex-1 text-left">Jadwal Verifikasi</span>
+                    <span class="flex-1 text-left">Jadwal Verification</span>
                     <svg class="chevron w-4 h-4" :class="verifikasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div x-show="verifikasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('verifikasi.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Jadwal Tahunan/Bulanan</span>
+                        <span class="dot"></span><span>Jadwal Verification Internal</span>
                     </a>
                     <a href="{{ route('verifikasi.periode.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit') ? 'active' : '' }}">
-                        <span class="dot"></span><span>List Up Periode</span>
+                        <span class="dot"></span><span>List Up Internal Verification/span>
                     </a>
                 </div>
 
@@ -551,7 +551,7 @@
                 
                 <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Eksternal</span>
+                        <span class="dot"></span><span>External</span>
                     </a>
 
                     <a href="{{ route('external-list-up.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') ? 'active' : '' }}">
@@ -586,7 +586,7 @@
 
             {{-- LAPORAN & PENGATURAN --}}
             @if(Auth::check() && Auth::user()->role === 'admin')
-            <p class="sidebar-section">Analitik & Pengaturan</p>
+            <p class="sidebar-section">Analitik & Setting</p>
             <nav class="px-3 space-y-1">
                 <a href="{{ route('reports.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></span>

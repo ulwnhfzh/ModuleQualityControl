@@ -101,7 +101,7 @@
     </div>
 
     {{-- PEMBERITAHUAN --}}
-    @if($kpi['jumlahTerlambat'] > 0 || $kpi['jumlahJatuhTempo7'] > 0 || $kpi['jumlahJatuhTempo30'] > 0 || $kpi['jumlahVerifikasiBelumDikonfirmasi'] > 0)
+    @if($kpi['jumlahTerlambat'] > 0 || $kpi['jumlahJatuhTempo7'] > 0 || $kpi['jumlahJatuhTempo30'] > 0 || $kpi['jumlahVerificationBelumDikonfirmasi'] > 0)
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="bg-amber-50 px-4 py-3 border-b border-amber-200 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -117,14 +117,13 @@
             <div class="bg-rose-50 border-l-4 border-rose-500 rounded-r-lg p-3">
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
-                        <span class="text-lg">🔴</span>
                         <span class="font-semibold text-rose-800 text-sm">
                             {{ $kpi['jumlahTerlambat'] }} alat terlambat kalibrasi
                         </span>
                     </div>
                     <span class="text-xs text-rose-600">Memerlukan tindakan segera</span>
                 </div>
-                <div class="pl-7 space-y-1">
+                <div class="pl-0 space-y-1">
                     @foreach($kpi['alatTerlambat']->take(3) as $alat)
                     <div class="text-xs text-rose-700">
                         • <strong>{{ $alat->tool_name }}</strong>
@@ -149,14 +148,13 @@
             <div class="bg-orange-50 border-l-4 border-orange-500 rounded-r-lg p-3">
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
-                        <span class="text-lg">🟠</span>
                         <span class="font-semibold text-orange-800 text-sm">
                             {{ $kpi['jumlahJatuhTempo7'] }} alat akan jatuh tempo
                         </span>
                     </div>
                     <span class="text-xs text-orange-600">Segera dipersiapkan</span>
                 </div>
-                <div class="pl-7 space-y-1">
+                <div class="pl-0 space-y-1">
                     @foreach($kpi['alatJatuhTempo7Hari']->take(3) as $alat)
                     <div class="text-xs text-orange-700">
                         • <strong>{{ $alat->tool_name }}</strong>
@@ -180,7 +178,6 @@
             <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <span class="text-lg">🔵</span>
                         <span class="font-semibold text-blue-800 text-sm">
                             {{ $kpi['jumlahJatuhTempo30'] }} alat akan jatuh tempo dalam periode mendatang
                         </span>
@@ -192,18 +189,18 @@
             </div>
             @endif
 
-            @if($kpi['jumlahVerifikasiBelumDikonfirmasi'] > 0)
+            @if($kpi['jumlahVerificationBelumDikonfirmasi'] > 0)
             <div class="rounded-r-lg border-l-4 border-amber-500 bg-amber-50 p-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                    <span class="text-sm font-semibold text-amber-900">{{ $kpi['jumlahVerifikasiBelumDikonfirmasi'] }} verifikasi menunggu konfirmasi</span>
+                    <span class="text-sm font-semibold text-amber-900">{{ $kpi['jumlahVerificationBelumDikonfirmasi'] }} verifikasi menunggu konfirmasi</span>
                     <a href="{{ route('verifikasi.index', ['tahun' => $kpi['tahun']]) }}" class="text-xs font-semibold text-blue-700 underline hover:text-blue-900">Buka daftar verifikasi</a>
                 </div>
                 <ul class="mt-2 space-y-1 pl-4 text-xs text-amber-800">
                     @foreach($kpi['verifikasiBelumDikonfirmasi']->take(3) as $record)
                         <li>{{ $record->tool_name }} · {{ ucfirst($record->tipe) }}</li>
                     @endforeach
-                    @if($kpi['jumlahVerifikasiBelumDikonfirmasi'] > 3)
-                        <li class="font-semibold">Dan {{ $kpi['jumlahVerifikasiBelumDikonfirmasi'] - 3 }} verifikasi lainnya</li>
+                    @if($kpi['jumlahVerificationBelumDikonfirmasi'] > 3)
+                        <li class="font-semibold">Dan {{ $kpi['jumlahVerificationBelumDikonfirmasi'] - 3 }} verifikasi lainnya</li>
                     @endif
                 </ul>
             </div>
@@ -250,20 +247,20 @@
                     <p class="text-[10px] text-blue-600 uppercase">Daftar Induk</p>
                 </div>
                 <div class="bg-slate-50 rounded-lg p-2.5">
-                    <p class="text-2xl font-bold text-blue-700">{{ $totalVerifikasi }}</p>
-                    <p class="text-[10px] text-blue-600 uppercase">Verifikasi</p>
+                    <p class="text-2xl font-bold text-blue-700">{{ $totalVerification }}</p>
+                    <p class="text-[10px] text-blue-600 uppercase">Verification</p>
                 </div>
                 <div class="bg-slate-50 rounded-lg p-2.5">
                     <p class="text-2xl font-bold text-purple-700">{{ $totalInternal }}</p>
                     <p class="text-[10px] text-purple-600 uppercase">Internal</p>
                 </div>
                 <div class="bg-slate-50 rounded-lg p-2.5">
-                    <p class="text-2xl font-bold text-amber-700">{{ $totalEksternal }}</p>
-                    <p class="text-[10px] text-amber-600 uppercase">Eksternal</p>
+                    <p class="text-2xl font-bold text-amber-700">{{ $totalExternal }}</p>
+                    <p class="text-[10px] text-amber-600 uppercase">External</p>
                 </div>
                 <div class="bg-slate-50 rounded-lg p-2.5">
-                    <p class="text-2xl font-bold text-rose-700">{{ $totalMesin }}</p>
-                    <p class="text-[10px] text-rose-600 uppercase">Mesin</p>
+                    <p class="text-2xl font-bold text-rose-700">{{ $totalMachine }}</p>
+                    <p class="text-[10px] text-rose-600 uppercase">Machine</p>
                 </div>
         </div>
     </div>

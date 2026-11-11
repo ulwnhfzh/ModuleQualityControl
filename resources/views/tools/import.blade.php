@@ -44,7 +44,7 @@
 
         <!-- Contoh Format -->
         <div class="bg-blue-50 border border-blue-200 p-4 rounded mb-6 text-sm">
-            <p class="font-semibold text-blue-800 mb-2">📋 Format Kolom Excel yang Benar:</p>
+            <p class="font-semibold text-blue-800 mb-2">Format Kolom Excel yang Benar:</p>
             <p class="text-gray-700">Import akan mencari header secara otomatis, termasuk pada file dengan judul dan header berulang per halaman:</p>
             <code class="block bg-white p-2 rounded mt-2 text-xs text-blue-700 overflow-x-auto">
                 NO | TOOL NAME | QA 1 | QA 1.2 | QA INC | QA INSP | PPIC 1 | PPIC 2 | LINE SCC | P1 | P2 | P3 | P5 | P6 | P7 | P8 | ENG | QA 2 | TOTAL

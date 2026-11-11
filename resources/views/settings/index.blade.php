@@ -25,7 +25,7 @@
             <a href="{{ route('settings.notifikasi') }}"
                class="bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition inline-flex items-center gap-1 whitespace-nowrap
                       px-3 py-2 text-xs sm:text-sm">
-                ⚙️ Pengaturan Notifikasi
+                ⚙️ Setting Notification
             </a>
 
             <a href="{{ route('settings.user.create') }}"

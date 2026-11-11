@@ -13,102 +13,69 @@
         html, body { overflow-x: hidden; }
         [x-cloak] { display: none !important; }
 
-        body {
-            background-color: #f8fafc;
-            background-image:
-                radial-gradient(circle at 15% 15%, rgba(0, 112, 242, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(15, 23, 42, 0.06) 0%, transparent 40%);
-            min-height: 100vh;
-        }
+        body { background-color: #f5f6f7; min-height: 100vh; }
 
         /* ===== PANEL KIRI: BRANDING ===== */
-        .brand-panel {
-            background: linear-gradient(135deg, #0054b5 0%, #0070f2 55%, #3b91ff 100%);
-            position: relative;
-            overflow: hidden;
-        }
-        .brand-panel::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image:
-                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.08) 0%, transparent 40%);
-        }
-        .brand-panel::after {
-            content: '';
-            position: absolute;
-            bottom: -80px;
-            right: -80px;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.08);
-            filter: blur(40px);
-        }
+        .brand-panel { background: #ffffff; position: relative; border-right: 1px solid #d5dadd; }
 
         /* ===== CARD PILIHAN ===== */
         .choice-btn {
             position: relative;
             overflow: hidden;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 20px;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             padding: 18px 20px;
             text-decoration: none;
             cursor: pointer;
-            border: none;
+            border: 1px solid #0070f2;
             width: 100%;
             text-align: left;
         }
         .choice-btn.admin {
-            background: linear-gradient(135deg, #0070f2 0%, #0054b5 100%);
-            box-shadow: 0 8px 20px -8px rgba(0, 112, 242, 0.35);
+            background: #0070f2;
+            box-shadow: none;
         }
         .choice-btn.admin:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 16px 32px -8px rgba(0, 112, 242, 0.4);
+            background: #0054b5;
         }
         .choice-btn.admin .icon-wrap {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.12);
             color: #ffffff;
         }
         .choice-btn.admin:hover .icon-wrap {
-            background: rgba(255,255,255,0.35);
-            transform: scale(1.1) rotate(-5deg);
+            background: rgba(255,255,255,0.18);
         }
         .choice-btn.admin .arrow { color: rgba(255,255,255,0.7); }
-        .choice-btn.admin:hover .arrow { color: #ffffff; transform: translateX(4px); }
+        .choice-btn.admin:hover .arrow { color: #ffffff; }
 
         .choice-btn.guest {
             background: #ffffff;
-            border: 2px solid #cfe5fc;
-            box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+            border: 1px solid #89919a;
+            box-shadow: none;
         }
         .choice-btn.guest:hover {
-            transform: translateY(-3px);
             border-color: #0070f2;
-            box-shadow: 0 16px 32px -8px rgba(0, 112, 242, 0.2);
+            background: #f5faff;
         }
         .choice-btn.guest .icon-wrap {
             background: #eaf3fc;
             color: #0070f2;
         }
         .choice-btn.guest:hover .icon-wrap {
-            background: #0070f2;
-            color: #ffffff;
-            transform: scale(1.1) rotate(-5deg);
+            background: #dbeeff;
+            color: #0054b5;
         }
         .choice-btn.guest .arrow { color: #cbd5e1; }
-        .choice-btn.guest:hover .arrow { color: #0070f2; transform: translateX(4px); }
+        .choice-btn.guest:hover .arrow { color: #0070f2; }
 
         .icon-wrap {
             width: 48px; height: 48px;
-            border-radius: 14px;
+            border-radius: 4px;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color 0.15s ease, color 0.15s ease;
         }
         .arrow { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
@@ -116,12 +83,12 @@
             from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .fade-in { animation: none; }
 
         .form-input {
             width: 100%;
             border: 1px solid #cbd5e1;
-            border-radius: 12px;
+            border-radius: 4px;
             padding: 12px 14px;
             font-size: 14px;
             transition: all 0.2s ease;
@@ -131,7 +98,7 @@
         .form-input:focus {
             outline: none;
             border-color: #0070f2;
-            box-shadow: 0 0 0 3px rgba(0, 112, 242, 0.15);
+            box-shadow: none;
         }
         .form-input::placeholder { color: #94a3b8; }
 
@@ -141,13 +108,13 @@
             align-items: center;
             width: 100%;
             border: 1px solid #cbd5e1;
-            border-radius: 12px;
+            border-radius: 4px;
             background: #ffffff;
             transition: all 0.2s ease;
         }
         .password-wrapper:focus-within {
             border-color: #0070f2;
-            box-shadow: 0 0 0 3px rgba(0, 112, 242, 0.15);
+            box-shadow: none;
         }
         .password-wrapper input {
             flex: 1;
@@ -157,7 +124,7 @@
             font-size: 14px;
             background: transparent;
             color: #0f172a;
-            border-radius: 12px 0 0 12px;
+            border-radius: 4px 0 0 4px;
         }
         .password-wrapper input::placeholder { color: #94a3b8; }
 
@@ -168,7 +135,7 @@
             width: 40px;
             height: 40px;
             margin-right: 4px;
-            border-radius: 10px;
+            border-radius: 4px;
             color: #94a3b8;
             background: transparent;
             border: none;
@@ -197,33 +164,32 @@
 
     {{-- Card Utama Split Screen --}}
     <div class="w-full max-w-2xl fade-in">
-        <div class="grid grid-cols-1 md:grid-cols-2 rounded-[32px] overflow-hidden shadow-2xl shadow-slate-900/10 bg-white items-stretch">
+      <div class="grid grid-cols-1 md:grid-cols-2 overflow-hidden border border-slate-300 bg-white items-stretch">
 
             {{-- ========== PANEL KIRI: BRANDING ========== --}}
             {{-- Sudut kiri-atas dan kiri-bawah dibuat membulat --}}
-            <div class="brand-panel relative text-white p-5 sm:p-6 md:p-8 flex flex-col justify-between min-h-[220px] md:min-h-[560px]
-                        rounded-t-[32px] md:rounded-tr-none md:rounded-l-[32px]">
+            <div class="brand-panel relative text-slate-800 p-5 sm:p-6 md:p-8 flex flex-col justify-between min-h-[220px] md:min-h-[520px]">
 
                 <div class="relative z-10">
                     {{-- LOGO --}}
-                    <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white shadow-xl shadow-blue-900/20 ring-1 ring-white/40 p-3 mb-4 md:mb-5">
+                    <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded border border-slate-200 bg-white p-3 mb-4 md:mb-5">
                         <img src="{{ asset('images/hamatetsu_indonesia_logo.jpg') }}"
                              alt="Logo PT Hamatetsu Indonesia"
                              class="w-full h-full object-contain">
                     </div>
 
-                    <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold leading-tight">
+                    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold leading-tight text-slate-900">
                         PT. Hamatetsu<br>Indonesia
                     </h1>
 
-                    <p class="text-sm text-blue-50 mt-3 md:mt-4 leading-relaxed max-w-sm">
+                    <p class="text-sm text-slate-600 mt-3 md:mt-4 leading-relaxed max-w-sm">
                         Sistem Manajemen Alat Ukur & Kalibrasi untuk Quality Control.
                     </p>
                 </div>
 
                 <div class="relative z-10 mt-6 md:mt-8">
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-[10px] font-semibold uppercase tracking-wider">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-200 animate-pulse"></span>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-slate-200 bg-slate-50 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                         Quality Control — Measurement Tools
                     </div>
                 </div>
@@ -232,23 +198,18 @@
 
             {{-- ========== PANEL KANAN: FORM DINAMIS ========== --}}
             {{-- Sudut kanan-atas dan kanan-bawah dibuat membulat --}}
-            <div class="p-6 sm:p-8 flex flex-col justify-center bg-white
-                        rounded-b-[32px] md:rounded-bl-none md:rounded-r-[32px]">
+            <div class="p-6 sm:p-8 flex flex-col justify-center bg-white">
 
                 {{-- ====== STATE 1: PILIHAN AKSES ====== --}}
                 <div x-show="view === 'choice'">
                     <div class="text-center mb-6">
-                        <h2 class="text-2xl font-extrabold text-slate-900">
+                        <h2 class="text-2xl font-bold text-slate-900">
                             Selamat Datang
                         </h2>
                         <p class="text-sm text-slate-500 mt-1.5">
                             Silakan pilih jenis akses untuk melanjutkan
                         </p>
-                        <div class="flex items-center justify-center mt-4">
-                            <span class="h-px w-10 bg-gradient-to-r from-transparent to-blue-300"></span>
-                            <span class="mx-2 w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                            <span class="h-px w-10 bg-gradient-to-l from-transparent to-blue-300"></span>
-                        </div>
+                        <div class="mt-4 border-t border-slate-200"></div>
                     </div>
 
                     <div class="space-y-3">
@@ -310,12 +271,12 @@
                 <div x-show="view === 'login'" x-cloak>
 
                     <div class="text-center mb-6">
-                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 mb-3">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded border border-slate-200 bg-slate-50 text-blue-600 mb-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
                         </div>
-                        <h2 class="text-2xl font-extrabold text-slate-900">
+                        <h2 class="text-2xl font-bold text-slate-900">
                             Login Admin
                         </h2>
                         <p class="text-sm text-slate-500 mt-1.5">

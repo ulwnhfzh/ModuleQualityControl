@@ -90,10 +90,65 @@
 
     .feature-toolbar {
         min-width: 0;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.75rem;
-        box-shadow: 0 1px 3px rgb(15 23 42 / 0.06);
+        border: 1px solid #d5dadd;
+        border-radius: 0.25rem;
+        box-shadow: none;
     }
+
+    /* Keep business screens crisp and information-led instead of stacking floating cards. */
+    main .rounded-xl.border.bg-white.shadow-sm,
+    main .rounded-xl.border.border-slate-200.bg-white.shadow-sm,
+    main .rounded-lg.border.border-slate-200.bg-white.shadow-sm,
+    main .main-content > .bg-white[class*="shadow"],
+    main .main-content .feature-toolbar,
+    main .main-content #chartContainer {
+        border-color: #d5dadd !important;
+        border-radius: 0.25rem !important;
+        box-shadow: none !important;
+    }
+
+    main .main-content > .bg-white[class*="shadow"] {
+        border: 1px solid #d5dadd;
+    }
+
+    main .dashboard-kpi-grid {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+    }
+
+    main .data-grid {
+        font-variant-numeric: tabular-nums;
+    }
+
+    main .data-grid th,
+    main .data-grid td {
+        padding: 0.55rem 0.6rem;
+        vertical-align: middle;
+    }
+
+    main .data-grid .sticky-col {
+        position: sticky;
+        z-index: 10;
+        background-color: inherit;
+    }
+
+    main .data-grid thead .sticky-col {
+        z-index: 30;
+    }
+
+    main .period-grid th,
+    main .period-grid td {
+        white-space: nowrap;
+        padding: 0.55rem 0.65rem;
+    }
+
+    main .period-grid thead th {
+        position: sticky;
+        z-index: 20;
+    }
+
+    main .period-grid thead tr:nth-child(1) th { top: 0; }
+    main .period-grid thead tr:nth-child(2) th { top: 34px; }
+    main .period-grid thead tr:nth-child(3) th { top: 68px; }
 
     .feature-toolbar > div,
     .feature-toolbar form {

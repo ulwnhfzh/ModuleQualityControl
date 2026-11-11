@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Exports;
+
+use App\Models\Qc2Verification;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+class Qc2VerificationExport implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles, WithTitle
+{
+    protected $tahun;
+    protected $company;
+
+    public function __construct($tahun, $company = 'HAMATETSU')
+    {
+        $this->tahun = $tahun;
+        $this->company = $company;
+    }
+
+    public function title(): string { return 'Verification QC2'; }
+
+    public function collection()
+    {
+        $data = Qc2Verification::where('tahun', $this->tahun)->where('company', $this->company)->orderBy('tool_name')->get();
+        
+        return $data->map(function($item, $key) {
+            return [
+                'NO' => $key + 1,
+                'TOOL NAME' => $item->tool_name,
+                'TYPE' => $item->tool_type,
+                'SPECIFICATION' => $item->specification,
+                'NUMBER SERI' => $item->serial_number,
+                'NUMBER REGISTRATION' => $item->registration_number,
+                'SHOP' => $item->shop,
+                'VERIFICATION DATE' => $item->period1_verification_date?->format('d/m/Y'),
+                'NEXT VERIFICATION DATE' => $item->period1_next_verification_date?->format('d/m/Y'),
+                'JGM' => $item->period1_jgm,
+            ];
+        });
+    }
+
+    public function headings(): array
+    {
+        return [
+            'NO', 'TOOL NAME', 'TYPE', 'SPECIFICATION', 'NUMBER SERI', 
+            'NUMBER REGISTRATION', 'SHOP', 'VERIFICATION DATE', 'NEXT VERIFICATION DATE', 'JGM'
+        ];
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        return [
+            1 => ['font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']], 'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '1E40AF']]],
+        ];
+    }
+}

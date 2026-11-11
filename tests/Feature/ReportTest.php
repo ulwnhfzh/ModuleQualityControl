@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\DataAllProduksi;
+use App\Models\ProductionData;
 use App\Models\ToolDefect;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -102,7 +102,7 @@ class ReportTest extends TestCase
             'aus' => 3,
             'erorr' => 2,
         ]);
-        DataAllProduksi::create([
+        ProductionData::create([
             'division' => 'QA 1',
             'tool_name' => 'CALIPER',
             'type' => 'MEASURING',

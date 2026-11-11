@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Internal;
 use App\Models\Tool;
-use App\Models\DokumenCounter;
+use App\Models\DocumentCounter;
 use App\Support\DocumentPdfLayout;
 use App\Imports\InternalImport;
 use App\Imports\SpreadsheetHeaderRowDetector;
@@ -193,7 +193,7 @@ class InternalController extends Controller
             ->get();
 
         // ===== GENERATE NOMOR DOKUMEN =====
-        $nomorDokumen = DokumenCounter::generateNomor('INT', $tahun, 'QC');
+        $nomorDokumen = DocumentCounter::generateNomor('INT', $tahun, 'QC');
 
         // ===== LOG ACTIVITY =====
         $this->logExport('internal', 'Export PDF Kalibrasi Internal - Nomor: ' . $nomorDokumen);

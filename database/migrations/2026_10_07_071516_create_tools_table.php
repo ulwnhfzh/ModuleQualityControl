@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('tool_name');
             $table->string('category')->default('Small Tool');
             
-            // Kolom Mesin
+            // Kolom Machine
             $table->string('machine_model')->nullable();
             $table->string('code_number')->nullable();
             $table->string('serial_number')->nullable();

@@ -1,0 +1,217 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="feature-toolbar mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 lg:px-5">
+    @if(session('success'))
+        <div class="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">{{ session('success') }}</div>
+    @endif
+    @if($errors->any())
+        <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ $errors->first() }}</div>
+    @endif
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <form method="GET" action="{{ route('verifikasi.periode.index') }}" class="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3 gap-y-3 sm:flex sm:flex-wrap">
+
+            <label for="company-list-up" class="text-xs font-semibold text-slate-500">PERUSAHAAN</label>
+            <select id="company-list-up" name="company" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
+                @foreach(['HAMATETSU', 'NISSO GIKEN'] as $companyOption)
+                    <option value="{{ $companyOption }}" @selected($company === $companyOption)>{{ $companyOption }}</option>
+                @endforeach
+            </select>
+            
+            <label for="jenis-list-up" class="text-xs font-semibold text-slate-500">JENIS LIST UP</label>
+            <select id="jenis-list-up" name="jenis" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
+                <option value="verifikasi" {{ $jenis === 'verifikasi' ? 'selected' : '' }}>Verification Internal</option>
+                <option value="verifikasi_qc2" id="option-qc2" {{ $jenis === 'verifikasi_qc2' ? 'selected' : '' }}>Verification Internal QC2</option>
+            </select>
+
+            <label for="tahun" class="text-xs font-semibold text-slate-500">TAHUN</label>
+            <select id="tahun" name="tahun" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
+                @for($y = max((int) date('Y') + 2, $tahun); $y >= date('Y') - 12; $y--)
+                    <option value="{{ $y }}" @selected($tahun === $y)>YEAR {{ $y }}</option>
+                @endfor
+            </select>
+        </form>
+        
+        <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+            <p class="text-xs text-slate-500 mr-1">Total {{ $schedules->count() }} jadwal</p>
+            
+            @if(Auth::check() && Auth::user()->role === 'admin')
+                <!-- Tombol Import -->
+                <a href="{{ route('verifikasi.periode.import.form', ['tahun' => $tahun, 'company' => $company]) }}" class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                    @include('components.icons.import') Import
+                </a>
+
+                <!-- Tombol Export Dropdown -->
+                <div class="relative inline-block" id="exportDropdownVerif">
+                    <button type="button" onclick="toggleExportVerif()" class="bg-slate-800 text-white rounded font-semibold hover:bg-slate-900 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                        @include('components.icons.export') Export
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="exportMenuVerif" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                        <a href="{{ route('verifikasi.periode.export', ['tahun' => $tahun, 'company' => $company]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
+                                <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
+                                <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
+                                <text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="9">X</text>
+                            </svg>
+                            <span class="font-medium">Export Excel</span>
+                        </a>
+                        <a href="{{ route('verifikasi.periode.export.pdf', ['tahun' => $tahun, 'company' => $company]) }}" class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
+                            <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-red-600 text-[8px] font-bold text-white">PDF</span>
+                            <span class="font-medium">Export PDF</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Tombol Tambah -->
+                <a href="{{ route($jenis === 'kalibrasi' ? 'verifikasi.periode.kalibrasi.create' : 'verifikasi.periode.create', ['tahun' => $tahun, 'company' => $company]) }}" class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                    <span>+</span> Tambah
+                </a>
+            @endif
+        </div>
+    </div>
+</div>
+
+<div class="mb-2 flex items-center justify-between text-xs text-slate-500">
+    <span>{{ $schedules->count() }} alat terjadwal</span>
+    <span class="md:hidden">Geser tabel ke samping untuk melihat semua periode →</span>
+</div>
+
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="period-grid w-full min-w-[1550px] table-fixed border-collapse text-xs text-slate-700">
+            <colgroup>
+                <col style="width:52px"><col style="width:190px"><col style="width:100px"><col style="width:145px">
+                <col style="width:125px"><col style="width:175px"><col style="width:105px">
+                <col style="width:145px"><col style="width:165px"><col style="width:70px">
+                <col style="width:145px"><col style="width:165px"><col style="width:70px">
+                @if(Auth::check() && Auth::user()->role === 'admin')<col style="width:130px">@endif
+            </colgroup>
+            <thead class="bg-slate-800 text-white">
+                <!-- BARIS 1: Header Utama -->
+                <tr class="text-center uppercase tracking-wide">
+                    <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">No</th>
+                    <th rowspan="3" class="border border-slate-600 px-3 py-3 text-left align-middle">Tool Name</th>
+                    <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">Type</th>
+                    <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">Specification</th>
+                    <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">Number Seri</th>
+                    <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">Number Registration</th>
+                    <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">Shop</th>
+                    
+                    <!-- Header Tahun -->
+                    <th colspan="6" class="border border-slate-600 px-3 py-2 text-center bg-slate-700">Year {{ $tahun }}</th>
+                    
+                    @if(Auth::check() && Auth::user()->role === 'admin') 
+                        <th rowspan="3" class="border border-slate-600 px-3 py-3 align-middle">Aksi</th> 
+                    @endif
+                </tr>
+
+                <!-- BARIS 2: Header Periode -->
+                <tr class="text-center uppercase">
+                    <th colspan="3" class="border border-slate-600 px-3 py-2 bg-slate-700">Periode 1</th>
+                    <th colspan="3" class="border border-slate-600 px-3 py-2 bg-slate-700">Periode 2</th>
+                </tr>
+
+                <!-- BARIS 3: Header Sub-Kolom -->
+                <tr class="text-center uppercase text-[10px]">
+                    <th class="border border-slate-600 px-3 py-2">Verification Date</th>
+                    <th class="border border-slate-600 px-3 py-2">Next Verification Date</th>
+                    <th class="border border-slate-600 px-3 py-2">JGM</th>
+                    <th class="border border-slate-600 px-3 py-2">Verification Date</th>
+                    <th class="border border-slate-600 px-3 py-2">Next Verification Date</th>
+                    <th class="border border-slate-600 px-3 py-2">JGM</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($schedules as $index => $schedule)
+                    @php($hasNg = strtoupper(trim((string) $schedule->period1_jgm)) === 'NG' || strtoupper(trim((string) $schedule->period2_jgm)) === 'NG')
+                    <tr class="{{ $hasNg ? 'bg-rose-100 text-rose-900 hover:bg-rose-200' : ($index % 2 ? 'bg-slate-50' : 'bg-white') . ' hover:bg-blue-50/50' }}">
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $index + 1 }}</td>
+                        <td class="border border-slate-200 px-3 py-3 font-semibold text-slate-800">{{ $schedule->tool_name ?: '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->tool_type ?: '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3">{{ $schedule->specification ?: '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->serial_number ?: '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->registration_number ?: '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->shop ?: '-' }}</td>
+                        
+                        <!-- Data Periode 1 -->
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period1_verification_date?->format('d M Y') ?? '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period1_next_verification_date?->format('d M Y') ?? '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">@if(strtoupper(trim((string) $schedule->period1_jgm)) === 'NG')<span class="rounded bg-rose-600 px-2 py-1 font-bold text-white">NG</span>@elseif(strtoupper(trim((string) $schedule->period1_jgm)) === 'OK')<span class="rounded bg-blue-600 px-2 py-1 font-semibold text-white">OK</span>@else{{ $schedule->period1_jgm ?: '-' }}@endif</td>
+                        
+                        <!-- Data Periode 2 -->
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period2_verification_date?->format('d M Y') ?? '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->period2_next_verification_date?->format('d M Y') ?? '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">@if(strtoupper(trim((string) $schedule->period2_jgm)) === 'NG')<span class="rounded bg-rose-600 px-2 py-1 font-bold text-white">NG</span>@elseif(strtoupper(trim((string) $schedule->period2_jgm)) === 'OK')<span class="rounded bg-blue-600 px-2 py-1 font-semibold text-white">OK</span>@else{{ $schedule->period2_jgm ?: '-' }}@endif</td>
+                        
+                        @if(Auth::check() && Auth::user()->role === 'admin')
+                            <td class="border border-slate-200 px-3 py-3">
+                                <div class="flex justify-center gap-2">
+                                    <a href="{{ route('verifikasi.periode.edit', $schedule) }}" class="rounded bg-blue-600 px-2 py-1 font-semibold text-white hover:bg-blue-700">Edit</a>
+                                    <form method="POST" action="{{ route('verifikasi.periode.destroy', $schedule) }}" onsubmit="return confirm('Hapus jadwal periode ini?')">
+                                        @csrf @method('DELETE')
+                                        <button class="rounded bg-rose-600 px-2 py-1 font-semibold text-white hover:bg-rose-700">Hapus</button>
+                                    </form>
+                                </div>
+                            </td>
+                        @endif
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="{{ Auth::check() && Auth::user()->role === 'admin' ? 14 : 13 }}" class="px-4 py-12 text-center text-slate-500">
+                            Belum ada jadwal periode untuk tahun {{ $tahun }}. Tambahkan jadwal untuk mulai mengisi daftar ini.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function toggleExportVerif() {
+    document.getElementById('exportMenuVerif').classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('exportDropdownVerif');
+    if (dropdown && !dropdown.contains(e.target)) {
+        document.getElementById('exportMenuVerif').classList.add('hidden');
+    }
+});
+
+// Logika untuk menyembunyikan opsi QC2 jika NISSO GIKEN dipilih
+document.addEventListener('DOMContentLoaded', function() {
+    const companySelect = document.getElementById('company-list-up');
+    const jenisSelect = document.getElementById('jenis-list-up');
+    const qc2Option = document.getElementById('option-qc2');
+
+    function toggleQc2Option() {
+        if (!companySelect || !jenisSelect || !qc2Option) return;
+
+        if (companySelect.value === 'NISSO GIKEN') {
+            // Sembunyikan opsi QC2
+            qc2Option.hidden = true;
+            qc2Option.disabled = true;
+
+            // Jika saat ini yang terpilih adalah QC2, paksa ganti ke Verification Internal
+            if (jenisSelect.value === 'verifikasi_qc2') {
+                jenisSelect.value = 'verifikasi';
+                jenisSelect.form.submit(); // Submit form agar data langsung ter-refresh
+            }
+        } else {
+            // Munculkan kembali opsi QC2 jika Hamatetsu
+            qc2Option.hidden = false;
+            qc2Option.disabled = false;
+        }
+    }
+
+    // Jalankan saat halaman dimuat
+    toggleQc2Option();
+
+    // Jalankan saat dropdown perusahaan diganti
+    companySelect.addEventListener('change', toggleQc2Option);
+});
+</script>
+@endsection

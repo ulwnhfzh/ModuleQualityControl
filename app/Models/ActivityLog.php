@@ -87,10 +87,10 @@ class ActivityLog extends Model
     {
         $labels = [
             'tools'      => 'Daftar Induk',
-            'verifikasi' => 'Verifikasi',
+            'verifikasi' => 'Verification',
             'internal'   => 'Internal',
-            'eksternal'  => 'Eksternal Small',
-            'mesin'      => 'Eksternal Mesin',
+            'eksternal'  => 'External Small',
+            'mesin'      => 'External Machine',
             'user'       => 'User',
         ];
 
