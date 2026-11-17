@@ -19,6 +19,7 @@ use App\Http\Controllers\ProductionDataController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MasterCalibratorController;
 use App\Http\Controllers\ExternalCalibrationListUpController;
+use App\Http\Controllers\ListUpNgController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,8 @@ Route::get('/eksternal-small', [CalibrationController::class, 'eksternalSmall'])
 Route::get('/mesin', [CalibrationController::class, 'mesin'])->name('mesin.index');
 Route::get('/master-kalibrator', [MasterCalibratorController::class, 'index'])->name('master-calibrator.index');
 Route::get('/external-calibration-list-up', [ExternalCalibrationListUpController::class, 'index'])->name('external-list-up.index');
+
+Route::get('/list-up-ng', [ListUpNgController::class, 'index'])->name('list-up-ng.index');
 
 /*
 |--------------------------------------------------------------------------
@@ -104,10 +107,21 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/defects/export/excel', [ToolDefectController::class, 'exportExcel'])->name('defects.export.excel');
     Route::get('/defects/export/pdf', [ToolDefectController::class, 'exportPdf'])->name('defects.export.pdf');
 
-    // TAMBAHAN BARU: ROUTE EDIT, UPDATE, DAN HAPUS DATA NG
     Route::get('/defects/{defect}/edit', [ToolDefectController::class, 'edit'])->name('defects.edit');
     Route::put('/defects/{defect}', [ToolDefectController::class, 'update'])->name('defects.update');
     Route::delete('/defects/{defect}', [ToolDefectController::class, 'destroy'])->name('defects.destroy');
+
+    // ===== LIST UP NG =====
+    Route::get('/list-up-ng/import', [ListUpNgController::class, 'importForm'])->name('list-up-ng.import.form');
+    Route::post('/list-up-ng/import', [ListUpNgController::class, 'importStore'])->name('list-up-ng.import.store');
+    Route::get('/list-up-ng/export/excel', [ListUpNgController::class, 'exportExcel'])->name('list-up-ng.export.excel');
+    Route::get('/list-up-ng/export/pdf', [ListUpNgController::class, 'exportPdf'])->name('list-up-ng.export.pdf');
+    
+    Route::get('/list-up-ng/create', [ListUpNgController::class, 'create'])->name('list-up-ng.create');
+    Route::post('/list-up-ng', [ListUpNgController::class, 'store'])->name('list-up-ng.store');
+    Route::get('/list-up-ng/{listUpNg}/edit', [ListUpNgController::class, 'edit'])->name('list-up-ng.edit');
+    Route::put('/list-up-ng/{listUpNg}', [ListUpNgController::class, 'update'])->name('list-up-ng.update');
+    Route::delete('/list-up-ng/{listUpNg}', [ListUpNgController::class, 'destroy'])->name('list-up-ng.destroy');
 
     // ===== JADWAL VERIFIKASI (Tahunan/Bulanan) =====
     Route::get('/verifikasi/create', [VerificationController::class, 'create'])->name('verifikasi.create');
@@ -123,7 +137,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/verifikasi/export/pdf', [VerificationController::class, 'exportPdf'])->name('verifikasi.export.pdf');
     Route::get('/verifikasi/download-template', [VerificationController::class, 'downloadTemplate'])->name('verifikasi.template');
 
-    // ===== LIST UP PERIODE (Verification Internal & Kalibrasi Internal) =====
+    // ===== LIST UP PERIODE =====
     Route::get('/verifikasi/periode/create', [VerificationPeriodController::class, 'create'])->name('verifikasi.periode.create');
     Route::get('/verifikasi/periode/import/form', [VerificationPeriodController::class, 'importForm'])->name('verifikasi.periode.import.form');
     Route::post('/verifikasi/periode/import', [VerificationPeriodController::class, 'import'])->name('verifikasi.periode.import');
@@ -134,7 +148,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/verifikasi/periode/{schedule}', [VerificationPeriodController::class, 'update'])->name('verifikasi.periode.update');
     Route::delete('/verifikasi/periode/{schedule}', [VerificationPeriodController::class, 'destroy'])->name('verifikasi.periode.destroy');
 
-    // ===== LIST UP PERIODE: KALIBRASI INTERNAL =====
+    // ===== KALIBRASI INTERNAL =====
     Route::get('/verifikasi/periode/kalibrasi/create', [VerificationPeriodController::class, 'internalCalibrationCreate'])->name('verifikasi.periode.kalibrasi.create');
     Route::post('/verifikasi/periode/kalibrasi', [VerificationPeriodController::class, 'internalCalibrationStore'])->name('verifikasi.periode.kalibrasi.store');
     Route::get('/verifikasi/periode/kalibrasi/{schedule}/edit', [VerificationPeriodController::class, 'internalCalibrationEdit'])->name('verifikasi.periode.kalibrasi.edit');
@@ -145,7 +159,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/verifikasi/periode/kalibrasi/export', [VerificationPeriodController::class, 'internalCalibrationExport'])->name('verifikasi.periode.kalibrasi.export');
     Route::get('/verifikasi/periode/kalibrasi/export/pdf', [VerificationPeriodController::class, 'internalCalibrationExportPdf'])->name('verifikasi.periode.kalibrasi.export.pdf');
 
-    // ===== LIST UP PERIODE: VERIFIKASI QC2 =====
+    // ===== VERIFIKASI QC2 =====
     Route::get('/verifikasi/qc2/create', [VerificationPeriodController::class, 'qc2Create'])->name('verifikasi.qc2.create');
     Route::post('/verifikasi/qc2', [VerificationPeriodController::class, 'qc2Store'])->name('verifikasi.qc2.store');
     Route::get('/verifikasi/qc2/{schedule}/edit', [VerificationPeriodController::class, 'qc2Edit'])->name('verifikasi.qc2.edit');
@@ -184,8 +198,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/external-calibration-list-up/import/form', [ExternalCalibrationListUpController::class, 'importForm'])->name('external-list-up.import.form');
     Route::post('/external-calibration-list-up/import', [ExternalCalibrationListUpController::class, 'import'])->name('external-list-up.import');
     Route::get('/external-calibration-list-up/export', [ExternalCalibrationListUpController::class, 'export'])->name('external-list-up.export');
-    
-    // TAMBAHAN BARU: Route Export PDF List Up
     Route::get('/external-calibration-list-up/export/pdf', [ExternalCalibrationListUpController::class, 'exportPdf'])->name('external-list-up.export.pdf');
     
     Route::get('/external-calibration-list-up/create', [ExternalCalibrationListUpController::class, 'create'])->name('external-list-up.create');
@@ -219,13 +231,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // ===== REPORTS =====
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    
     Route::get('/reports/api/pareto-fitur', [ReportController::class, 'apiParetoFitur'])->name('reports.api.pareto.fitur');
     Route::get('/reports/api/pareto-kategori', [ReportController::class, 'apiParetoKategori'])->name('reports.api.pareto.kategori');
     Route::get('/reports/api/pareto-bulanan', [ReportController::class, 'apiParetoBulanan'])->name('reports.api.pareto.bulanan');
     Route::get('/reports/api/pareto-departemen', [ReportController::class, 'apiParetoDepartemen'])->name('reports.api.pareto.departemen');
     Route::get('/reports/api/chart/{chart}', [ReportController::class, 'apiChart'])->name('reports.api.chart');
-
     Route::post('/reports/export-all/excel', [ReportController::class, 'exportAllExcel'])->name('reports.export.all.excel');
     Route::post('/reports/export-all/pdf', [ReportController::class, 'exportAllPdf'])->name('reports.export.all.pdf');
     Route::get('/reports/export-log/excel', [ReportController::class, 'exportLogExcel'])->name('reports.export.log.excel');

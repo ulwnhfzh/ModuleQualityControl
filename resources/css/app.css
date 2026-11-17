@@ -93,6 +93,8 @@
         border: 1px solid #d5dadd;
         border-radius: 0.25rem;
         box-shadow: none;
+        container-name: feature-toolbar;
+        container-type: inline-size;
     }
 
     /* Keep business screens crisp and information-led instead of stacking floating cards. */
@@ -208,6 +210,77 @@
     @media (min-width: 640px) {
         .feature-toolbar-actions {
             display: flex;
+        }
+    }
+
+    @container feature-toolbar (max-width: 850px) {
+        .feature-toolbar > div {
+            align-items: flex-start !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+        }
+
+        .feature-toolbar > div > * {
+            min-width: 0;
+            width: auto;
+            max-width: 100%;
+        }
+
+        .feature-toolbar > div > div:first-child {
+            align-items: flex-start !important;
+            flex-direction: column !important;
+        }
+
+        .feature-toolbar form {
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .feature-toolbar form:not(.responsive-filter-grid):not([class*="grid"]) {
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .feature-toolbar form.responsive-filter-grid,
+        .feature-toolbar form[class*="grid"] {
+            display: grid !important;
+            width: min(100%, 26rem);
+            grid-template-columns: max-content minmax(0, 1fr) !important;
+            align-items: center;
+            column-gap: 0.75rem;
+            row-gap: 0.75rem;
+        }
+
+        .feature-toolbar form.responsive-filter-grid select,
+        .feature-toolbar form[class*="grid"] select {
+            width: 100%;
+        }
+
+        .feature-toolbar form select,
+        .feature-toolbar form input {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .feature-toolbar-actions {
+            display: flex !important;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-start !important;
+            gap: 0.5rem;
+        }
+
+        .feature-toolbar-actions > p:first-child {
+            flex: 0 1 auto;
+            grid-column: auto;
+        }
+
+        .feature-toolbar-actions > a,
+        .feature-toolbar-actions > div,
+        .feature-toolbar-actions > div > button {
+            width: auto;
+            max-width: 100%;
         }
     }
 }

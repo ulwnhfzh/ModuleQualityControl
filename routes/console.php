@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Verification;
 use App\Models\Setting;
 use App\Notifications\VerificationDueDateNotification;
+use App\Imports\ProductionDataFolderImport;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -73,5 +74,21 @@ Artisan::command('verifikasi:reminders', function (): void {
 
     $this->info("Pengingat email terkirim untuk {$sent} alat.");
 })->purpose('Kirim pengingat email verifikasi mendekati tenggat dan terlambat.');
+
+Artisan::command('data-all-produksi:import-folder {path}', function (string $path): void {
+    $summary = app(ProductionDataFolderImport::class)->import($path);
+
+    $this->info("Workbook diperiksa: {$summary['files_seen']}");
+    $this->info("Workbook berhasil diimpor: {$summary['files_imported']}");
+    $this->info("Baris diproses: {$summary['records_processed']}");
+
+    foreach ($summary['categories'] as $category => $counts) {
+        $this->line("{$category}: {$counts['files']} workbook, {$counts['records']} baris");
+    }
+
+    foreach ($summary['skipped'] as $file) {
+        $this->warn("Dilewati: {$file}");
+    }
+})->purpose('Import workbook Data All Produksi secara rekursif dengan kategori dari nama folder.');
 
 Schedule::command('verifikasi:reminders')->dailyAt('07:00')->withoutOverlapping();

@@ -17,8 +17,8 @@ class DashboardTest extends TestCase
         $this->actingAs($admin)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Komposisi Daftar Induk')
-            ->assertSee('Rekapitulasi Data Tahun')
+            ->assertSee('Komposisi daftar induk')
+            ->assertSee('Rekap data')
             ->assertDontSee('Akses Cepat');
     }
 
@@ -29,8 +29,8 @@ class DashboardTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Komposisi Daftar Induk')
-            ->assertSee('Ringkasan Data')
+            ->assertSee('Komposisi daftar induk')
+            ->assertSee('Rekap data')
             ->assertDontSee('Shortcut (Lihat Data)');
     }
 }
