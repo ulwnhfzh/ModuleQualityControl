@@ -36,6 +36,18 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Tahun *</label>
+                        <select name="year" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            @foreach($yearOptions as $year)
+                                <option value="{{ $year }}" {{ (int) old('year', $selectedYear) === $year ? 'selected' : '' }}>YEAR {{ $year }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Category *</label>
+                        <input type="text" name="category" required maxlength="255" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ old('category') }}" placeholder="Contoh: DATA ALAT UKUR ALL PRODUKSI">
+                    </div>
+                    <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Tool Name *</label>
                         <input type="text" name="tool_name" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ old('tool_name') }}" placeholder="CONTOH: BALL ANVIL">
                     </div>

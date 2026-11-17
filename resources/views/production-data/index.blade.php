@@ -11,7 +11,17 @@
             
             <!-- Form Filter dengan Tombol Terapkan -->
             <form id="filter-form" method="GET" action="{{ route('data-all-produksi.index') }}" class="flex flex-wrap items-center gap-x-4 gap-y-3">
-                
+                <div class="flex items-center gap-2">
+                    <label for="year-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">YEAR</label>
+                    <div class="w-full sm:w-auto min-w-[110px]">
+                        <select id="year-select" name="year" onchange="this.form.submit()" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            @foreach($yearOptions as $year)
+                                <option value="{{ $year }}" {{ $selectedYear === $year ? 'selected' : '' }}>YEAR {{ $year }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Filter Division -->
                 <div class="flex items-center gap-2">
                     <label for="division-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">DIVISION</label>
@@ -20,6 +30,18 @@
                             <option value="ALL" {{ $selectedDivision === 'ALL' ? 'selected' : '' }}>Semua Division</option>
                             @foreach($divisionList as $division)
                                 <option value="{{ $division }}" {{ $selectedDivision === $division ? 'selected' : '' }}>{{ $division }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <label for="category-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">CATEGORY</label>
+                    <div class="w-full sm:w-auto min-w-[170px]">
+                        <select id="category-select" name="category" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="ALL" {{ $selectedCategory === 'ALL' ? 'selected' : '' }}>Semua Kategori</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category }}" {{ $selectedCategory === $category ? 'selected' : '' }}>{{ $category }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -49,9 +71,9 @@
         <!-- KANAN: Total dan Tombol Aksi -->
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
             <p class="text-xs text-slate-500 mr-1">Halaman ini <span class="font-bold text-slate-700">{{ $data->count() }}</span> baris</p>
-            <a href="{{ route('data-all-produksi.import.form') }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-blue-600 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-50 sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.import') Import</a>
-            <a href="{{ route('data-all-produksi.export', ['division' => $selectedDivision]) }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.export') Export</a>
-            <a href="{{ route('data-all-produksi.create') }}" class="bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-3 py-1.5 text-xs sm:text-sm"><span>+</span> Tambah</a>
+            <a href="{{ route('data-all-produksi.import.form', ['year' => $selectedYear]) }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-blue-600 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-50 sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.import') Import</a>
+            <a href="{{ route('data-all-produksi.export', ['division' => $selectedDivision, 'category' => $selectedCategory, 'year' => $selectedYear]) }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.export') Export</a>
+            <a href="{{ route('data-all-produksi.create', ['year' => $selectedYear]) }}" class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm"><span>+</span> Tambah</a>
         </div>
     </div>
 </div>
@@ -63,7 +85,7 @@
             <colgroup>
                 <col style="width:48px">
                 @if($selectedDivision === 'ALL')<col style="width:125px">@endif
-                <col style="width:190px"><col style="width:105px"><col style="width:125px">
+                <col style="width:170px"><col style="width:190px"><col style="width:105px"><col style="width:125px">
                 <col style="width:115px"><col style="width:115px"><col style="width:180px"><col style="width:170px">
                 @for($monthColumn = 0; $monthColumn < 12; $monthColumn++)<col style="width:64px">@endfor
                 <col style="width:220px"><col style="width:128px">
@@ -74,6 +96,7 @@
                     @if($selectedDivision === 'ALL')
                         <th rowspan="2" class="sticky-col border border-slate-600 px-2 py-3 text-center align-middle bg-blue-800" style="left:48px">Division</th>
                     @endif
+                    <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Category</th>
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 text-left align-middle">Tool Name</th>
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Type</th>
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Size</th>
@@ -110,6 +133,7 @@
                             <td class="sticky-col border border-slate-200 px-2 py-3 {{ $hasNg ? 'bg-rose-100' : ($index % 2 ? 'bg-slate-50' : 'bg-white') }} font-semibold text-blue-700" style="left:48px">{{ $item->division }}</td>
                         @endif
                         
+                        <td class="border border-slate-200 px-2 py-3">{{ $item->category ?: '-' }}</td>
                         <td class="border border-slate-200 px-2 py-3 text-left font-semibold text-slate-800"><span class="block truncate" title="{{ $item->tool_name }}">{{ $item->tool_name }}</span></td>
                         <td class="border border-slate-200 px-2 py-3">{{ $item->type }}</td>
                         <td class="border border-slate-200 px-2 py-3">{{ $item->size }}</td>
@@ -146,7 +170,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $selectedDivision === 'ALL' ? '23' : '22' }}" class="px-4 py-12 text-center text-slate-500">
+                        <td colspan="{{ $selectedDivision === 'ALL' ? '24' : '23' }}" class="px-4 py-12 text-center text-slate-500">
                             Belum ada data untuk pencarian ini.
                         </td>
                     </tr>
@@ -164,7 +188,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const divisionSelect = document.getElementById('division-select');
+        const categorySelect = document.getElementById('category-select');
         const toolSelect = document.getElementById('tool-select');
+        const yearSelect = document.getElementById('year-select');
         if (!divisionSelect || !toolSelect) return;
 
         divisionSelect.addEventListener('change', async function () {
@@ -175,6 +201,8 @@
             try {
                 const url = new URL(@json(route('data-all-produksi.get-tools')), window.location.origin);
                 url.searchParams.set('division', division);
+                if (categorySelect) url.searchParams.set('category', categorySelect.value);
+                if (yearSelect) url.searchParams.set('year', yearSelect.value);
                 const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
                 if (!response.ok) throw new Error('Request gagal');
 

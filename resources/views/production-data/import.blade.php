@@ -33,6 +33,27 @@
                 @error('file') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
+            <div>
+                <label for="category" class="block text-sm font-semibold text-slate-700 mb-2">Category sumber *</label>
+                <input id="category" type="text" name="category" list="production-categories" required maxlength="255" value="{{ old('category', 'DATA ALAT UKUR ALL PRODUKSI') }}" placeholder="Contoh: DATA ALAT UKUR ALL PRODUKSI" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <datalist id="production-categories">
+                    @foreach($categories as $category)
+                        <option value="{{ $category }}">
+                    @endforeach
+                </datalist>
+                @error('category') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label for="year" class="block text-sm font-semibold text-slate-700 mb-2">YEAR data *</label>
+                <select id="year" name="year" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    @foreach($yearOptions as $year)
+                        <option value="{{ $year }}" {{ (int) old('year', $selectedYear) === $year ? 'selected' : '' }}>YEAR {{ $year }}</option>
+                    @endforeach
+                </select>
+                @error('year') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+
             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <h4 class="text-sm font-bold text-blue-800 mb-2 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -42,8 +63,9 @@
                     <li>Anda bisa meng-upload <strong>satu file Excel dengan banyak Sheet</strong> sekaligus.</li>
                     <li>Sistem membaca <strong>Nama Sheet</strong> sebagai <strong>Division</strong> dan menolak seluruh file jika ada sheet data dengan division tidak dikenal.</li>
                     <li>Division yang diterima: <strong>QA 1, QA 1.2, QA 2, QA INC, QA INSP, PPIC 1, PPIC 2, LINE SCC, P1, P2, P3, P5, P6, P7, P8, ENG, NISSHO</strong>. Nama setara seperti LSCC dan PRODUKSI 1 akan dipetakan otomatis.</li>
-                    <li>Sistem mencari header <strong>TOOL NAME, TYPE, SIZE</strong> dan nama bulan di setiap sheet; posisi/baris header boleh berbeda.</li>
-                    <li>Jika ada data dengan <strong>Division, Tool Name, dan Size</strong> yang sama, data lama akan otomatis diperbarui.</li>
+                    <li>Sistem mencari header <strong>TOOL NAME, SIZE</strong> dan nama bulan di setiap sheet. Kolom TYPE boleh tidak tersedia.</li>
+                    <li>Category Data All Produksi menggunakan nama <strong>DATA ALAT UKUR ALL PRODUKSI</strong>; tahun data dipilih terpisah di atas.</li>
+                    <li>Pengulangan import dengan category, tahun, dan identitas alat yang sama memperbarui data pada tahun tersebut.</li>
                 </ul>
             </div>
 

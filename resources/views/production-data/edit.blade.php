@@ -3,7 +3,7 @@
 @section('content')
 <div class="mx-auto max-w-5xl">
     <div class="mb-6">
-        <a href="{{ route('data-all-produksi.index', ['division' => $item->division]) }}" class="inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-800 transition">
+        <a href="{{ route('data-all-produksi.index', ['division' => $item->division, 'year' => $item->year]) }}" class="inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-800 transition">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             Kembali ke Data All Produksi
         </a>
@@ -38,6 +38,18 @@
                                 <option value="{{ $division }}" {{ old('division', $item->division) == $division ? 'selected' : '' }}>{{ $division }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Tahun *</label>
+                        <select name="year" required class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            @foreach($yearOptions as $year)
+                                <option value="{{ $year }}" {{ (int) old('year', $selectedYear) === $year ? 'selected' : '' }}>YEAR {{ $year }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Category *</label>
+                        <input type="text" name="category" required maxlength="255" class="w-full rounded-lg border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ old('category', $item->category) }}">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Tool Name *</label>

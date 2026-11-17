@@ -19,12 +19,16 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ProductionDataExport implements FromQuery, WithHeadings, WithMapping, WithTitle, WithColumnWidths, WithStyles, WithEvents
 {
-    protected $division;
+    private string $division;
+    private ?string $category;
+    private ?int $year;
     private int $rowNumber = 0;
 
-    public function __construct($division)
+    public function __construct(string $division, ?string $category = null, ?int $year = null)
     {
         $this->division = $division;
+        $this->category = $category;
+        $this->year = $year;
     }
 
     // Menamai Sheet Excel sesuai nama Division
@@ -38,28 +42,34 @@ class ProductionDataExport implements FromQuery, WithHeadings, WithMapping, With
 
     public function query(): Builder
     {
-        // Jika 'ALL', ambil semua data. Jika tidak, filter berdasarkan division.
-        if ($this->division === 'ALL') {
-            return ProductionData::query()->orderBy('division', 'asc')->orderBy('id', 'asc');
+        $query = ProductionData::query()->where('is_year_template', false);
+        if ($this->year !== null) {
+            $query->where('year', $this->year);
         }
-        
-        return ProductionData::query()->where('division', $this->division)->orderBy('id', 'asc');
+        if ($this->division !== 'ALL') {
+            $query->where('division', $this->division);
+        }
+        if ($this->category !== null && $this->category !== '') {
+            $query->where('category', $this->category);
+        }
+
+        return $query->orderBy('division', 'asc')->orderBy('id', 'asc');
     }
 
     public function headings(): array
     {
-        $headers = [
-            'NO', 'TOOL NAME', 'TYPE', 'SIZE', 'NUMBER SERI', 'NUMBER REG',
+        $headers = ['NO'];
+        if ($this->division === 'ALL') {
+            $headers[] = 'DIVISION';
+        }
+        $headers[] = 'CATEGORY';
+        array_push($headers,
+            'TOOL NAME', 'TYPE', 'SIZE', 'NUMBER SERI', 'NUMBER REG',
             'PART NAME', 'PART NUMBER', 
             'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN',
             'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC', 
             'NOTE'
-        ];
-
-        // Jika mengekspor SEMUA division, tambahkan kolom DIVISION di paling kiri setelah NO
-        if ($this->division === 'ALL') {
-            array_splice($headers, 1, 0, 'DIVISION');
-        }
+        );
 
         return $headers;
     }
@@ -68,8 +78,12 @@ class ProductionDataExport implements FromQuery, WithHeadings, WithMapping, With
     {
         $no = ++$this->rowNumber;
         
-        $data = [
-            $no,
+        $data = [$no];
+        if ($this->division === 'ALL') {
+            $data[] = $row->division;
+        }
+        $data[] = $row->category;
+        array_push($data,
             $row->tool_name, 
             $row->type, 
             $row->size,
@@ -90,12 +104,7 @@ class ProductionDataExport implements FromQuery, WithHeadings, WithMapping, With
             $row->nov, 
             $row->dec,
             $row->note
-        ];
-
-        // Sisipkan nama division jika mengekspor SEMUA
-        if ($this->division === 'ALL') {
-            array_splice($data, 1, 0, $row->division);
-        }
+        );
 
         return $data;
     }
@@ -104,20 +113,20 @@ class ProductionDataExport implements FromQuery, WithHeadings, WithMapping, With
     {
         if ($this->division === 'ALL') {
             return [
-                'A' => 7, 'B' => 18, 'C' => 30, 'D' => 18, 'E' => 18,
-                'F' => 20, 'G' => 20, 'H' => 26, 'I' => 28,
-                'J' => 11, 'K' => 11, 'L' => 11, 'M' => 11, 'N' => 11, 'O' => 11,
-                'P' => 11, 'Q' => 11, 'R' => 11, 'S' => 11, 'T' => 11, 'U' => 11,
-                'V' => 36,
+                'A' => 7, 'B' => 18, 'C' => 28, 'D' => 30, 'E' => 18,
+                'F' => 18, 'G' => 20, 'H' => 20, 'I' => 26, 'J' => 28,
+                'K' => 11, 'L' => 11, 'M' => 11, 'N' => 11, 'O' => 11, 'P' => 11,
+                'Q' => 11, 'R' => 11, 'S' => 11, 'T' => 11, 'U' => 11, 'V' => 11,
+                'W' => 36,
             ];
         }
 
         return [
-            'A' => 7, 'B' => 30, 'C' => 18, 'D' => 18, 'E' => 20,
-            'F' => 20, 'G' => 26, 'H' => 28,
-            'I' => 11, 'J' => 11, 'K' => 11, 'L' => 11, 'M' => 11, 'N' => 11,
-            'O' => 11, 'P' => 11, 'Q' => 11, 'R' => 11, 'S' => 11, 'T' => 11,
-            'U' => 36,
+            'A' => 7, 'B' => 28, 'C' => 30, 'D' => 18, 'E' => 18,
+            'F' => 20, 'G' => 20, 'H' => 26, 'I' => 28,
+            'J' => 11, 'K' => 11, 'L' => 11, 'M' => 11, 'N' => 11, 'O' => 11,
+            'P' => 11, 'Q' => 11, 'R' => 11, 'S' => 11, 'T' => 11, 'U' => 11,
+            'V' => 36,
         ];
     }
 

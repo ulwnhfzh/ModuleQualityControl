@@ -12,9 +12,14 @@ class ProductionData extends Model
     protected $table = 'data_all_produksis';
 
     protected $fillable = [
-        'division', 'tool_name', 'type', 'size', 'number_seri', 'number_reg', 
+        'division', 'category', 'year', 'is_year_template', 'tool_name', 'type', 'size', 'number_seri', 'number_reg',
         'part_name', 'part_number', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 
         'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'note'
+    ];
+
+    protected $casts = [
+        'year' => 'integer',
+        'is_year_template' => 'boolean',
     ];
 
     public function resultStatus(string $month): ?string

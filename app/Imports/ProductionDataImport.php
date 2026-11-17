@@ -12,25 +12,93 @@ use RuntimeException;
 
 class ProductionDataImport implements WithMultipleSheets
 {
-    private int $sheetCount;
+    /** @var array<int, true> */
+    private array $sheetIndexes = [];
+    private int $importedCount = 0;
+    private ?string $category;
+    private int $year;
 
     public function sheets(): array
     {
-        // Kunci indeks numerik membuat seluruh sheet dibaca tanpa bergantung nama/urutannya.
         $sheets = [];
-        for ($index = 0; $index < $this->sheetCount; $index++) {
-            $sheets[$index] = new ProductionDataSheetImport();
+        foreach (array_keys($this->sheetIndexes) as $index) {
+            $sheets[$index] = new ProductionDataSheetImport($this);
         }
         return $sheets;
     }
 
-    public function __construct(string $filePath)
+    public function __construct(string $filePath, ?string $category = null, ?int $year = null)
     {
+        $category = trim((string) $category);
+        $categoryYear = null;
+        if (preg_match('/^DATA ALAT UKUR ALL PRODUKSI\s+TAHUN\s+(20\d{2})$/i', $category, $matches) === 1) {
+            $categoryYear = (int) $matches[1];
+            $category = 'DATA ALAT UKUR ALL PRODUKSI';
+        }
+        $this->category = $category !== '' ? $category : null;
+        $this->year = $year ?? $categoryYear ?? (int) date('Y');
+
         $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
         $reader->setReadDataOnly(true);
         $book = $reader->load($filePath);
-        $this->sheetCount = $book->getSheetCount();
-        $book->disconnectWorksheets();
+        try {
+            foreach ($book->getAllSheets() as $index => $sheet) {
+                if (ProductionDataSheetImport::supportsDivisionTitle($sheet->getTitle())) {
+                    $this->sheetIndexes[$index] = true;
+                }
+            }
+        } finally {
+            $book->disconnectWorksheets();
+        }
+    }
+
+    public function getSelectedSheetCount(): int
+    {
+        return count($this->sheetIndexes);
+    }
+
+    public function getImportedCount(): int
+    {
+        return $this->importedCount;
+    }
+
+    public function getCategory(): ?string
+    {
+        return $this->category;
+    }
+
+    public function getYear(): int
+    {
+        return $this->year;
+    }
+
+    public function saveImportedRecord(array $record): void
+    {
+        $identity = [
+            'division' => $record['division'],
+            'type' => $record['type'],
+            'tool_name' => $record['tool_name'],
+            'size' => $record['size'],
+            'number_seri' => $record['number_seri'],
+            'number_reg' => $record['number_reg'],
+            'category' => $record['category'],
+            'year' => $record['year'],
+        ];
+
+        $existing = ProductionData::query()->where($identity)->first();
+        if ($existing === null && $this->category !== null) {
+            $legacyIdentity = $identity;
+            $legacyIdentity['category'] = null;
+            $existing = ProductionData::query()->where($legacyIdentity)->first();
+        }
+
+        if ($existing !== null) {
+            $existing->fill($record)->save();
+        } else {
+            ProductionData::create($record);
+        }
+
+        $this->importedCount++;
     }
 }
 
@@ -58,6 +126,10 @@ class ProductionDataSheetImport implements WithEvents
         'DEC' => 'dec', 'DES' => 'dec', 'DESEMBER' => 'dec',
     ];
 
+    public function __construct(private readonly ProductionDataImport $import)
+    {
+    }
+
     public function registerEvents(): array
     {
         return [BeforeSheet::class => function (BeforeSheet $event): void {
@@ -69,14 +141,14 @@ class ProductionDataSheetImport implements WithEvents
             $headerRow = null;
             $monthHeaderRow = null;
 
-            // Locate TOOL NAME/TYPE/SIZE row; do not assume fixed row 2/4.
+            // Locate the equipment header row without requiring optional TYPE columns.
             for ($row = 1; $row <= min($lastRow, 30); $row++) {
                 $values = [];
                 for ($col = 1; $col <= $lastColumn; $col++) {
                     $text = $this->normalize($sheet->getCell([$col, $row])->getFormattedValue());
                     if ($text !== '') $values[$text] = $col;
                 }
-                if (isset($values['TOOL NAME'], $values['TYPE'], $values['SIZE'])) {
+                if (isset($values['TOOL NAME'], $values['SIZE'])) {
                     $headerRow = $row;
                     $headers = $values;
                     break;
@@ -96,22 +168,29 @@ class ProductionDataSheetImport implements WithEvents
                 }
             }
 
-            // Non-data sheets (cover, chart, label) are ignored. A sheet with a table header
-            // but no monthly header is a malformed input and must not silently corrupt rows.
-            if ($headerRow === null) return;
-            if (!$monthColumns) {
-                throw new RuntimeException('Sheet "' . $sheet->getTitle() . '" memiliki header alat, tetapi header bulan JAN–DEC tidak ditemukan.');
+            $sheetDivision = $this->normalize($sheet->getTitle());
+            $division = self::canonicalDivision($sheetDivision);
+            if (!in_array($division, self::VALID_DIVISIONS, true)) return;
+
+            if ($headerRow === null) {
+                if (strtoupper(trim((string) $this->import->getCategory())) === 'MASTER KALIBRATOR') {
+                    $this->importHeaderlessMasterRows($sheet, $division, $lastRow);
+                }
+                return;
             }
 
-            $sheetDivision = $this->normalize($sheet->getTitle());
-            $division = $this->canonicalDivision($sheetDivision);
-            if (!in_array($division, self::VALID_DIVISIONS, true)) {
-                throw new RuntimeException('Division "' . $sheet->getTitle() . '" tidak dikenal. Import dibatalkan. Gunakan nama sheet division yang terdaftar, misalnya QA 1, LINE SCC, P1, atau ENG.');
+            if (!$monthColumns) {
+                if (strtoupper(trim((string) $this->import->getCategory())) === 'MASTER KALIBRATOR') {
+                    $this->importHeaderlessMasterRows($sheet, $division, $lastRow);
+                    return;
+                }
+
+                throw new RuntimeException('Sheet "' . $sheet->getTitle() . '" memiliki header alat, tetapi header bulan JAN–DEC tidak ditemukan.');
             }
 
             $fieldColumns = [
                 'tool_name' => $headers['TOOL NAME'],
-                'type' => $headers['TYPE'],
+                'type' => $headers['TYPE'] ?? null,
                 'size' => $headers['SIZE'],
                 'number_seri' => $headers['NUMBER SERI'] ?? $headers['NUMBER SERI.'] ?? null,
                 'number_reg' => $headers['NUMBER REG'] ?? $headers['NUMBER REG.'] ?? null,
@@ -133,6 +212,9 @@ class ProductionDataSheetImport implements WithEvents
 
                     $record = [
                         'division' => $division,
+                        'category' => $this->import->getCategory(),
+                        'year' => $this->import->getYear(),
+                        'is_year_template' => false,
                         'tool_name' => $toolName,
                         'type' => $this->cellText($sheet, $fieldColumns['type'], $row) ?? '-',
                         'size' => $this->cellText($sheet, $fieldColumns['size'], $row) ?? '-',
@@ -147,16 +229,45 @@ class ProductionDataSheetImport implements WithEvents
                         $record[$month] = $this->cellText($sheet, $column, $row);
                     }
 
-                    // Re-import updates the same tool record instead of duplicating it.
-                    ProductionData::updateOrCreate([
-                        'division' => $division,
-                        'tool_name' => $record['tool_name'],
-                        'size' => $record['size'],
-                    ], $record);
-
+                    $this->import->saveImportedRecord($record);
                 }
             });
         }];
+    }
+
+    private function importHeaderlessMasterRows($sheet, string $division, int $lastRow): void
+    {
+        DB::transaction(function () use ($sheet, $division, $lastRow): void {
+            for ($row = 1; $row <= $lastRow; $row++) {
+                $number = $this->cellText($sheet, 1, $row);
+                $toolName = $this->cellText($sheet, 2, $row);
+                $type = $this->cellText($sheet, 3, $row);
+                $size = $this->cellText($sheet, 4, $row);
+                if ($number === null || ! is_numeric($number) || $toolName === null || $size === null) {
+                    continue;
+                }
+
+                $record = [
+                    'division' => $division,
+                    'category' => $this->import->getCategory(),
+                    'year' => $this->import->getYear(),
+                    'is_year_template' => false,
+                    'tool_name' => $toolName,
+                    'type' => $type ?? '-',
+                    'size' => $size,
+                    'number_seri' => $this->cellText($sheet, 5, $row),
+                    'number_reg' => $this->cellText($sheet, 6, $row),
+                    'part_name' => null,
+                    'part_number' => null,
+                    'note' => null,
+                ];
+                foreach (array_unique(array_values(self::MONTHS)) as $month) {
+                    $record[$month] = null;
+                }
+
+                $this->import->saveImportedRecord($record);
+            }
+        });
     }
 
     private function cellText($sheet, ?int $column, int $row): ?string
@@ -174,10 +285,14 @@ class ProductionDataSheetImport implements WithEvents
         return preg_replace('/\s+/', ' ', str_replace(["\r", "\n"], ' ', $value));
     }
 
-    private function canonicalDivision(string $value): string
+    private static function canonicalDivision(string $value): string
     {
-        $value = $this->normalize($value);
+        $value = mb_strtoupper(trim($value));
+        $value = preg_replace('/\s+/', ' ', $value);
+        $value = rtrim($value, '. ');
         return match ($value) {
+            'QA1' => 'QA 1',
+            'QA2' => 'QA 2',
             'LSCC', 'L.SCC' => 'LINE SCC',
             'QA INCOMING' => 'QA INC',
             'QA INSPECTION' => 'QA INSP',
@@ -191,5 +306,10 @@ class ProductionDataSheetImport implements WithEvents
             'PRODUKSI 8' => 'P8',
             default => $value,
         };
+    }
+
+    public static function supportsDivisionTitle(string $title): bool
+    {
+        return in_array(self::canonicalDivision($title), self::VALID_DIVISIONS, true);
     }
 }
