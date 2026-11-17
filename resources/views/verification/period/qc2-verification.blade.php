@@ -29,10 +29,28 @@
                     <option value="{{ $y }}" @selected($tahun === $y)>YEAR {{ $y }}</option>
                 @endfor
             </select>
+
+            <label for="qc2-shop" class="text-xs font-semibold text-slate-500">SHOP</label>
+            <select id="qc2-shop" name="shop" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
+                <option value="">Semua Shop</option>
+                @foreach($shops as $shopOption)
+                    <option value="{{ $shopOption }}" @selected($shop === $shopOption)>{{ $shopOption }}</option>
+                @endforeach
+            </select>
+
+            <label for="qc2-tool-name" class="text-xs font-semibold text-slate-500">TOOL NAME</label>
+            <select id="qc2-tool-name" name="tool_name" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-48">
+                <option value="">Semua Tool</option>
+                @foreach($toolNameList as $toolOption)
+                    <option value="{{ $toolOption }}" @selected($toolName === $toolOption)>{{ $toolOption }}</option>
+                @endforeach
+            </select>
+            <span></span>
+            <button type="submit" class="rounded-lg bg-slate-800 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">Cari</button>
         </form>
         
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            <p class="text-xs text-slate-500 mr-1">Total {{ $schedules->count() }} jadwal QC2</p>
+            <p class="text-xs text-slate-500 mr-1">Halaman ini {{ $schedules->count() }} jadwal QC2 (maks. 100)</p>
             
             @if(Auth::check() && Auth::user()->role === 'admin')
                 <!-- TOMBOL IMPORT: Diubah ke route yang benar -->
@@ -63,7 +81,7 @@
 </div>
 
 <div class="mb-2 flex items-center justify-between text-xs text-slate-500">
-    <span>{{ $schedules->count() }} alat terjadwal (QC2)</span>
+    <span>{{ $schedules->count() }} alat pada halaman ini (QC2)</span>
     <span class="md:hidden">Geser tabel ke samping →</span>
 </div>
 
@@ -95,7 +113,7 @@
             <tbody>
                 @forelse($schedules as $index => $schedule)
                     <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }} hover:bg-blue-50/50">
-                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $index + 1 }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ ($schedules->firstItem() ?? 1) + $index }}</td>
                         <td class="border border-slate-200 px-3 py-3 font-semibold text-slate-800">{{ $schedule->tool_name ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->tool_type ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3">{{ $schedule->specification ?: '-' }}</td>
@@ -129,6 +147,10 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<div class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+    {{ $schedules->links() }}
 </div>
 
 <script>

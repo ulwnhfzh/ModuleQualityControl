@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ToolDefect;
+use App\Models\ListUpNg;
 use App\Imports\ToolDefectsImport;
 use App\Exports\ToolDefectsExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -21,10 +22,12 @@ class ToolDefectController extends Controller
         ]);
         $tahun = $filters['tahun'] ?? date('Y');
         $bulanFilter = $filters['bulan'] ?? 'DEC';
+        $isListUpNgRecap = ListUpNg::where('tahun', $tahun)->exists();
 
         $jenisKerusakan = ToolDefect::COUNT_FIELDS;
 
         $yearData = ToolDefect::where('tahun', $tahun)->get();
+        $hasYearData = $yearData->isNotEmpty();
         $rawData = $yearData->where('bulan', $bulanFilter);
 
         $monthLabels = ['JAN' => 'JAN', 'FEB' => 'FEB', 'MAR' => 'MAR', 'APR' => 'APR', 'MAY' => 'MAY', 'JUN' => 'JUN', 'JUL' => 'JUL', 'AUG' => 'AUG', 'SEP' => 'SEP', 'OCT' => 'OCT', 'NOV' => 'NOV', 'DEC' => 'DEC'];
@@ -93,13 +96,15 @@ class ToolDefectController extends Controller
         ];
         
         $sortedData = [];
-        foreach ($urutanDivisi as $div) {
-            if (isset($dataPerDivisi[$div])) {
-                $sortedData[$div] = $dataPerDivisi[$div];
-            } else {
-                $sortedData[$div] = array_fill_keys($jenisKerusakan, 0);
-                $sortedData[$div]['total'] = 0;
-                $sortedData[$div]['grand_total'] = 0;
+        if ($hasYearData) {
+            foreach ($urutanDivisi as $div) {
+                if (isset($dataPerDivisi[$div])) {
+                    $sortedData[$div] = $dataPerDivisi[$div];
+                } else {
+                    $sortedData[$div] = array_fill_keys($jenisKerusakan, 0);
+                    $sortedData[$div]['total'] = 0;
+                    $sortedData[$div]['grand_total'] = 0;
+                }
             }
         }
 
@@ -118,7 +123,7 @@ class ToolDefectController extends Controller
         $existingDefects = $rawData->keyBy('division');
 
         return view('defects.index', compact(
-            'tahun', 'bulanFilter', 'jenisKerusakan', 'sortedData', 'footerTotals', 'existingDefects',
+            'tahun', 'bulanFilter', 'jenisKerusakan', 'sortedData', 'footerTotals', 'existingDefects', 'isListUpNgRecap', 'hasYearData',
             'monthLabels', 'monthlyTotals', 'defectTotals', 'divisionTotals', 'toolNameTotals'
         ));
     }
@@ -152,6 +157,11 @@ class ToolDefectController extends Controller
             $data[$col] = $data[$col] ?? 0;
         }
 
+        if (ListUpNg::where('tahun', $data['tahun'])->exists()) {
+            return redirect()->route('defects.index', ['tahun' => $data['tahun'], 'bulan' => $data['bulan']])
+                ->with('error', 'Rekap tahun ini mengikuti Master Rekap dan perubahan List Up NG. Ubah data sumbernya di List Up NG.');
+        }
+
         ToolDefect::create($data);
         return redirect()->route('defects.index')->with('success', 'Data NG berhasil ditambahkan!');
     }
@@ -181,6 +191,11 @@ class ToolDefectController extends Controller
             $data[$col] = $data[$col] ?? 0;
         }
 
+        if (ListUpNg::whereIn('tahun', [$defect->tahun, $data['tahun']])->exists()) {
+            return redirect()->route('defects.index', ['tahun' => $defect->tahun, 'bulan' => $defect->bulan])
+                ->with('error', 'Rekap tahun ini mengikuti Master Rekap dan perubahan List Up NG. Ubah data sumbernya di List Up NG.');
+        }
+
         $defect->update($data);
         return redirect()->route('defects.index', ['tahun' => $data['tahun'], 'bulan' => $data['bulan']])
             ->with('success', 'Data NG berhasil diperbarui!');
@@ -191,6 +206,11 @@ class ToolDefectController extends Controller
     {
         $tahun = $defect->tahun;
         $bulan = $defect->bulan;
+        if (ListUpNg::where('tahun', $tahun)->exists()) {
+            return redirect()->route('defects.index', ['tahun' => $tahun, 'bulan' => $bulan])
+                ->with('error', 'Rekap tahun ini mengikuti Master Rekap dan perubahan List Up NG; data ini tidak dapat dihapus manual.');
+        }
+
         $defect->delete();
 
         return redirect()->route('defects.index', ['tahun' => $tahun, 'bulan' => $bulan])
@@ -211,10 +231,12 @@ class ToolDefectController extends Controller
 
         try {
             $filePath = $request->file('file')->getRealPath();
-            $import = new ToolDefectsImport((int) $request->tahun);
-            $import->import($filePath);
+            $year = (int) $request->tahun;
+            DB::transaction(function () use ($filePath, $year): void {
+                (new ToolDefectsImport($year))->import($filePath);
+            });
 
-            return redirect()->route('defects.index', ['tahun' => $request->tahun])
+            return redirect()->route('defects.index', ['tahun' => $year])
                 ->with('success', 'Data NG berhasil di-import otomatis dari semua bulan!');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal import: ' . $e->getMessage());

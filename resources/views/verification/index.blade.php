@@ -41,7 +41,7 @@
         </div>
 
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
-            <form method="GET" action="{{ route('verifikasi.index') }}" class="flex items-center gap-1.5">
+            <form method="GET" action="{{ route('verifikasi.index') }}" class="responsive-filter-grid flex items-center gap-1.5">
                 <input type="hidden" name="mode" value="{{ $mode }}">
                 <label class="text-[10px] sm:text-xs font-semibold text-gray-500">PERUSAHAAN</label>
                 <select name="company" onchange="this.form.submit()" class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5">
@@ -111,8 +111,7 @@
 
                         <!-- Tombol Tambah -->
                         <a href="{{ route('verifikasi.create', ['mode' => $mode, 'tahun' => $tahun, 'company' => $company]) }}"
-                           class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
-                                  px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                           class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm">
                             <span>+</span> Tambah
                         </a>
 

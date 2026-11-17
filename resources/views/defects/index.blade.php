@@ -7,10 +7,10 @@
             <h1 class="text-sm font-bold uppercase text-slate-800 sm:text-base">Data NG</h1>
             <form method="GET" action="{{ route('defects.index') }}" class="flex flex-wrap items-center gap-2 sm:gap-3">
                 <label class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 sm:text-xs">
-                    TAHUN
+                    YEAR
                     <select name="tahun" onchange="this.form.submit()" class="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs sm:px-2.5 sm:py-1.5 sm:text-sm">
-                        @for($y = date('Y'); $y >= date('Y') - 5; $y--)
-                            <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @for($y = date('Y'); $y >= 2014; $y--)
+                            <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
                         @endfor
                     </select>
                 </label>
@@ -49,9 +49,13 @@
                     </a>
                 </div>
             </div>
-            <a href="{{ route('defects.create') }}" class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-blue-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 sm:px-4 sm:py-2 sm:text-sm">
-                <span>+</span> Tambah
-            </a>
+            @if($isListUpNgRecap)
+                <span class="rounded bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">Rekap otomatis</span>
+            @else
+                <a href="{{ route('defects.create') }}" class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-blue-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 sm:px-4 sm:py-2 sm:text-sm">
+                    <span>+</span> Tambah
+                </a>
+            @endif
         </div>
     </div>
 </div>
@@ -62,6 +66,11 @@
     @endif
     @if(session('error'))
         <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{{ session('error') }}</div>
+    @endif
+    @if($isListUpNgRecap)
+        <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+            Nilai impor Master Rekap dipertahankan. Penambahan, perubahan, atau penghapusan di List Up NG akan memperbarui rekap secara otomatis.
+        </div>
     @endif
 
     <!-- TABEL REKAPITULASI -->
@@ -83,8 +92,9 @@
                 </tr>
             </thead>
             <tbody>
-                @php $no = 1; @endphp
-                @foreach($sortedData as $division => $data)
+                @if($hasYearData)
+                    @php $no = 1; @endphp
+                    @foreach($sortedData as $division => $data)
                     @php
                         // Ambil record DB sekali saja per divisi (hindari N+1 di dalam loop sel)
                         $dbData = $existingDefects[$division] ?? null;
@@ -101,7 +111,9 @@
                         <td class="border border-slate-200 p-2 font-bold">{{ $data['grand_total'] ?: '' }}</td>
 
                         <td class="border border-slate-200 p-2 text-center whitespace-nowrap">
-                            @if($dbData)
+                            @if($isListUpNgRecap)
+                                <span class="text-[10px] font-semibold text-emerald-700">AUTO</span>
+                            @elseif($dbData)
                                 <div class="flex justify-center gap-1">
                                     <a href="{{ route('defects.edit', $dbData->id) }}?tahun={{ $tahun }}&bulan={{ $bulanFilter }}"
                                        class="rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white hover:bg-blue-700">EDIT</a>
@@ -117,23 +129,33 @@
                             @endif
                         </td>
                     </tr>
-                @endforeach
-            </tbody>
-            <tfoot>
-                <tr class="font-bold">
-                    <td colspan="2" class="border border-slate-300 p-2 text-right uppercase">TOTAL</td>
-                    @foreach($jenisKerusakan as $jenis)
-                        <td class="border border-slate-300 p-2">{{ $footerTotals[$jenis] ?: '' }}</td>
                     @endforeach
-                    <td class="border border-slate-300 p-2">{{ $footerTotals['total'] ?: '' }}</td>
-                    <td class="border border-slate-300 p-2">{{ $footerTotals['grand_total'] ?: '' }}</td>
-                    <td class="border border-slate-300 p-2"></td>
-                </tr>
-            </tfoot>
+                @else
+                    <tr>
+                        <td colspan="{{ count($jenisKerusakan) + 5 }}" class="px-4 py-10 text-center text-slate-500">
+                            Belum ada data rekap NG untuk YEAR <strong>{{ $tahun }}</strong>.
+                        </td>
+                    </tr>
+                @endif
+            </tbody>
+            @if($hasYearData)
+                <tfoot>
+                    <tr class="font-bold">
+                        <td colspan="2" class="border border-slate-300 p-2 text-right uppercase">TOTAL</td>
+                        @foreach($jenisKerusakan as $jenis)
+                            <td class="border border-slate-300 p-2">{{ $footerTotals[$jenis] ?: '' }}</td>
+                        @endforeach
+                        <td class="border border-slate-300 p-2">{{ $footerTotals['total'] ?: '' }}</td>
+                        <td class="border border-slate-300 p-2">{{ $footerTotals['grand_total'] ?: '' }}</td>
+                        <td class="border border-slate-300 p-2"></td>
+                    </tr>
+                </tfoot>
+            @endif
         </table>
     </div>
 </div>
 
+@if($hasYearData)
 <section class="mb-5 mt-6">
     <div class="mb-3">
         <h2 class="text-base font-bold text-slate-800">Analisis NG {{ $tahun }}</h2>
@@ -164,6 +186,11 @@
         </article>
     </div>
 </section>
+@else
+<div class="mt-4 rounded-lg border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+    Analisis NG untuk YEAR {{ $tahun }} akan tampil setelah data tahun tersebut tersedia.
+</div>
+@endif
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const ngMonths = @json(array_values($monthLabels));

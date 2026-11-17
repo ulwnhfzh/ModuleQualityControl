@@ -152,12 +152,18 @@ class ToolDefectsImport
         $validDivisions = ToolDefect::DIVISIONS;
         usort($validDivisions, fn (string $a, string $b): int => strlen($b) <=> strlen($a));
         $rows = [];
+        $divisionRowsStarted = false;
 
         for ($rowIndex = $defectRow + 1; $rowIndex <= $highestRow; $rowIndex++) {
             $division = $this->findDivision($sheet, $rowIndex, $highestColumn, $validDivisions);
             if ($division === null) {
+                if ($divisionRowsStarted) {
+                    break;
+                }
+
                 continue;
             }
+            $divisionRowsStarted = true;
 
             $monthlyData = [];
             foreach ($monthsOnSheet as $month) {

@@ -7,7 +7,9 @@ use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\MasterCalibratorImport;
+use App\Imports\SpreadsheetSheetSelector;
 use App\Exports\MasterCalibratorExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class MasterCalibratorController extends Controller
 {
@@ -58,15 +60,37 @@ class MasterCalibratorController extends Controller
         return redirect()->route('master-calibrator.index', ['tahun' => $year])->with('success', 'Data Master Kalibrator berhasil dihapus.');
     }
 
+    public function importForm(Request $request)
+    {
+        $tahun = (int) ($request->validate(['tahun' => 'nullable|integer|between:2000,2100'])['tahun'] ?? date('Y'));
+
+        return view('master-calibrator.import', compact('tahun'));
+    }
+
     public function import(Request $request)
     {
         $data = $request->validate(['tahun' => 'required|integer|between:2000,2100', 'file' => 'required|file|mimes:xls,xlsx|max:10240']);
+        $sidebarContext = $request->input('sidebar_context') === 'external-list-up'
+            ? ['sidebar_context' => 'external-list-up']
+            : [];
+
         try {
-            Excel::import(new MasterCalibratorImport((int) $data['tahun']), $request->file('file'));
+            $import = SpreadsheetSheetSelector::forHeaders(
+                $request->file('file'),
+                [
+                    ['tool_name', 'nama_alat', 'nama_alat_ukur'],
+                    ['type', 'tipe'],
+                    ['size', 'ukuran'],
+                    ['number_reg', 'number_registration', 'nomor_registrasi'],
+                    ['jan', 'january', 'januari'],
+                ],
+                fn (int $headerRow) => new MasterCalibratorImport((int) $data['tahun'], $headerRow + 1),
+            );
+            Excel::import($import, $request->file('file'));
             $this->logActivity('CREATE', 'master_calibrator', null, 'Import Master Kalibrator tahun ' . $data['tahun'], null, ['file' => $request->file('file')->getClientOriginalName()]);
-            return redirect()->route('master-calibrator.index', ['tahun' => $data['tahun']])->with('success', 'Workbook Master Kalibrator berhasil diimpor.');
+            return redirect()->route('master-calibrator.index', ['tahun' => $data['tahun']] + $sidebarContext)->with('success', 'Workbook Master Kalibrator berhasil diimpor.');
         } catch (\Throwable $exception) {
-            return redirect()->route('master-calibrator.index', ['tahun' => $data['tahun']])->with('error', 'Import gagal: ' . $exception->getMessage());
+            return redirect()->route('master-calibrator.index', ['tahun' => $data['tahun']] + $sidebarContext)->with('error', 'Import gagal: ' . $exception->getMessage());
         }
     }
 
@@ -75,6 +99,18 @@ class MasterCalibratorController extends Controller
         $tahun = (int) ($request->validate(['tahun' => 'nullable|integer|between:2000,2100'])['tahun'] ?? date('Y'));
         $this->logExport('master_calibrator', 'Export Master Kalibrator tahun ' . $tahun);
         return Excel::download(new MasterCalibratorExport($tahun), "master-kalibrator-{$tahun}.xlsx");
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $tahun = (int) ($request->validate(['tahun' => 'nullable|integer|between:2000,2100'])['tahun'] ?? date('Y'));
+        $schedules = MasterCalibrator::where('tahun', $tahun)->orderBy('tool_name')->orderBy('size')->get();
+
+        $this->logExport('master_calibrator', 'Export PDF Master Kalibrator tahun ' . $tahun);
+
+        return Pdf::loadView('master-calibrator.pdf', compact('tahun', 'schedules'))
+            ->setPaper('a3', 'landscape')
+            ->download("master-kalibrator-{$tahun}.pdf");
     }
 
     private function validated(Request $request): array

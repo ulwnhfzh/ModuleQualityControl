@@ -12,10 +12,6 @@
         [x-cloak] { display: none !important; }
         body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 
-        /* =========================================
-           PERUBAHAN PENTING DI SINI
-           Mengecualikan Select2 agar kotak pencariannya muncul
-           ========================================= */
         select:not(.select2-hidden-accessible) {
             appearance: none !important;
             -webkit-appearance: none !important;
@@ -80,9 +76,6 @@
         }
         .sidebar-section:first-child { margin-top: 0; }
 
-        /* =========================================
-           SHARED BUSINESS-SCREEN STYLES
-           ========================================= */
         .main-content table { border-collapse: collapse; background-color: #fff; }
         .main-content table th,
         .main-content table td { border: 1px solid #d9d9d9; }
@@ -163,32 +156,26 @@
         details.user-menu[open] > summary .chevron-down { transform: rotate(180deg); }
         .chevron-down { transition: transform 0.15s ease; }
 
-        /* =========================================
-           LAYOUT RESPONSIF DESKTOP & MOBILE
-           ========================================= */
         .sidebar-desktop {
-            position: fixed;
-            top: 64px;
-            left: 0;
-            bottom: 0;
-            width: 256px; /* Ukuran Sidebar Desktop */
-            z-index: 40;
-            transition: transform 0.3s ease-in-out;
+            position: fixed; top: 64px; left: 0; bottom: 0;
+            width: 256px; z-index: 40; transition: transform 0.3s ease-in-out;
         }
-        
-        /* State ketika sidebar ditutup di desktop */
-        .sidebar-desktop.collapsed {
-            transform: translateX(-100%);
-        }
+        .sidebar-desktop.collapsed { transform: translateX(-100%); }
+        .main-content { margin-left: 256px; transition: margin-left 0.3s ease-in-out; }
+        .main-content.expanded { margin-left: 0; }
 
-        .main-content { 
-            margin-left: 256px; 
-            transition: margin-left 0.3s ease-in-out;
+        .list-up-ng-form-card { margin: 2rem auto; }
+        .list-up-ng-form-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            column-gap: 1.5rem;
+            row-gap: 1.5rem;
         }
-        
-        /* State ketika konten utama melebar penuh */
-        .main-content.expanded {
-            margin-left: 0;
+        .list-up-ng-form-grid > div { min-width: 0; }
+        .list-up-ng-form-note { grid-column: 1 / -1; }
+
+        @media (min-width: 640px) {
+            .list-up-ng-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
 
         @media (max-width: 1023px) {
@@ -198,62 +185,44 @@
     </style>
 </head>
 <body class="bg-slate-50 antialiased" x-data="{ sidebarOpen: false, sidebarDesktopOpen: true }">
+    @php
+        $externalListUpSidebarContext = request('sidebar_context') === 'external-list-up';
+        $kalibrasiSidebarOpen = request()->routeIs('internal.*')
+            || request()->routeIs('eksternal.small*')
+            || request()->routeIs('mesin.*')
+            || request()->routeIs('master-calibrator.*')
+            || request()->routeIs('external-list-up.*')
+            || $externalListUpSidebarContext
+            || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi');
+    @endphp
 
     <!-- HEADER -->
     <header class="bg-white border-b border-slate-200 fixed top-0 left-0 right-0 z-50 h-16">
         <div class="h-full px-2 sm:px-4 lg:px-6 flex items-center gap-2 sm:gap-3">
-
             <div class="flex items-center gap-2 min-w-0 flex-1">
-                <!-- TOMBOL HAMBURGER -->
-                <!-- Di Desktop: Toggle sidebarDesktopOpen -->
-                <!-- Di Mobile: Toggle sidebarOpen -->
                 <button type="button" 
                         @click="if (window.innerWidth >= 1024) { sidebarDesktopOpen = !sidebarDesktopOpen } else { sidebarOpen = !sidebarOpen }"
                         class="bg-slate-100 hover:bg-slate-200 rounded-lg p-2 shrink-0 transition">
-                    
-                    <!-- Icon Hamburger (Garis 3) - Muncul saat menu tertutup -->
-                    <svg x-show="!sidebarOpen && !sidebarDesktopOpen" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-
-                    <!-- Icon Close (X) - Muncul saat menu terbuka -->
-                    <svg x-show="sidebarOpen || sidebarDesktopOpen" x-cloak xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <svg x-show="!sidebarOpen && !sidebarDesktopOpen" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    <svg x-show="sidebarOpen || sidebarDesktopOpen" x-cloak xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
 
                 <div class="shrink-0 flex items-center justify-center w-9 h-9 rounded-lg overflow-hidden">
-                    <img src="{{ asset('images/hamatetsu_indonesia_logo.jpg') }}"
-                         alt="Logo PT Hamatetsu Indonesia"
-                         class="w-full h-full object-contain">
+                    <img src="{{ asset('images/hamatetsu_indonesia_logo.jpg') }}" alt="Logo PT Hamatetsu Indonesia" class="w-full h-full object-contain">
                 </div>
 
                 <div class="min-w-0 flex-1">
-                    <h1 class="font-bold text-slate-800 leading-tight truncate text-xs sm:text-sm">
-                        PT. Hamatetsu Indonesia
-                    </h1>
-                    <p class="text-slate-500 truncate text-[10px] font-medium hidden sm:block">
-                        QC Measurement Tools
-                    </p>
+                    <h1 class="font-bold text-slate-800 leading-tight truncate text-xs sm:text-sm">PT. Hamatetsu Indonesia</h1>
+                    <p class="text-slate-500 truncate text-[10px] font-medium hidden sm:block">QC Measurement Tools</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-1 sm:gap-2 shrink-0">
-
-                {{-- ===== NOTIFIKASI BELL ===== --}}
                 @auth
                     <a href="{{ route('notifikasi.index') }}" class="p-2 rounded-lg hover:bg-slate-100 transition relative group">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-600 group-hover:text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-600 group-hover:text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                         @if(isset($globalNotification) && $globalNotification > 0)
-                            <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center ring-2 ring-white px-1">
-                                {{ $globalNotification > 99 ? '99+' : $globalNotification }}
-                            </span>
+                            <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center ring-2 ring-white px-1">{{ $globalNotification > 99 ? '99+' : $globalNotification }}</span>
                         @endif
                     </a>
                 @endauth
@@ -263,17 +232,10 @@
                         <summary class="flex items-center gap-2 pl-2 sm:pl-3 border-l border-slate-200 hover:bg-slate-50 rounded-lg p-1 pr-2 transition">
                             <div class="hidden sm:block text-right">
                                 <p class="text-xs font-semibold text-slate-800 leading-tight">{{ Auth::user()->name }}</p>
-                                <p class="text-[10px] text-slate-500 leading-tight">
-                                    {{ Auth::user()->role === 'admin' ? 'Administrator' : 'User' }}
-                                </p>
+                                <p class="text-[10px] text-slate-500 leading-tight">{{ Auth::user()->role === 'admin' ? 'Administrator' : 'User' }}</p>
                             </div>
-                            <div class="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-[10px] shadow-sm ring-2 ring-white">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                            </div>
-                            <svg class="chevron-down w-4 h-4 text-slate-400 hidden sm:block"
-                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <div class="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-[10px] shadow-sm ring-2 ring-white">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</div>
+                            <svg class="chevron-down w-4 h-4 text-slate-400 hidden sm:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                         </summary>
 
                         <div class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden z-50">
@@ -283,11 +245,8 @@
                             </div>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit"
-                                        class="w-full text-left px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                    </svg>
+                                <button type="submit" class="w-full text-left px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                                     <span>Logout</span>
                                 </button>
                             </form>
@@ -299,17 +258,10 @@
                             <p class="text-xs font-semibold text-slate-800 leading-tight">Guest</p>
                             <p class="text-[10px] text-amber-600 leading-tight font-medium">Read Only</p>
                         </div>
-                        <div class="bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white">
-                            👁
-                        </div>
+                        <div class="bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white">👁</div>
                     </div>
-
-                    <a href="{{ route('login') }}"
-                       class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition inline-flex items-center gap-1.5 whitespace-nowrap
-                              px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-xs">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                        </svg>
+                    <a href="{{ route('login') }}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
                         <span class="hidden sm:inline">Login Admin</span>
                         <span class="sm:hidden">Login</span>
                     </a>
@@ -318,44 +270,30 @@
         </div>
     </header>
 
-    <!-- OVERLAY (Hanya untuk Mobile) -->
-    <div x-show="sidebarOpen" x-cloak x-transition.opacity @click="sidebarOpen = false"
-         class="fixed left-0 right-0 bottom-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"
-         style="top: 64px;"></div>
+    <div x-show="sidebarOpen" x-cloak x-transition.opacity @click="sidebarOpen = false" class="fixed left-0 right-0 bottom-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden" style="top: 64px;"></div>
 
     <!-- ========================================== -->
-    <!-- SIDEBAR DESKTOP (Bisa Collapse) -->
+    <!-- SIDEBAR DESKTOP -->
     <!-- ========================================== -->
     <aside :class="sidebarDesktopOpen ? '' : 'collapsed'"
            class="sidebar-desktop hidden lg:flex flex-col bg-white border-r border-slate-200"
            x-data="{
                verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
-               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('external-list-up.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'true' : 'false' }}
+               ngOpen: {{ request()->routeIs('defects.*') || request()->routeIs('list-up-ng.*') ? 'true' : 'false' }},
+               kalibrasiOpen: {{ $kalibrasiSidebarOpen ? 'true' : 'false' }}
            }">
         <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
             
-            {{-- MAIN MENU --}}
             <p class="sidebar-section">Data & Master</p>
             <nav class="px-3 space-y-1">
-
                 <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg></span>
                     <span>Dashboard</span>
                 </a>
 
-                <!-- MENU BARU: DATA ALL PRODUKSI -->
                 <a href="{{ route('data-all-produksi.index') }}" class="sidebar-link {{ request()->routeIs('data-all-produksi.*') ? 'active' : '' }}">
-                    <span class="icon">
-                        <!-- IKON BARU DARI LUCIDE -->
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>
-                            <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
-                            <path d="M10 9H8"/>
-                            <path d="M16 13H8"/>
-                            <path d="M16 17H8"/>
-                        </svg>
-                    </span>
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
                     <span>Data All Produksi</span>
                 </a>
 
@@ -365,18 +303,26 @@
                 </a>
 
                 @if(Auth::check() && Auth::user()->role === 'admin')
-                <a href="{{ route('defects.index') }}" class="sidebar-link {{ request()->routeIs('defects.*') ? 'active' : '' }}">
+                <button type="button" @click="ngOpen = !ngOpen" class="sidebar-link {{ request()->routeIs('defects.*') || request()->routeIs('list-up-ng.*') ? 'active' : '' }}">
                     <span class="icon">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                     </span>
-                    <span>Data NG (Kerusakan)</span>
-                </a>
+                    <span class="flex-1 text-left">Data NG (Kerusakan)</span>
+                    <svg class="chevron w-4 h-4" :class="ngOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+                <div x-show="ngOpen" x-cloak class="pl-3 space-y-1 mt-1">
+                    <a href="{{ route('defects.index') }}" class="sidebar-sublink {{ request()->routeIs('defects.*') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Rekap Data NG</span>
+                    </a>
+                    <a href="{{ route('list-up-ng.index') }}" class="sidebar-sublink {{ request()->routeIs('list-up-ng.*') ? 'active' : '' }}">
+                        <span class="dot"></span><span>List Up NG</span>
+                    </a>
+                </div>
                 @endif
             </nav>
 
-            {{-- QUALITY CONTROL --}}
             <p class="sidebar-section">Quality Control</p>
             <nav class="px-3 space-y-1">
                 <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
@@ -385,41 +331,23 @@
                     <svg class="chevron w-4 h-4" :class="verifikasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div x-show="verifikasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
-                    <a href="{{ route('verifikasi.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Jadwal Internal Verification</span>
-                    </a>
-                    <a href="{{ route('verifikasi.periode.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit') ? 'active' : '' }}">
-                        <span class="dot"></span><span>List Up Internal Verification</span>
-                    </a>
+                    <a href="{{ route('verifikasi.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}"><span class="dot"></span><span>Jadwal Internal Verification</span></a>
+                    <a href="{{ route('verifikasi.periode.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit') ? 'active' : '' }}"><span class="dot"></span><span>List Up Internal Verification</span></a>
                 </div>
 
-                <button type="button" @click="kalibrasiOpen = !kalibrasiOpen"
-                        class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('external-list-up.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'active' : '' }}">
+                <button type="button" @click="kalibrasiOpen = !kalibrasiOpen" class="sidebar-link {{ $kalibrasiSidebarOpen ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
                     <span class="flex-1 text-left">Kalibrasi Alat</span>
-                    <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''"
-                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
+                    <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 
-                <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
-                    <a href="{{ route('eksternal.small') }}" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Jadwal Kalibrasi</span>
-                    </a>
-
-                    <a href="{{ route('external-list-up.index') }}" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') ? 'active' : '' }}">
-                        <span class="dot"></span><span>List Up External Calibration</span>
-                    </a>
-                    
-                    <!-- HANYA KALIBRASI INTERNAL YANG DIPINDAHKAN KE SINI -->
-                    <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi' ? 'active' : '' }}">
-                        <span class="dot"></span><span>List Up Kalibrasi Internal</span>
-                    </a>
+                <div x-show="kalibrasiOpen" @unless($kalibrasiSidebarOpen) x-cloak @endunless class="pl-3 space-y-1 mt-1">
+                    <a href="{{ route('eksternal.small') }}" class="sidebar-sublink {{ !$externalListUpSidebarContext && (request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('master-calibrator.*')) ? 'active' : '' }}"><span class="dot"></span><span>Jadwal Kalibrasi</span></a>
+                    <a href="{{ route('external-list-up.index') }}" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') || $externalListUpSidebarContext ? 'active' : '' }}"><span class="dot"></span><span>List Up External Calibration</span></a>
+                    <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi' ? 'active' : '' }}"><span class="dot"></span><span>List Up Kalibrasi Internal</span></a>
                 </div>
             </nav>
 
-            {{-- INVENTARIS --}}
             @if(Auth::check() && Auth::user()->role === 'admin')
             <p class="sidebar-section">Inventaris</p>
             <nav class="px-3 space-y-1">
@@ -429,17 +357,12 @@
                     <svg class="chevron w-4 h-4" :class="stockOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div x-show="stockOpen" x-cloak class="pl-3 space-y-1 mt-1">
-                    <a href="{{ route('stock.index') }}" class="sidebar-sublink {{ request()->routeIs('stock.index', 'stock.import.form') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Daftar Stok</span>
-                    </a>
-                    <a href="{{ route('stock.summary') }}" class="sidebar-sublink {{ request()->routeIs('stock.summary') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Laporan Bulanan</span>
-                    </a>
+                    <a href="{{ route('stock.index') }}" class="sidebar-sublink {{ request()->routeIs('stock.index', 'stock.import.form') ? 'active' : '' }}"><span class="dot"></span><span>Daftar Stok</span></a>
+                    <a href="{{ route('stock.summary') }}" class="sidebar-sublink {{ request()->routeIs('stock.summary') ? 'active' : '' }}"><span class="dot"></span><span>Laporan Bulanan</span></a>
                 </div>
             </nav>
             @endif
 
-            {{-- LAPORAN & PENGATURAN --}}
             @if(Auth::check() && Auth::user()->role === 'admin')
             <p class="sidebar-section">Analitik & Setting</p>
             <nav class="px-3 space-y-1">
@@ -457,14 +380,10 @@
                 </a>
             </nav>
             @endif
-
         </div>
 
         <div class="p-4 border-t border-slate-200 shrink-0">
-            <p class="text-[10px] text-slate-500 text-center leading-relaxed">
-                • Quality Assured by Ulwan •<br>
-                <span class="text-slate-600">V 1.0.0</span>
-            </p>
+            <p class="text-[10px] text-slate-500 text-center leading-relaxed">• Quality Assured by Ulwan •<br><span class="text-slate-600">V 1.0.0</span></p>
         </div>
     </aside>
 
@@ -472,22 +391,18 @@
     <!-- SIDEBAR MOBILE -->
     <!-- ========================================== -->
     <aside x-show="sidebarOpen" x-cloak
-           x-transition:enter="transition ease-out duration-200"
-           x-transition:enter-start="-translate-x-full"
-           x-transition:enter-end="translate-x-0"
-           x-transition:leave="transition ease-in duration-150"
-           x-transition:leave-start="translate-x-0"
-           x-transition:leave-end="-translate-x-full"
+           x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+           x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
            class="lg:hidden fixed left-0 z-50 bg-white border-r border-slate-200 w-64 shadow-2xl flex flex-col"
            style="top: 64px; bottom: 0;"
            x-data="{
                verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
-               kalibrasiOpen: {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('external-list-up.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'true' : 'false' }}
+               ngOpen: {{ request()->routeIs('defects.*') || request()->routeIs('list-up-ng.*') ? 'true' : 'false' }},
+               kalibrasiOpen: {{ $kalibrasiSidebarOpen ? 'true' : 'false' }}
            }">
         <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
             
-            {{-- MAIN MENU --}}
             <p class="sidebar-section">Data & Master</p>
             <nav class="px-3 space-y-1">
                 <a href="{{ route('dashboard') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -495,18 +410,8 @@
                     <span>Dashboard</span>
                 </a>
 
-                <!-- MENU BARU: DATA ALL PRODUKSI (MOBILE) -->
                 <a href="{{ route('data-all-produksi.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('data-all-produksi.*') ? 'active' : '' }}">
-                    <span class="icon">
-                        <!-- IKON BARU DARI LUCIDE -->
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>
-                            <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
-                            <path d="M10 9H8"/>
-                            <path d="M16 13H8"/>
-                            <path d="M16 17H8"/>
-                        </svg>
-                    </span>
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
                     <span>Data All Produksi</span>
                 </a>
 
@@ -514,15 +419,24 @@
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg></span>
                     <span>Daftar Induk</span>
                 </a>
+
                 @if(Auth::check() && Auth::user()->role === 'admin')
-                <a href="{{ route('defects.index') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('defects.*') ? 'active' : '' }}">
+                <button type="button" @click="ngOpen = !ngOpen" class="sidebar-link {{ request()->routeIs('defects.*') || request()->routeIs('list-up-ng.*') ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></span>
-                    <span>Data NG (Kerusakan)</span>
-                </a>
+                    <span class="flex-1 text-left">Data NG (Kerusakan)</span>
+                    <svg class="chevron w-4 h-4" :class="ngOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+                <div x-show="ngOpen" x-cloak class="pl-3 space-y-1 mt-1">
+                    <a href="{{ route('defects.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('defects.*') ? 'active' : '' }}">
+                        <span class="dot"></span><span>Rekap Data NG</span>
+                    </a>
+                    <a href="{{ route('list-up-ng.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('list-up-ng.*') ? 'active' : '' }}">
+                        <span class="dot"></span><span>List Up NG</span>
+                    </a>
+                </div>
                 @endif
             </nav>
 
-            {{-- QUALITY CONTROL --}}
             <p class="sidebar-section">Quality Control</p>
             <nav class="px-3 space-y-1">
                 <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
@@ -531,40 +445,23 @@
                     <svg class="chevron w-4 h-4" :class="verifikasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div x-show="verifikasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
-                    <a href="{{ route('verifikasi.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Jadwal Verification Internal</span>
-                    </a>
-                    <a href="{{ route('verifikasi.periode.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit') ? 'active' : '' }}">
-                        <span class="dot"></span><span>List Up Internal Verification/span>
-                    </a>
+                    <a href="{{ route('verifikasi.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}"><span class="dot"></span><span>Jadwal Verification Internal</span></a>
+                    <a href="{{ route('verifikasi.periode.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit') ? 'active' : '' }}"><span class="dot"></span><span>List Up Internal Verification</span></a>
                 </div>
 
-                <button type="button" @click="kalibrasiOpen = !kalibrasiOpen"
-                        class="sidebar-link {{ request()->routeIs('internal.*') || request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('external-list-up.*') || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi') ? 'active' : '' }}">
+                <button type="button" @click="kalibrasiOpen = !kalibrasiOpen" class="sidebar-link {{ $kalibrasiSidebarOpen ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
                     <span class="flex-1 text-left">Kalibrasi Alat</span>
-                    <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''"
-                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
+                    <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 
-                <div x-show="kalibrasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
-                    <a href="{{ route('eksternal.small') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') ? 'active' : '' }}">
-                        <span class="dot"></span><span>External</span>
-                    </a>
-
-                    <a href="{{ route('external-list-up.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') ? 'active' : '' }}">
-                        <span class="dot"></span><span>List Up External Calibration</span>
-                    </a>
-                    
-                    <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi' ? 'active' : '' }}">
-                        <span class="dot"></span><span>List Up Kalibrasi Internal</span>
-                    </a>
+                <div x-show="kalibrasiOpen" @unless($kalibrasiSidebarOpen) x-cloak @endunless class="pl-3 space-y-1 mt-1">
+                    <a href="{{ route('eksternal.small') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ !$externalListUpSidebarContext && (request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('master-calibrator.*')) ? 'active' : '' }}"><span class="dot"></span><span>Jadwal Kalibrasi</span></a>
+                    <a href="{{ route('external-list-up.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') || $externalListUpSidebarContext ? 'active' : '' }}"><span class="dot"></span><span>List Up External Calibration</span></a>
+                    <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi' ? 'active' : '' }}"><span class="dot"></span><span>List Up Kalibrasi Internal</span></a>
                 </div>
             </nav>
 
-            {{-- INVENTARIS --}}
             @if(Auth::check() && Auth::user()->role === 'admin')
             <p class="sidebar-section">Inventaris</p>
             <nav class="px-3 space-y-1">
@@ -574,17 +471,12 @@
                     <svg class="chevron w-4 h-4" :class="stockOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div x-show="stockOpen" x-cloak class="pl-3 space-y-1 mt-1">
-                    <a href="{{ route('stock.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('stock.index', 'stock.import.form') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Daftar Stok</span>
-                    </a>
-                    <a href="{{ route('stock.summary') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('stock.summary') ? 'active' : '' }}">
-                        <span class="dot"></span><span>Laporan Bulanan</span>
-                    </a>
+                    <a href="{{ route('stock.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('stock.index', 'stock.import.form') ? 'active' : '' }}"><span class="dot"></span><span>Daftar Stok</span></a>
+                    <a href="{{ route('stock.summary') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('stock.summary') ? 'active' : '' }}"><span class="dot"></span><span>Laporan Bulanan</span></a>
                 </div>
             </nav>
             @endif
 
-            {{-- LAPORAN & PENGATURAN --}}
             @if(Auth::check() && Auth::user()->role === 'admin')
             <p class="sidebar-section">Analitik & Setting</p>
             <nav class="px-3 space-y-1">
@@ -605,40 +497,23 @@
         </div>
 
         <div class="p-4 border-t border-slate-200 shrink-0">
-            <p class="text-[10px] text-slate-500 text-center leading-relaxed">
-                • Quality Assured by Ulwan •
-            </p>
+            <p class="text-[10px] text-slate-500 text-center leading-relaxed">• Quality Assured by Ulwan •</p>
         </div>
     </aside>
 
-    <!-- KONTEN UTAMA -->
-    <!-- Class 'expanded' ditambahkan secara dinamis berdasarkan status sidebarDesktopOpen -->
     <main :class="sidebarDesktopOpen ? '' : 'expanded'" class="main-content pt-16 min-h-screen">
         <div class="p-4 sm:p-5 md:p-6">
             @yield('content')
         </div>
     </main>
 
-    <!-- ========================================== -->
-    <!-- SCRIPT CAPSLOCK OTOMATIS UNTUK SEMUA INPUT -->
-    <!-- ========================================== -->
     <script>
         document.addEventListener('input', function(e) {
-            // Hanya berlaku untuk input tipe teks (bukan number, date, password, dll)
             if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
-                // Pengecualian: jangan ubah input yang punya class 'no-caps'
-                if (e.target.classList.contains('no-caps')) {
-                    return;
-                }
-                
-                // Simpan posisi kursor
+                if (e.target.classList.contains('no-caps')) return;
                 const start = e.target.selectionStart;
                 const end = e.target.selectionEnd;
-                
-                // Ubah nilai ke huruf besar
                 e.target.value = e.target.value.toUpperCase();
-                
-                // Kembalikan posisi kursor agar tidak melompat ke akhir
                 e.target.setSelectionRange(start, end);
             }
         });

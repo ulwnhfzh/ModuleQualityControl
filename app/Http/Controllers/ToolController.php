@@ -10,6 +10,8 @@ use App\Notifications\ToolDueDateNotification;
 use App\Support\DocumentPdfLayout;
 use Illuminate\Http\Request;
 use App\Imports\ToolsImport;
+use App\Imports\SpreadsheetImportHeaders;
+use App\Imports\SpreadsheetSheetSelector;
 use App\Exports\ToolsExport;
 use App\Traits\LogsActivity;
 use Maatwebsite\Excel\Facades\Excel;
@@ -248,10 +250,26 @@ class ToolController extends Controller
         ]);
 
         try {
-            $import = new ToolsImport($request->tahun, $request->kategori);
+            $toolImports = [];
+            $import = SpreadsheetSheetSelector::forHeaders(
+                $request->file('file'),
+                [
+                    SpreadsheetImportHeaders::TOOL_NAME,
+                    ['category', 'kategori'],
+                    ['qa_1', 'qa1'],
+                    ['qa_1_2', 'qa12', 'qa_1_2'],
+                ],
+                function (int $rowHeader, string $sheetTitle) use ($request, &$toolImports): ToolsImport {
+                    return $toolImports[] = new ToolsImport($request->tahun, $request->kategori);
+                },
+            );
             Excel::import($import, $request->file('file'));
+            $importedCount = array_sum(array_map(
+                fn (ToolsImport $sheetImport): int => $sheetImport->getImportedCount(),
+                $toolImports,
+            ));
 
-            if ($import->getImportedCount() === 0) {
+            if ($importedCount === 0) {
                 return back()->withInput()->with('error', 'Header TOOL NAME atau NAMA ALAT tidak ditemukan. Pastikan file memiliki kolom nama alat; header boleh berada setelah judul laporan.');
             }
 
@@ -265,7 +283,7 @@ class ToolController extends Controller
             );
 
             return redirect()->route('tools.index', ['tahun' => $request->tahun, 'kategori' => $request->kategori])
-                ->with('success', $import->getImportedCount() . ' baris data berhasil di-import untuk tahun ' . $request->tahun);
+                ->with('success', $importedCount . ' baris data berhasil di-import untuk tahun ' . $request->tahun);
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal import: ' . $e->getMessage());
         }

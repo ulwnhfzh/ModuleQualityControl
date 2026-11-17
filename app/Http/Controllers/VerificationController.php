@@ -7,7 +7,8 @@ use App\Models\Tool;
 use App\Models\DocumentCounter;
 use App\Support\DocumentPdfLayout;
 use App\Imports\VerificationImport;
-use App\Imports\SpreadsheetHeaderRowDetector;
+use App\Imports\SpreadsheetImportHeaders;
+use App\Imports\SpreadsheetSheetSelector;
 use App\Exports\VerificationExport;
 use App\Traits\LogsActivity;
 use Maatwebsite\Excel\Facades\Excel;
@@ -371,11 +372,22 @@ class VerificationController extends Controller
         }
 
         try {
-            $import = new VerificationImport(
-                $request->tahun,
-                $request->mode,
-                $request->company,
-                SpreadsheetHeaderRowDetector::detect($request->file('file'))
+            $headers = $request->mode === 'harian'
+                ? [
+                    SpreadsheetImportHeaders::TOOL_NAME,
+                    ['tanggal', 'date'],
+                    ['qa_1', 'qa1'],
+                ]
+                : SpreadsheetImportHeaders::VERIFICATION_MONTHLY;
+            $import = SpreadsheetSheetSelector::forHeaders(
+                $request->file('file'),
+                $headers,
+                fn (int $rowHeader) => new VerificationImport(
+                    $request->tahun,
+                    $request->mode,
+                    $request->company,
+                    $rowHeader,
+                ),
             );
             Excel::import(
                 $import,

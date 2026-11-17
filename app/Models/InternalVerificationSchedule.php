@@ -33,6 +33,7 @@ class InternalVerificationSchedule extends Model
     public static function syncForProductionRow(ProductionData $productionRow): void
     {
         $year = (int) now()->year;
+        if ($productionRow->year !== $year) return;
         $toolName = strtoupper(trim((string) $productionRow->tool_name));
         if ($toolName === '') return;
 
@@ -63,7 +64,7 @@ class InternalVerificationSchedule extends Model
                 ($helper->canonicalDivision($schedule->shop) ?? '') . '|' . $helper->normalizeKey($schedule->tool_name)
             );
 
-        ProductionData::query()->orderBy('id')->chunkById(300, function ($productionRows) use ($groups, $helper, $year): void {
+        ProductionData::query()->where('year', $year)->orderBy('id')->chunkById(300, function ($productionRows) use ($groups, $helper, $year): void {
             foreach ($productionRows as $productionRow) {
                 $key = ($helper->canonicalDivision($productionRow->division) ?? '') . '|' . $helper->normalizeKey($productionRow->tool_name);
                 $relatedSchedules = $groups->get($key, collect())
@@ -102,7 +103,6 @@ class InternalVerificationSchedule extends Model
     private function syncProductionResult(array $identity): void
     {
         $year = (int) ($identity['tahun'] ?? 0);
-        // Data All Produksi has no year field; only synchronize the current year's schedule.
         if ($year !== (int) now()->year || strtoupper((string) ($identity['company'] ?? 'HAMATETSU')) !== 'HAMATETSU') {
             return;
         }
@@ -121,6 +121,7 @@ class InternalVerificationSchedule extends Model
         if ($division === null || $toolName === '') return;
 
         $productionRows = ProductionData::query()
+            ->where('year', $year)
             ->whereIn('division', $division === 'LINE SCC' ? ['LINE SCC', 'LSCC', 'L.SCC'] : [$division])
             ->whereRaw('UPPER(TRIM(tool_name)) = ?', [$toolName])
             ->get()
@@ -161,6 +162,7 @@ class InternalVerificationSchedule extends Model
         foreach ($touchedMonths as $month) {
             $productionRow->setAttribute($month, $statuses[$month]['status'] ?? null);
         }
+        $productionRow->is_year_template = false;
         $productionRow->saveQuietly();
     }
 

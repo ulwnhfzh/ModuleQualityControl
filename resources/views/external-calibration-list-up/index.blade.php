@@ -12,23 +12,38 @@
         <div class="flex flex-wrap items-center gap-3">
             <label for="external-category" class="text-xs font-semibold text-slate-500">KATEGORI</label>
             <select id="external-category" onchange="location.href=this.value" class="rounded-lg border-slate-300 bg-white px-3 py-2 text-sm">
-                <option value="{{ route('eksternal.small', ['tahun' => $year]) }}">Small Tool</option>
-                <option value="{{ route('mesin.index', ['tahun' => $year]) }}">Machine Alat Ukur</option>
-                <option value="{{ route('master-calibrator.index', ['tahun' => $year]) }}">Master Kalibrator</option>
+                <option value="{{ route('eksternal.small', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">Small Tool</option>
+                <option value="{{ route('mesin.index', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">Machine Alat Ukur</option>
+                <option value="{{ route('master-calibrator.index', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">Master Kalibrator</option>
             </select>
-            <form method="GET" action="{{ route('external-list-up.index') }}" class="flex items-center gap-2">
+            <form method="GET" action="{{ route('external-list-up.index') }}" class="flex flex-wrap items-center gap-2">
                 <label for="external-list-up-year" class="text-xs font-semibold text-slate-500">TAHUN</label>
                 <select id="external-list-up-year" name="tahun" onchange="this.form.submit()" class="rounded-lg border-slate-300 bg-white px-3 py-2 text-sm">
                     @for($y = date('Y'); $y >= date('Y') - 12; $y--)
                         <option value="{{ $y }}" @selected($year == $y)>YEAR {{ $y }}</option>
                     @endfor
                 </select>
+                <label for="external-list-up-shop" class="text-xs font-semibold text-slate-500">SHOP</label>
+                <select id="external-list-up-shop" name="shop" onchange="this.form.submit()" class="rounded-lg border-slate-300 bg-white px-3 py-2 text-sm">
+                    <option value="">Semua Shop</option>
+                    @foreach($shops as $shopOption)
+                        <option value="{{ $shopOption }}" @selected($shop === $shopOption)>{{ $shopOption }}</option>
+                    @endforeach
+                </select>
+                <label for="external-list-up-tool-name" class="text-xs font-semibold text-slate-500">TOOL NAME</label>
+                <select id="external-list-up-tool-name" name="tool_name" class="w-40 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-48">
+                    <option value="">Semua Tool</option>
+                    @foreach($toolNameList as $toolOption)
+                        <option value="{{ $toolOption }}" @selected($toolName === $toolOption)>{{ $toolOption }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" class="rounded-lg bg-slate-800 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">Cari</button>
             </form>
         </div>
 
         {{-- BAGIAN KANAN: TOMBOL AKSI --}}
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            <p class="text-xs text-slate-500 mr-1">Total {{ $schedules->count() }} jadwal</p>
+            <p class="text-xs text-slate-500 mr-1">Halaman ini {{ $schedules->count() }} jadwal (maks. 100)</p>
             
             @if(Auth::check() && Auth::user()->role === 'admin')
                 <!-- Tombol Import (Rapi dengan Ikon) -->
@@ -84,8 +99,8 @@
 
                 <!-- Tombol Tambah -->
                 <a href="{{ route('external-list-up.create', ['tahun' => $year]) }}" 
-                   class="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-blue-700 transition inline-flex items-center gap-1 shadow-sm">
-                    <span class="text-lg leading-none">+</span> Tambah
+                   class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm">
+                    <span>+</span> Tambah
                 </a>
             @endif
         </div>
@@ -95,7 +110,7 @@
 <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
     <header class="border-b border-slate-200 px-4 py-3">
         <h1 class="font-semibold text-slate-800">List Up External Calibration</h1>
-        <p class="mt-1 text-xs text-slate-500">PT Hamatetsu Indonesia · Tahun {{ $year }}</p>
+        <p class="mt-1 text-xs text-slate-500">PT Hamatetsu Indonesia · Tahun {{ $year }} · {{ $schedules->count() }} baris pada halaman ini</p>
     </header>
     <div class="overflow-x-auto">
         <table class="w-full min-w-[1500px] border-collapse text-xs text-slate-700">
@@ -117,7 +132,7 @@
             <tbody>
                 @forelse($schedules as $index => $item)
                     <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }} hover:bg-blue-50">
-                        <td class="border border-slate-200 px-3 py-2 text-center">{{ $index + 1 }}</td>
+                        <td class="border border-slate-200 px-3 py-2 text-center">{{ ($schedules->firstItem() ?? 1) + $index }}</td>
                         <td class="border border-slate-200 px-3 py-2 font-semibold">{{ $item->tool_name }}</td>
                         <td class="border border-slate-200 px-3 py-2">{{ $item->specification ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-center">{{ $item->serial_number ?: '-' }}</td>
@@ -142,6 +157,10 @@
         </table>
     </div>
 </section>
+
+<div class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+    {{ $schedules->links() }}
+</div>
 
 <script>
 function toggleExportListUp() {

@@ -18,7 +18,7 @@
         </div>
 
         <div class="mb-6">
-            <label class="mb-1 block text-sm font-semibold text-slate-700">Tahun</label>
+            <label class="mb-1 block text-sm font-semibold text-slate-700">YEAR</label>
             <input type="number" name="tahun" value="{{ date('Y') }}" min="2000" max="2100" step="1" class="w-full rounded border border-slate-300 p-2 text-sm" required>
         </div>
 

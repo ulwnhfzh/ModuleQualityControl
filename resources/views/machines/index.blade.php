@@ -17,13 +17,16 @@
 <div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 p-3 sm:p-4">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <form method="GET" action="{{ route('mesin.index') }}" class="flex items-center gap-2 flex-wrap">
+            @if(request('sidebar_context') === 'external-list-up')
+                <input type="hidden" name="sidebar_context" value="external-list-up">
+            @endif
             <label for="kategori-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">KATEGORI</label>
             <select id="kategori-eksternal" aria-label="Kategori kalibrasi eksternal"
                     onchange="this.form.action = this.value; this.form.submit()"
                     class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="{{ route('eksternal.small') }}">Small Tool</option>
+                <option value="{{ route('eksternal.small', request('sidebar_context') === 'external-list-up' ? ['sidebar_context' => 'external-list-up'] : []) }}">Small Tool</option>
                 <option value="{{ route('mesin.index') }}" selected>Machine Alat Ukur</option>
-                <option value="{{ route('master-calibrator.index') }}">Master Kalibrator</option>
+                <option value="{{ route('master-calibrator.index', request('sidebar_context') === 'external-list-up' ? ['sidebar_context' => 'external-list-up'] : []) }}">Master Kalibrator</option>
             </select>
             <label for="tahun-mesin" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
             <select id="tahun-mesin" name="tahun" onchange="this.form.submit()"
@@ -82,8 +85,7 @@
             @endif
 
             <a href="{{ route('mesin.create', ['tahun' => $tahun, 'company' => $company]) }}"
-               class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
-                      px-3 py-1.5 text-[11px] sm:px-4 sm:py-2 sm:text-sm">
+               class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm">
                 <span>+</span> Tambah Machine Alat Ukur
             </a>
         </div>

@@ -5,16 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\InternalVerificationSchedule;
 use App\Models\InternalCalibrationListUp;
 use App\Models\Qc2Verification;
-use App\Models\Tool;
+use App\Models\ProductionData;
 use App\Exports\VerificationPeriodExport;
 use App\Exports\InternalCalibrationListUpExport;
 use App\Imports\VerificationPeriodImport;
 use App\Imports\InternalCalibrationListUpImport;
+use App\Imports\AnnualStatusWorkbookImport;
 use App\Imports\Qc2VerificationImport;
 use App\Exports\Qc2VerificationExport;
-use App\Imports\SpreadsheetHeaderRowDetector;
+use App\Imports\SpreadsheetImportHeaders;
+use App\Imports\SpreadsheetSheetSelector;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel;
 
 class VerificationPeriodController extends Controller
@@ -25,33 +28,75 @@ class VerificationPeriodController extends Controller
             'tahun' => 'nullable|integer|between:2000,2100',
             'jenis' => 'nullable|in:kalibrasi,verifikasi,verifikasi_qc2',
             'company' => 'nullable|in:HAMATETSU,NISSO GIKEN',
+            'tool_name' => 'nullable|string|max:255',
+            'shop' => 'nullable|string|max:100',
         ]);
         $tahun = (int) ($filters['tahun'] ?? date('Y'));
         $jenis = $filters['jenis'] ?? 'verifikasi';
         $company = $filters['company'] ?? 'HAMATETSU';
+        $toolName = trim($filters['tool_name'] ?? '');
+        $shop = $filters['shop'] ?? '';
+        $toolNameList = $this->productionToolNameOptions($tahun, $shop);
+        if ($toolName !== '' && !$toolNameList->contains($toolName)) {
+            $toolName = '';
+        }
 
         if ($jenis === 'kalibrasi') {
-            $schedules = InternalCalibrationListUp::where('tahun', $tahun)->orderBy('tool_name')->get();
-            return view('verification.period.calibration', compact('schedules', 'tahun', 'jenis', 'company'));
+            $query = InternalCalibrationListUp::where('tahun', $tahun);
+            $shops = (clone $query)->whereNotNull('shop')->where('shop', '<>', '')
+                ->distinct()->orderBy('shop')->pluck('shop');
+            $shops = $this->mergeProductionShopOptions($tahun, $shops);
+            if ($toolName !== '') $query->where('tool_name', $toolName);
+            if ($shop !== '') $query->where('shop', $shop);
+            $schedules = $query->orderBy('tool_name')->orderBy('id')->simplePaginate(100)->withQueryString();
+            return view('verification.period.calibration', compact('schedules', 'tahun', 'jenis', 'company', 'shops', 'toolNameList', 'toolName', 'shop'));
         }
 
         if ($jenis === 'verifikasi_qc2') {
-            $schedules = Qc2Verification::where('tahun', $tahun)->where('company', $company)->orderBy('tool_name')->get();
-            return view('verification.period.qc2-verification', compact('schedules', 'tahun', 'jenis', 'company'));
+            $query = Qc2Verification::where('tahun', $tahun)->where('company', $company);
+            $shops = (clone $query)->whereNotNull('shop')->where('shop', '<>', '')
+                ->distinct()->orderBy('shop')->pluck('shop');
+            $shops = $this->mergeProductionShopOptions($tahun, $shops);
+            if ($toolName !== '') $query->where('tool_name', $toolName);
+            if ($shop !== '') $query->where('shop', $shop);
+            $schedules = $query->orderBy('tool_name')->orderBy('id')->simplePaginate(100)->withQueryString();
+            return view('verification.period.qc2-verification', compact('schedules', 'tahun', 'jenis', 'company', 'shops', 'toolNameList', 'toolName', 'shop'));
         }
 
-        $schedules = InternalVerificationSchedule::query()
+        $query = InternalVerificationSchedule::query()
             ->where('tahun', $tahun)
-            ->where('company', $company)
-            ->orderBy('tool_name')
-            ->get();
+            ->where('company', $company);
+        $shops = (clone $query)->whereNotNull('shop')->where('shop', '<>', '')
+            ->distinct()->orderBy('shop')->pluck('shop');
+        $shops = $this->mergeProductionShopOptions($tahun, $shops);
+        if ($toolName !== '') $query->where('tool_name', $toolName);
+        if ($shop !== '') $query->where('shop', $shop);
+        $schedules = $query->orderBy('tool_name')->orderBy('id')->simplePaginate(100)->withQueryString();
         $types = InternalVerificationSchedule::whereNotNull('tool_type')
             ->where('tool_type', '<>', '')
             ->distinct()
             ->orderBy('tool_type')
             ->pluck('tool_type');
 
-        return view('verification.period.index', compact('schedules', 'tahun', 'types', 'jenis', 'company'));
+        return view('verification.period.index', compact('schedules', 'tahun', 'types', 'jenis', 'company', 'shops', 'toolNameList', 'toolName', 'shop'));
+    }
+
+    private function productionToolNameOptions(int $year, string $shop): Collection
+    {
+        $query = ProductionData::query()
+            ->where('year', $year)
+            ->where('is_year_template', false)
+            ->whereNotNull('tool_name')
+            ->where('tool_name', '<>', '');
+
+        if ($shop !== '') {
+            $divisions = in_array(mb_strtoupper(trim($shop)), ['LSCC', 'L.SCC', 'LINE SCC'], true)
+                ? ['LSCC', 'L.SCC', 'LINE SCC']
+                : [$shop];
+            $query->whereIn('division', $divisions);
+        }
+
+        return $query->distinct()->orderBy('tool_name')->pluck('tool_name');
     }
 
     // ==========================================
@@ -62,13 +107,14 @@ class VerificationPeriodController extends Controller
     {
         $tahun = $this->validatedYear($request);
         $company = $this->validatedCompany($request);
-        $tools = Tool::orderBy('tool_name')->get();
+        $tools = $this->productionToolsForYear($tahun);
         $types = InternalCalibrationListUp::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
         $shops = InternalCalibrationListUp::whereNotNull('shop')->where('shop', '<>', '')
             ->distinct()->orderBy('shop')->pluck('shop');
+        $shops = $this->mergeProductionShopOptions($tahun, $shops);
             
-        $toolsWithTypes = $this->getToolsWithTypes('kalibrasi_internal_list_ups');
+        $toolsWithTypes = $this->getToolsWithTypes('kalibrasi_internal_list_ups', $tahun);
 
         return view('verification.period.calibration-form', compact('tahun', 'company', 'tools', 'types', 'shops', 'toolsWithTypes'));
     }
@@ -88,12 +134,13 @@ class VerificationPeriodController extends Controller
     public function internalCalibrationEdit(InternalCalibrationListUp $schedule)
     {
         $tahun = $schedule->tahun; $company = $schedule->company;
-        $tools = Tool::orderBy('tool_name')->get();
+        $tools = $this->productionToolsForYear($tahun, $schedule->tool_name);
         $types = InternalCalibrationListUp::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
         $shops = InternalCalibrationListUp::whereNotNull('shop')->where('shop', '<>', '')
             ->distinct()->orderBy('shop')->pluck('shop');
-        $toolsWithTypes = $this->getToolsWithTypes('kalibrasi_internal_list_ups');
+        $shops = $this->mergeProductionShopOptions($tahun, $shops);
+        $toolsWithTypes = $this->getToolsWithTypes('kalibrasi_internal_list_ups', $tahun);
 
         return view('verification.period.calibration-form', compact('schedule', 'tahun', 'company', 'tools', 'types', 'shops', 'toolsWithTypes'));
     }
@@ -128,14 +175,37 @@ class VerificationPeriodController extends Controller
             'company' => 'required|in:HAMATETSU,NISSO GIKEN',
             'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
+        $annualImport = null;
         try {
-            $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new InternalCalibrationListUpImport((int) $data['tahun'], $data['company'], $rowHeader), $request->file('file'));
+            $path = $request->file('file')->getRealPath();
+            if (AnnualStatusWorkbookImport::supports($path, 'internal_calibration', (int) $data['tahun'])) {
+                $annualImport = new AnnualStatusWorkbookImport($path, 'internal_calibration', (int) $data['tahun'], $data['company']);
+                $annualImport->import($path);
+            } else {
+                $import = SpreadsheetSheetSelector::forHeaders(
+                    $request->file('file'),
+                    [
+                        SpreadsheetImportHeaders::TOOL_NAME,
+                        SpreadsheetImportHeaders::TYPE,
+                        ['calibration_date', 'tanggal_kalibrasi'],
+                        ['next_calibration_date', 'next_calibration', 'tanggal_kalibrasi_berikutnya'],
+                    ],
+                    fn (int $rowHeader) => new InternalCalibrationListUpImport((int) $data['tahun'], $data['company'], $rowHeader),
+                );
+                Excel::import($import, $request->file('file'));
+            }
         } catch (\Throwable $exception) {
             return back()->withInput()->withErrors(['file' => 'Import dibatalkan: ' . $exception->getMessage()]);
         }
+        $message = 'List Up Kalibrasi Internal berhasil diimpor.';
+        if ($annualImport !== null) {
+            $message .= ' Baris diproses: ' . $annualImport->getImportedCount()
+                . '; konflik status dilewati: ' . $annualImport->getSkippedConflictCount()
+                . '; status OK dipertahankan: ' . $annualImport->getProtectedOkCount()
+                . '; tanggal tidak valid dilewati: ' . count($annualImport->getSkippedInvalidRows()) . '.';
+        }
         return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'jenis' => 'kalibrasi', 'company' => $data['company']])
-            ->with('success', 'List Up Kalibrasi Internal berhasil diimpor.');
+            ->with('success', $message);
     }
 
     public function internalCalibrationExport(Request $request)
@@ -175,8 +245,9 @@ class VerificationPeriodController extends Controller
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
         $shops = InternalVerificationSchedule::whereNotNull('shop')->where('shop', '<>', '')
             ->distinct()->orderBy('shop')->pluck('shop');
-        $tools = Tool::orderBy('tool_name')->get();
-        $toolsWithTypes = $this->getToolsWithTypes('verifikasi_internal_schedules');
+        $shops = $this->mergeProductionShopOptions($tahun, $shops);
+        $tools = $this->productionToolsForYear($tahun);
+        $toolsWithTypes = $this->getToolsWithTypes('verifikasi_internal_schedules', $tahun);
 
         return view('verification.period.form', compact('tahun', 'company', 'types', 'shops', 'tools', 'toolsWithTypes'));
     }
@@ -202,8 +273,9 @@ class VerificationPeriodController extends Controller
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
         $shops = InternalVerificationSchedule::whereNotNull('shop')->where('shop', '<>', '')
             ->distinct()->orderBy('shop')->pluck('shop');
-        $tools = Tool::orderBy('tool_name')->get();
-        $toolsWithTypes = $this->getToolsWithTypes('verifikasi_internal_schedules');
+        $shops = $this->mergeProductionShopOptions($tahun, $shops);
+        $tools = $this->productionToolsForYear($tahun, $schedule->tool_name);
+        $toolsWithTypes = $this->getToolsWithTypes('verifikasi_internal_schedules', $tahun);
 
         return view('verification.period.form', compact('schedule', 'tahun', 'company', 'types', 'shops', 'tools', 'toolsWithTypes'));
     }
@@ -239,16 +311,38 @@ class VerificationPeriodController extends Controller
             'company' => 'required|in:HAMATETSU,NISSO GIKEN',
             'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
+        $annualImport = null;
         try {
-            $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new VerificationPeriodImport((int) $data['tahun'], $data['company'], $rowHeader), $request->file('file'));
+            $path = $request->file('file')->getRealPath();
+            if (AnnualStatusWorkbookImport::supports($path, 'verification', (int) $data['tahun'])) {
+                $annualImport = new AnnualStatusWorkbookImport($path, 'verification', (int) $data['tahun'], $data['company']);
+                $annualImport->import($path);
+            } else {
+                $import = SpreadsheetSheetSelector::forHeaders(
+                    $request->file('file'),
+                    [
+                        SpreadsheetImportHeaders::TOOL_NAME,
+                        SpreadsheetImportHeaders::TYPE,
+                        ['period1_verification_date', 'period_1_verification_date', 'verification_date', 'tanggal_verifikasi'],
+                    ],
+                    fn (int $rowHeader) => new VerificationPeriodImport((int) $data['tahun'], $data['company'], $rowHeader),
+                );
+                Excel::import($import, $request->file('file'));
+            }
         } catch (\Throwable $exception) {
             return redirect()->route('verifikasi.periode.import.form', ['tahun' => $data['tahun'], 'company' => $data['company']])
                 ->withErrors(['file' => 'Import dibatalkan: ' . $exception->getMessage()]);
         }
 
+        $message = 'Data List Up berhasil diimpor.';
+        if ($annualImport !== null) {
+            $message .= ' Baris diproses: ' . $annualImport->getImportedCount()
+                . '; konflik status dilewati: ' . $annualImport->getSkippedConflictCount()
+                . '; status OK dipertahankan: ' . $annualImport->getProtectedOkCount()
+                . '; tanggal tidak valid dilewati: ' . count($annualImport->getSkippedInvalidRows()) . '.';
+        }
         return redirect()->route('verifikasi.periode.index', ['tahun' => $data['tahun'], 'company' => $data['company']])
-            ->with('success', 'Data List Up berhasil diimpor.');
+            ->with('success', $message);
     }
 
     public function export(Request $request)
@@ -284,12 +378,13 @@ class VerificationPeriodController extends Controller
     {
         $tahun = $this->validatedYear($request);
         $company = $this->validatedCompany($request);
-        $tools = Tool::orderBy('tool_name')->get();
+        $tools = $this->productionToolsForYear($tahun);
         $types = Qc2Verification::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
         $shops = Qc2Verification::whereNotNull('shop')->where('shop', '<>', '')
             ->distinct()->orderBy('shop')->pluck('shop');
-        $toolsWithTypes = $this->getToolsWithTypes('verifikasi_qc2');
+        $shops = $this->mergeProductionShopOptions($tahun, $shops);
+        $toolsWithTypes = $this->getToolsWithTypes('verifikasi_qc2', $tahun);
 
         return view('verification.period.qc2-form', compact('tahun', 'company', 'tools', 'types', 'shops', 'toolsWithTypes'));
     }
@@ -311,12 +406,13 @@ class VerificationPeriodController extends Controller
     public function qc2Edit(Qc2Verification $schedule)
     {
         $tahun = $schedule->tahun; $company = $schedule->company;
-        $tools = Tool::orderBy('tool_name')->get();
+        $tools = $this->productionToolsForYear($tahun, $schedule->tool_name);
         $types = Qc2Verification::whereNotNull('tool_type')->where('tool_type', '<>', '')
             ->distinct()->orderBy('tool_type')->pluck('tool_type');
         $shops = Qc2Verification::whereNotNull('shop')->where('shop', '<>', '')
             ->distinct()->orderBy('shop')->pluck('shop');
-        $toolsWithTypes = $this->getToolsWithTypes('verifikasi_qc2');
+        $shops = $this->mergeProductionShopOptions($tahun, $shops);
+        $toolsWithTypes = $this->getToolsWithTypes('verifikasi_qc2', $tahun);
 
         return view('verification.period.qc2-form', compact('schedule', 'tahun', 'company', 'tools', 'types', 'shops', 'toolsWithTypes'));
     }
@@ -353,8 +449,17 @@ class VerificationPeriodController extends Controller
             'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
         try {
-            $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new Qc2VerificationImport((int) $data['tahun'], $data['company'], $rowHeader), $request->file('file'));
+            $import = SpreadsheetSheetSelector::forHeaders(
+                $request->file('file'),
+                [
+                    SpreadsheetImportHeaders::TOOL_NAME,
+                    SpreadsheetImportHeaders::TYPE,
+                    ['verification_date', 'tanggal_verifikasi'],
+                    ['next_verification_date', 'tanggal_verifikasi_berikutnya'],
+                ],
+                fn (int $rowHeader) => new Qc2VerificationImport((int) $data['tahun'], $data['company'], $rowHeader),
+            );
+            Excel::import($import, $request->file('file'));
         } catch (\Throwable $exception) {
             return back()->withInput()->withErrors(['file' => 'Import dibatalkan: ' . $exception->getMessage()]);
         }
@@ -404,14 +509,62 @@ class VerificationPeriodController extends Controller
     // METHOD PRIVATE UNTUK VALIDASI & HELPER
     // ==========================================
 
-    private function getToolsWithTypes($tableName)
+    private function productionToolsForYear(int $year, ?string $currentToolName = null)
+    {
+        $tools = ProductionData::query()
+            ->where('year', $year)
+            ->where('is_year_template', false)
+            ->whereNotNull('tool_name')
+            ->where('tool_name', '<>', '')
+            ->select('tool_name')
+            ->distinct()
+            ->orderBy('tool_name')
+            ->get();
+
+        if ($currentToolName !== null && $currentToolName !== '' && !$tools->contains('tool_name', $currentToolName)) {
+            $tools->push((object) ['tool_name' => $currentToolName]);
+        }
+
+        return $tools;
+    }
+
+    private function mergeProductionShopOptions(int $year, Collection $scheduleShops): Collection
+    {
+        return $scheduleShops
+            ->merge(ProductionData::query()
+                ->where('year', $year)
+                ->where('is_year_template', false)
+                ->whereNotNull('division')
+                ->where('division', '<>', '')
+                ->distinct()
+                ->orderBy('division')
+                ->pluck('division'))
+            ->filter(fn ($shop) => trim((string) $shop) !== '')
+            ->unique()
+            ->sort()
+            ->values();
+    }
+
+    private function getToolsWithTypes(string $tableName, int $year): array
     {
         return \Illuminate\Support\Facades\DB::table($tableName)
             ->select('tool_name', 'tool_type')
             ->whereNotNull('tool_type')
             ->where('tool_type', '<>', '')
-            ->distinct()
             ->get()
+            ->concat(ProductionData::query()
+                ->where('year', $year)
+                ->where('is_year_template', false)
+                ->whereNotNull('tool_name')
+                ->where('tool_name', '<>', '')
+                ->whereNotNull('type')
+                ->where('type', '<>', '')
+                ->get(['tool_name', 'type'])
+                ->map(fn (ProductionData $row) => (object) [
+                    'tool_name' => $row->tool_name,
+                    'tool_type' => $row->type,
+                ]))
+            ->unique(fn ($row) => mb_strtoupper(trim((string) $row->tool_name) . '|' . trim((string) $row->tool_type)))
             ->groupBy('tool_name')
             ->map(function ($items) {
                 return $items->pluck('tool_type')->unique()->values()->toArray();

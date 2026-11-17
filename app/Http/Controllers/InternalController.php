@@ -7,7 +7,8 @@ use App\Models\Tool;
 use App\Models\DocumentCounter;
 use App\Support\DocumentPdfLayout;
 use App\Imports\InternalImport;
-use App\Imports\SpreadsheetHeaderRowDetector;
+use App\Imports\SpreadsheetImportHeaders;
+use App\Imports\SpreadsheetSheetSelector;
 use App\Exports\InternalExport;
 use App\Traits\LogsActivity;
 use Maatwebsite\Excel\Facades\Excel;
@@ -147,8 +148,12 @@ class InternalController extends Controller
         ]);
 
         try {
-            $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new InternalImport($request->tahun, $request->company, $rowHeader), $request->file('file'));
+            $import = SpreadsheetSheetSelector::forHeaders(
+                $request->file('file'),
+                SpreadsheetImportHeaders::INTERNAL_MONTHLY,
+                fn (int $rowHeader) => new InternalImport($request->tahun, $request->company, $rowHeader),
+            );
+            Excel::import($import, $request->file('file'));
 
             $this->logActivity(
                 'CREATE',

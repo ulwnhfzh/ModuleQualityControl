@@ -29,8 +29,7 @@
             </a>
 
             <a href="{{ route('settings.user.create') }}"
-               class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap
-                      px-3 py-2 text-xs sm:text-sm">
+               class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm">
                 <span>+</span> Tambah User
             </a>
         </div>

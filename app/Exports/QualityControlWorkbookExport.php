@@ -30,7 +30,7 @@ class QualityControlWorkbookExport implements WithMultipleSheets
             new VerificationPeriodExport($this->tahun),
             new InternalCalibrationListUpExport($this->tahun),
             new Qc2VerificationExport($this->tahun),
-            new ProductionDataExport('ALL'),
+            new ProductionDataExport('ALL', null, $this->tahun),
         ];
     }
 }

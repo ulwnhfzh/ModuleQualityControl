@@ -30,10 +30,28 @@
                     <option value="{{ $y }}" @selected($tahun === $y)>YEAR {{ $y }}</option>
                 @endfor
             </select>
+
+            <label for="verification-shop" class="text-xs font-semibold text-slate-500">SHOP</label>
+            <select id="verification-shop" name="shop" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
+                <option value="">Semua Shop</option>
+                @foreach($shops as $shopOption)
+                    <option value="{{ $shopOption }}" @selected($shop === $shopOption)>{{ $shopOption }}</option>
+                @endforeach
+            </select>
+
+            <label for="verification-tool-name" class="text-xs font-semibold text-slate-500">TOOL NAME</label>
+            <select id="verification-tool-name" name="tool_name" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-48">
+                <option value="">Semua Tool</option>
+                @foreach($toolNameList as $toolOption)
+                    <option value="{{ $toolOption }}" @selected($toolName === $toolOption)>{{ $toolOption }}</option>
+                @endforeach
+            </select>
+            <span></span>
+            <button type="submit" class="rounded-lg bg-slate-800 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">Cari</button>
         </form>
         
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            <p class="text-xs text-slate-500 mr-1">Total {{ $schedules->count() }} jadwal</p>
+            <p class="text-xs text-slate-500 mr-1">Halaman ini {{ $schedules->count() }} jadwal (maks. 100)</p>
             
             @if(Auth::check() && Auth::user()->role === 'admin')
                 <!-- Tombol Import -->
@@ -66,7 +84,7 @@
                 </div>
 
                 <!-- Tombol Tambah -->
-                <a href="{{ route($jenis === 'kalibrasi' ? 'verifikasi.periode.kalibrasi.create' : 'verifikasi.periode.create', ['tahun' => $tahun, 'company' => $company]) }}" class="bg-black text-white rounded font-semibold hover:bg-gray-800 transition inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                <a href="{{ route($jenis === 'kalibrasi' ? 'verifikasi.periode.kalibrasi.create' : 'verifikasi.periode.create', ['tahun' => $tahun, 'company' => $company]) }}" class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm">
                     <span>+</span> Tambah
                 </a>
             @endif
@@ -75,7 +93,7 @@
 </div>
 
 <div class="mb-2 flex items-center justify-between text-xs text-slate-500">
-    <span>{{ $schedules->count() }} alat terjadwal</span>
+    <span>{{ $schedules->count() }} alat pada halaman ini</span>
     <span class="md:hidden">Geser tabel ke samping untuk melihat semua periode →</span>
 </div>
 
@@ -128,7 +146,7 @@
                 @forelse($schedules as $index => $schedule)
                     @php($hasNg = strtoupper(trim((string) $schedule->period1_jgm)) === 'NG' || strtoupper(trim((string) $schedule->period2_jgm)) === 'NG')
                     <tr class="{{ $hasNg ? 'bg-rose-100 text-rose-900 hover:bg-rose-200' : ($index % 2 ? 'bg-slate-50' : 'bg-white') . ' hover:bg-blue-50/50' }}">
-                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $index + 1 }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">{{ ($schedules->firstItem() ?? 1) + $index }}</td>
                         <td class="border border-slate-200 px-3 py-3 font-semibold text-slate-800">{{ $schedule->tool_name ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->tool_type ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3">{{ $schedule->specification ?: '-' }}</td>
@@ -168,6 +186,10 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<div class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+    {{ $schedules->links() }}
 </div>
 
 <script>

@@ -54,7 +54,7 @@
             <a href="{{ route('stock.export', ['tahun' => $tahun, 'kategori' => $kategori]) }}" class="inline-flex items-center gap-1.5 border border-blue-700 bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">@include('components.icons.export') Export Excel</a>
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('stock.import.form', ['tahun' => $tahun, 'kategori' => $kategori]) }}" class="inline-flex items-center gap-1.5 border border-blue-600 bg-white px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50">@include('components.icons.import') Import</a>
-                <button type="button" onclick="document.getElementById('stock-entry-dialog').showModal()" class="border border-blue-700 bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">Tambah Data Stock</button>
+                <button type="button" onclick="document.getElementById('stock-entry-dialog').showModal()" class="inline-flex items-center justify-center whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm">Tambah Data Stock</button>
             </div>
         </div>
         @endif

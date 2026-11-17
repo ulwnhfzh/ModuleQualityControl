@@ -71,7 +71,7 @@ class ReportController extends Controller
             ToolStockMovement::query()->whereBetween('movement_date', [substr($startDate, 0, 10), substr($endDate, 0, 10)])->selectRaw('COUNT(*)'),
             'stock'
         );
-        $query->selectSub(ProductionData::query()->selectRaw('COUNT(*)'), 'produksi');
+        $query->selectSub(ProductionData::query()->where('year', $tahun)->selectRaw('COUNT(*)'), 'produksi');
         $query->selectSub(ActivityLog::query()->whereBetween('created_at', [$startDate, $endDate])->selectRaw('COUNT(*)'), 'log');
         $counts = $query->first();
 
@@ -167,7 +167,7 @@ class ReportController extends Controller
             'internal-bulanan' => $this->monthlyChartData(Internal::class, $tahun, $bulanColumns, $bulanLabels),
             'eksternal-bulanan' => $this->monthlyChartData(External::class, $tahun, $bulanColumns, $bulanLabels),
             'mesin-bulanan' => $this->monthlyChartData(ExternalMachine::class, $tahun, $bulanColumns, $bulanLabels),
-            'produksi-bulanan' => $this->productionChartData($bulanColumns, $bulanLabels),
+            'produksi-bulanan' => $this->productionChartData($tahun, $bulanColumns, $bulanLabels),
             'operasional-bulanan' => $this->monthlyComparisonChartData($tahun, $bulanColumns, $bulanLabels),
             'data-ng' => $this->defectChartData($tahun),
             'stock-bulanan' => $this->stockChartData($tahun, $bulanLabels),
@@ -213,13 +213,13 @@ class ReportController extends Controller
      * @param array<int, string> $labels
      * @return array{labels: array<int, string>, values: array<int, int>}
      */
-    private function productionChartData(array $columns, array $labels): array
+    private function productionChartData(int $year, array $columns, array $labels): array
     {
         $selects = array_map(
             fn (string $column): string => "SUM(CASE WHEN `{$column}` IS NOT NULL AND TRIM(CAST(`{$column}` AS CHAR)) <> '' THEN 1 ELSE 0 END) as `{$column}`",
             $columns
         );
-        $totals = ProductionData::query()->selectRaw(implode(', ', $selects))->first();
+        $totals = ProductionData::query()->where('year', $year)->selectRaw(implode(', ', $selects))->first();
 
         return [
             'labels' => $labels,
@@ -315,12 +315,17 @@ class ReportController extends Controller
     {
         $startDate = sprintf('%d-01-01', $tahun);
         $endDate = sprintf('%d-12-31', $tahun);
+        $monthExpression = match (ToolStockMovement::query()->getConnection()->getDriverName()) {
+            'sqlite' => "CAST(strftime('%m', movement_date) AS INTEGER)",
+            'pgsql' => 'EXTRACT(MONTH FROM movement_date)',
+            default => 'MONTH(movement_date)',
+        };
         $rows = ToolStockMovement::query()
             ->whereBetween('movement_date', [$startDate, $endDate])
-            ->selectRaw('MONTH(movement_date) as month_number')
+            ->selectRaw("{$monthExpression} as month_number")
             ->selectRaw("SUM(CASE WHEN direction = 'in' THEN quantity ELSE 0 END) as incoming")
             ->selectRaw("SUM(CASE WHEN direction = 'out' THEN quantity ELSE 0 END) as outgoing")
-            ->groupByRaw('MONTH(movement_date)')
+            ->groupByRaw($monthExpression)
             ->get()
             ->keyBy('month_number');
 

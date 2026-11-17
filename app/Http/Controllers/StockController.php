@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ToolStock;
 use App\Models\ToolStockMovement;
 use App\Imports\StockMovementImport;
-use App\Imports\SpreadsheetHeaderRowDetector;
+use App\Imports\SpreadsheetSheetSelector;
 use App\Exports\StockReportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -356,8 +356,17 @@ class StockController extends Controller
         ]);
 
         try {
-            $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new StockMovementImport($data['kategori'], (int) $data['tahun'], Auth::id(), $rowHeader), $request->file('file'));
+            $import = SpreadsheetSheetSelector::forHeaders(
+                $request->file('file'),
+                [
+                    ['tool_name', 'nama_alat'],
+                    ['movement_date', 'tanggal'],
+                    ['direction', 'transaksi'],
+                    ['quantity', 'jumlah'],
+                ],
+                fn (int $rowHeader) => new StockMovementImport($data['kategori'], (int) $data['tahun'], Auth::id(), $rowHeader),
+            );
+            Excel::import($import, $request->file('file'));
         } catch (\Throwable $exception) {
             return redirect()->route('stock.import.form', ['tahun' => $data['tahun'], 'kategori' => $data['kategori']])
                 ->withErrors(['file' => 'Import dibatalkan: ' . $exception->getMessage()]);

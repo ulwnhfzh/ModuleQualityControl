@@ -8,7 +8,8 @@ use App\Models\Tool;
 use App\Models\DocumentCounter;
 use App\Support\DocumentPdfLayout;
 use App\Imports\ExternalImport;
-use App\Imports\SpreadsheetHeaderRowDetector;
+use App\Imports\SpreadsheetImportHeaders;
+use App\Imports\SpreadsheetSheetSelector;
 use App\Exports\ExternalExport;
 use App\Imports\MachineImport;
 use App\Exports\MachineExport;
@@ -161,8 +162,12 @@ class CalibrationController extends Controller
         ]);
 
         try {
-            $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new ExternalImport($request->tahun, $request->company, $rowHeader), $request->file('file'));
+            $import = SpreadsheetSheetSelector::forHeaders(
+                $request->file('file'),
+                SpreadsheetImportHeaders::EXTERNAL_MONTHLY,
+                fn (int $rowHeader) => new ExternalImport($request->tahun, $request->company, $rowHeader),
+            );
+            Excel::import($import, $request->file('file'));
 
             $this->logActivity(
                 'CREATE',
@@ -400,8 +405,17 @@ class CalibrationController extends Controller
         ]);
 
         try {
-            $rowHeader = SpreadsheetHeaderRowDetector::detect($request->file('file'));
-            Excel::import(new MachineImport($request->tahun, $request->company, $rowHeader), $request->file('file'));
+            $import = SpreadsheetSheetSelector::forHeaders(
+                $request->file('file'),
+                [
+                    SpreadsheetImportHeaders::TOOL_NAME,
+                    ['machine_model', 'model_mesin'],
+                    ['serial_number', 'number_seri', 'nomor_seri'],
+                    ['next_date', 'tanggal_berikutnya'],
+                ],
+                fn (int $rowHeader) => new MachineImport($request->tahun, $request->company, $rowHeader),
+            );
+            Excel::import($import, $request->file('file'));
 
             $this->logActivity(
                 'CREATE',
