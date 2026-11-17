@@ -9,9 +9,9 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 
 class MasterCalibratorImport implements ToCollection, WithStartRow
 {
-    public function __construct(private int $year) {}
+    public function __construct(private int $year, private int $firstDataRow = 4) {}
 
-    public function startRow(): int { return 4; }
+    public function startRow(): int { return $this->firstDataRow; }
 
     public function collection(Collection $rows): void
     {
@@ -28,7 +28,7 @@ class MasterCalibratorImport implements ToCollection, WithStartRow
                 'number_reg' => $this->value($row[5] ?? null),
                 'part_name' => $this->value($row[6] ?? null),
                 'part_number' => $this->value($row[7] ?? null),
-                'note' => $this->value($row[21] ?? null),
+                'note' => $this->value($row[20] ?? null),
             ];
             foreach (['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'] as $index => $month) {
                 $data[$month] = $this->value($row[8 + $index] ?? null);
