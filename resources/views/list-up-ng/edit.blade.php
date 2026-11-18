@@ -53,14 +53,26 @@
                 <input type="text" name="number_reg" class="w-full min-w-0 border p-2 rounded" value="{{ old('number_reg', $listUpNg->number_reg) }}">
             </div>
             <div class="min-w-0">
+                <label class="block text-sm font-semibold mb-1">No Seri</label>
+                <input type="text" name="number_seri" class="w-full min-w-0 border p-2 rounded" value="{{ old('number_seri', $listUpNg->number_seri) }}">
+            </div>
+            <div class="min-w-0">
+                <label class="block text-sm font-semibold mb-1">Part Name</label>
+                <input type="text" name="part_name" class="w-full min-w-0 border p-2 rounded" value="{{ old('part_name', $listUpNg->part_name) }}">
+            </div>
+            <div class="min-w-0">
+                <label class="block text-sm font-semibold mb-1">Part Number</label>
+                <input type="text" name="part_number" class="w-full min-w-0 border p-2 rounded" value="{{ old('part_number', $listUpNg->part_number) }}">
+            </div>
+            <div class="min-w-0">
                 <label class="block text-sm font-semibold mb-1">NG Date *</label>
                 <input type="date" name="ng_date" required value="{{ old('ng_date', $listUpNg->ng_date->format('Y-m-d')) }}" class="w-full min-w-0 border p-2 rounded">
             </div>
             <div class="min-w-0">
                 <label class="block text-sm font-semibold mb-1">Dept *</label>
                 <select name="dept" required class="w-full border p-2 rounded">
-                    @foreach(['QA 1', 'QA 2', 'QA INSP', 'P3', 'P6', 'PPIC 1', 'PPIC 2', 'LSCC'] as $d)
-                        <option value="{{ $d }}" @selected(old('dept', $listUpNg->dept) == $d)>{{ $d }}</option>
+                    @foreach($departments as $department)
+                        <option value="{{ $department }}" @selected(old('dept', $listUpNg->dept) === $department)>{{ $department }}</option>
                     @endforeach
                 </select>
             </div>

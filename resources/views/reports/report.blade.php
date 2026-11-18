@@ -10,7 +10,7 @@
 
 {{-- ===== HEADER ===== --}}
 <div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-3">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div class="feature-toolbar-layout flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
             <h1 class="text-base font-bold text-gray-800">Reports</h1>
             <p class="text-xs text-gray-500 mt-0.5">Grafik operasional dan log aktivitas QC Measurement Tools</p>
@@ -19,13 +19,15 @@
         <div class="flex flex-wrap items-center gap-2">
             <form method="GET" action="{{ route('reports.index') }}" class="flex items-center gap-2">
                 <input type="hidden" name="tab" value="{{ $tab }}">
-                <label class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
-                <select name="tahun" onchange="this.form.submit()"
-                        class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @for($y = date('Y'); $y >= date('Y') - 12; $y--)
-                        <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
-                    @endfor
-                </select>
+                <div class="flex items-center gap-2">
+                    <label class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
+                    <select name="tahun" onchange="this.form.submit()"
+                            class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        @for($y = date('Y'); $y >= date('Y') - 12; $y--)
+                            <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
+                        @endfor
+                    </select>
+                </div>
             </form>
             <form method="POST" action="{{ route('reports.export.all.excel') }}">
                 @csrf

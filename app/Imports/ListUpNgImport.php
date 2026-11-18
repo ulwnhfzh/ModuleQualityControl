@@ -73,11 +73,6 @@ class ListUpNgImport implements ToCollection, WithStartRow
                 'dept' => $department,
                 'category_ng' => $category,
                 'note' => $this->value($row, $columns, 'note'),
-                'stock_qa' => SpreadsheetInput::integer($this->value($row, $columns, 'stock_qa'), "{$name} / stock_qa"),
-                'stock_prod' => SpreadsheetInput::integer($this->value($row, $columns, 'stock_prod'), "{$name} / stock_prod"),
-                'no_spp' => $this->value($row, $columns, 'no_spp'),
-                'status_order' => $this->value($row, $columns, 'status_order') ?? 'CLOSED',
-                'note_order' => $this->value($row, $columns, 'note_order'),
             ]);
 
             $this->importedCount++;
@@ -101,11 +96,6 @@ class ListUpNgImport implements ToCollection, WithStartRow
             'dept' => ['dept', 'division', 'department'],
             'category_ng' => ['category_ng', 'kategori_ng'],
             'note' => ['note', 'keterangan'],
-            'stock_qa' => ['stock_qa', 'qa_stock', 'stok_qa'],
-            'stock_prod' => ['stock_prod', 'prod_stock', 'production_stock', 'stok_prod'],
-            'no_spp' => ['no_spp', 'spp'],
-            'status_order' => ['status_order', 'open_closed', 'status'],
-            'note_order' => ['note_order', 'order_note'],
         ];
         $columns = [];
 
@@ -113,14 +103,7 @@ class ListUpNgImport implements ToCollection, WithStartRow
             $parentKey = $this->normalizeHeader($label);
             $childKey = $this->normalizeHeader($subheader[$index] ?? null);
 
-            $field = match ($childKey) {
-                'qa', 'stock_qa' => 'stock_qa',
-                'prod', 'production', 'stock_prod' => 'stock_prod',
-                'no_spp', 'spp' => 'no_spp',
-                'open_closed', 'status_order' => 'status_order',
-                'note' => $parentKey === '' ? 'note_order' : null,
-                default => $this->fieldForHeader($parentKey, $aliases),
-            };
+            $field = $this->fieldForHeader($parentKey, $aliases);
 
             if ($field !== null) {
                 $columns[$field] = $index;

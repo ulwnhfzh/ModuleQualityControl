@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+<div class="feature-toolbar mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+    <div class="feature-toolbar-layout flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Persediaan QA</p>
             <h1 class="mt-1 text-lg font-bold text-slate-900 sm:text-xl">Laporan Stock Alat Ukur QA Plant 2</h1>

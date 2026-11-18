@@ -3,10 +3,10 @@
 @section('content')
 <!-- TOOLBAR (Kotak Putih) -->
 <div class="feature-toolbar mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 lg:px-5">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div class="feature-toolbar-layout flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         
         <!-- KIRI: Judul dan Filter -->
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+        <div class="feature-toolbar-layout flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
             <h1 class="text-lg font-bold text-slate-800 whitespace-nowrap">Data All Produksi</h1>
             
             <!-- Form Filter dengan Tombol Terapkan -->

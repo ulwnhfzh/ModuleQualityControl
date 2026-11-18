@@ -13,7 +13,6 @@ class ListUpNg extends Model
     protected $fillable = [
         'tahun', 'tool_name', 'type', 'size', 'number_seri', 'number_reg',
         'part_name', 'part_number', 'ng_date', 'dept', 'category_ng', 'note',
-        'stock_qa', 'stock_prod', 'no_spp', 'status_order', 'note_order'
     ];
 
     protected $casts = [

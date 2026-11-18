@@ -15,7 +15,9 @@ use App\Imports\Qc2VerificationImport;
 use App\Exports\Qc2VerificationExport;
 use App\Imports\SpreadsheetImportHeaders;
 use App\Imports\SpreadsheetSheetSelector;
+use App\Services\ListUpNgStatusSynchronizer;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel;
@@ -36,16 +38,22 @@ class VerificationPeriodController extends Controller
         $company = $filters['company'] ?? 'HAMATETSU';
         $toolName = trim($filters['tool_name'] ?? '');
         $shop = $filters['shop'] ?? '';
-        $toolNameList = $this->productionToolNameOptions($tahun, $shop);
-        if ($toolName !== '' && !$toolNameList->contains($toolName)) {
-            $toolName = '';
+        if ($jenis === 'verifikasi_qc2') {
+            $toolNameList = $this->productionToolNameOptions($tahun, $shop);
+            if ($toolName !== '' && !$toolNameList->contains($toolName)) {
+                $toolName = '';
+            }
         }
 
         if ($jenis === 'kalibrasi') {
-            $query = InternalCalibrationListUp::where('tahun', $tahun);
+            $query = InternalCalibrationListUp::where('tahun', $tahun)->where('company', $company);
             $shops = (clone $query)->whereNotNull('shop')->where('shop', '<>', '')
                 ->distinct()->orderBy('shop')->pluck('shop');
             $shops = $this->mergeProductionShopOptions($tahun, $shops);
+            $toolNameList = $this->scheduleToolNameOptions(clone $query, $shop);
+            if ($toolName !== '' && !$toolNameList->contains($toolName)) {
+                $toolName = '';
+            }
             if ($toolName !== '') $query->where('tool_name', $toolName);
             if ($shop !== '') $query->where('shop', $shop);
             $schedules = $query->orderBy('tool_name')->orderBy('id')->simplePaginate(100)->withQueryString();
@@ -69,6 +77,10 @@ class VerificationPeriodController extends Controller
         $shops = (clone $query)->whereNotNull('shop')->where('shop', '<>', '')
             ->distinct()->orderBy('shop')->pluck('shop');
         $shops = $this->mergeProductionShopOptions($tahun, $shops);
+        $toolNameList = $this->scheduleToolNameOptions(clone $query, $shop);
+        if ($toolName !== '' && !$toolNameList->contains($toolName)) {
+            $toolName = '';
+        }
         if ($toolName !== '') $query->where('tool_name', $toolName);
         if ($shop !== '') $query->where('shop', $shop);
         $schedules = $query->orderBy('tool_name')->orderBy('id')->simplePaginate(100)->withQueryString();
@@ -79,6 +91,19 @@ class VerificationPeriodController extends Controller
             ->pluck('tool_type');
 
         return view('verification.period.index', compact('schedules', 'tahun', 'types', 'jenis', 'company', 'shops', 'toolNameList', 'toolName', 'shop'));
+    }
+
+    private function scheduleToolNameOptions(Builder $query, string $shop): Collection
+    {
+        if ($shop !== '') {
+            $query->where('shop', $shop);
+        }
+
+        return $query->whereNotNull('tool_name')
+            ->where('tool_name', '<>', '')
+            ->distinct()
+            ->orderBy('tool_name')
+            ->pluck('tool_name');
     }
 
     private function productionToolNameOptions(int $year, string $shop): Collection
@@ -122,7 +147,8 @@ class VerificationPeriodController extends Controller
     public function internalCalibrationStore(Request $request)
     {
         $data = $this->validatedCalibrationData($request);
-        InternalCalibrationListUp::create($data);
+        $schedule = InternalCalibrationListUp::create($data);
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('internal_calibration', $schedule->id);
         if ($request->input('save_mode') === 'another') {
             return redirect()->route('verifikasi.periode.kalibrasi.create', ['tahun' => $data['tahun'], 'company' => $data['company']])
                 ->with('success', 'Jadwal berhasil disimpan. Lanjutkan input berikutnya.');
@@ -149,6 +175,7 @@ class VerificationPeriodController extends Controller
     {
         $data = $this->validatedCalibrationData($request);
         $schedule->update($data);
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('internal_calibration', $schedule->id);
         return redirect()->route('verifikasi.periode.index', ['tahun' => $schedule->tahun, 'jenis' => 'kalibrasi', 'company' => $schedule->company])
             ->with('success', 'Jadwal kalibrasi internal berhasil diperbarui.');
     }
@@ -157,6 +184,7 @@ class VerificationPeriodController extends Controller
     {
         $tahun = $schedule->tahun;
         $schedule->delete();
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('internal_calibration', $schedule->id);
         return redirect()->route('verifikasi.periode.index', ['tahun' => $tahun, 'jenis' => 'kalibrasi', 'company' => $schedule->company])
             ->with('success', 'Jadwal kalibrasi internal berhasil dihapus.');
     }
@@ -197,6 +225,7 @@ class VerificationPeriodController extends Controller
         } catch (\Throwable $exception) {
             return back()->withInput()->withErrors(['file' => 'Import dibatalkan: ' . $exception->getMessage()]);
         }
+        app(ListUpNgStatusSynchronizer::class)->syncYear((int) $data['tahun']);
         $message = 'List Up Kalibrasi Internal berhasil diimpor.';
         if ($annualImport !== null) {
             $message .= ' Baris diproses: ' . $annualImport->getImportedCount()
@@ -255,7 +284,8 @@ class VerificationPeriodController extends Controller
     public function store(Request $request)
     {
         $data = $this->validatedData($request);
-        InternalVerificationSchedule::create($data);
+        $schedule = InternalVerificationSchedule::create($data);
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('internal_verification', $schedule->id);
 
         if ($request->input('save_mode') === 'another') {
             return redirect()->route('verifikasi.periode.create', ['tahun' => $data['tahun'], 'company' => $data['company']])
@@ -283,6 +313,7 @@ class VerificationPeriodController extends Controller
     public function update(Request $request, InternalVerificationSchedule $schedule)
     {
         $schedule->update($this->validatedData($request, $schedule));
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('internal_verification', $schedule->id);
 
         return redirect()->route('verifikasi.periode.index', ['tahun' => $schedule->tahun, 'company' => $schedule->company])
             ->with('success', 'Jadwal periode berhasil diperbarui.');
@@ -292,6 +323,7 @@ class VerificationPeriodController extends Controller
     {
         $tahun = $schedule->tahun;
         $schedule->delete();
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('internal_verification', $schedule->id);
 
         return redirect()->route('verifikasi.periode.index', ['tahun' => $tahun, 'company' => $schedule->company])
             ->with('success', 'Jadwal periode berhasil dihapus.');
@@ -334,6 +366,7 @@ class VerificationPeriodController extends Controller
                 ->withErrors(['file' => 'Import dibatalkan: ' . $exception->getMessage()]);
         }
 
+        app(ListUpNgStatusSynchronizer::class)->syncYear((int) $data['tahun']);
         $message = 'Data List Up berhasil diimpor.';
         if ($annualImport !== null) {
             $message .= ' Baris diproses: ' . $annualImport->getImportedCount()

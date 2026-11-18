@@ -15,7 +15,7 @@
 @endif
 
 <div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 p-3 sm:p-4">
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+    <div class="feature-toolbar-layout flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <form method="GET" action="{{ route('internal.index') }}" class="flex items-center gap-2">
             <label class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
             <select name="tahun" onchange="this.form.submit()"

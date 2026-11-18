@@ -34,7 +34,7 @@ class ListUpNgExport implements FromCollection, WithHeadings, WithMapping, Shoul
     {
         return [
             'NO', 'TOOL NAME', 'TYPE', 'SIZE', 'NUMBER SERI', 'NUMBER REG.',
-            'PART NAME', 'PART NUMBER', 'NG DATE', 'DEPT.', 'CATEGORY NG', 'NOTE'
+            'PART NAME', 'PART NUMBER', 'NG DATE', 'DEPT.', 'CATEGORY NG', 'NOTE',
         ];
     }
 

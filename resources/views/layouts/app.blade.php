@@ -187,13 +187,16 @@
 <body class="bg-slate-50 antialiased" x-data="{ sidebarOpen: false, sidebarDesktopOpen: true }">
     @php
         $externalListUpSidebarContext = request('sidebar_context') === 'external-list-up';
+        $internalCalibrationSidebarContext = request()->routeIs('verifikasi.periode.kalibrasi.*')
+            || (request()->routeIs('verifikasi.periode.index') && request('jenis') === 'kalibrasi');
+        $verifikasiSidebarOpen = request()->routeIs('verifikasi.*') && !$internalCalibrationSidebarContext;
         $kalibrasiSidebarOpen = request()->routeIs('internal.*')
             || request()->routeIs('eksternal.small*')
             || request()->routeIs('mesin.*')
             || request()->routeIs('master-calibrator.*')
             || request()->routeIs('external-list-up.*')
             || $externalListUpSidebarContext
-            || (request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi');
+            || $internalCalibrationSidebarContext;
     @endphp
 
     <!-- HEADER -->
@@ -278,7 +281,7 @@
     <aside :class="sidebarDesktopOpen ? '' : 'collapsed'"
            class="sidebar-desktop hidden lg:flex flex-col bg-white border-r border-slate-200"
            x-data="{
-               verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
+               verifikasiOpen: {{ $verifikasiSidebarOpen ? 'true' : 'false' }},
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
                ngOpen: {{ request()->routeIs('defects.*') || request()->routeIs('list-up-ng.*') ? 'true' : 'false' }},
                kalibrasiOpen: {{ $kalibrasiSidebarOpen ? 'true' : 'false' }}
@@ -325,14 +328,14 @@
 
             <p class="sidebar-section">Quality Control</p>
             <nav class="px-3 space-y-1">
-                <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
+                <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ $verifikasiSidebarOpen ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
                     <span class="flex-1 text-left">Jadwal Verification</span>
                     <svg class="chevron w-4 h-4" :class="verifikasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div x-show="verifikasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('verifikasi.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}"><span class="dot"></span><span>Jadwal Internal Verification</span></a>
-                    <a href="{{ route('verifikasi.periode.index') }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit') ? 'active' : '' }}"><span class="dot"></span><span>List Up Internal Verification</span></a>
+                    <a href="{{ route('verifikasi.periode.index') }}" class="sidebar-sublink {{ !$internalCalibrationSidebarContext && (request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit')) ? 'active' : '' }}"><span class="dot"></span><span>List Up Internal Verification</span></a>
                 </div>
 
                 <button type="button" @click="kalibrasiOpen = !kalibrasiOpen" class="sidebar-link {{ $kalibrasiSidebarOpen ? 'active' : '' }}">
@@ -344,7 +347,7 @@
                 <div x-show="kalibrasiOpen" @unless($kalibrasiSidebarOpen) x-cloak @endunless class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" class="sidebar-sublink {{ !$externalListUpSidebarContext && (request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('master-calibrator.*')) ? 'active' : '' }}"><span class="dot"></span><span>Jadwal Kalibrasi</span></a>
                     <a href="{{ route('external-list-up.index') }}" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') || $externalListUpSidebarContext ? 'active' : '' }}"><span class="dot"></span><span>List Up External Calibration</span></a>
-                    <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi' ? 'active' : '' }}"><span class="dot"></span><span>List Up Kalibrasi Internal</span></a>
+                    <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" class="sidebar-sublink {{ $internalCalibrationSidebarContext ? 'active' : '' }}"><span class="dot"></span><span>List Up Kalibrasi Internal</span></a>
                 </div>
             </nav>
 
@@ -396,7 +399,7 @@
            class="lg:hidden fixed left-0 z-50 bg-white border-r border-slate-200 w-64 shadow-2xl flex flex-col"
            style="top: 64px; bottom: 0;"
            x-data="{
-               verifikasiOpen: {{ request()->routeIs('verifikasi.*') ? 'true' : 'false' }},
+               verifikasiOpen: {{ $verifikasiSidebarOpen ? 'true' : 'false' }},
                stockOpen: {{ request()->routeIs('stock.*') ? 'true' : 'false' }},
                ngOpen: {{ request()->routeIs('defects.*') || request()->routeIs('list-up-ng.*') ? 'true' : 'false' }},
                kalibrasiOpen: {{ $kalibrasiSidebarOpen ? 'true' : 'false' }}
@@ -439,14 +442,14 @@
 
             <p class="sidebar-section">Quality Control</p>
             <nav class="px-3 space-y-1">
-                <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ request()->routeIs('verifikasi.*') ? 'active' : '' }}">
+                <button type="button" @click="verifikasiOpen = !verifikasiOpen" class="sidebar-link {{ $verifikasiSidebarOpen ? 'active' : '' }}">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
                     <span class="flex-1 text-left">Jadwal Verification</span>
                     <svg class="chevron w-4 h-4" :class="verifikasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div x-show="verifikasiOpen" x-cloak class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('verifikasi.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.index') || request()->routeIs('verifikasi.create') || request()->routeIs('verifikasi.edit') ? 'active' : '' }}"><span class="dot"></span><span>Jadwal Verification Internal</span></a>
-                    <a href="{{ route('verifikasi.periode.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit') ? 'active' : '' }}"><span class="dot"></span><span>List Up Internal Verification</span></a>
+                    <a href="{{ route('verifikasi.periode.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ !$internalCalibrationSidebarContext && (request()->routeIs('verifikasi.periode.index') || request()->routeIs('verifikasi.periode.create') || request()->routeIs('verifikasi.periode.edit')) ? 'active' : '' }}"><span class="dot"></span><span>List Up Internal Verification</span></a>
                 </div>
 
                 <button type="button" @click="kalibrasiOpen = !kalibrasiOpen" class="sidebar-link {{ $kalibrasiSidebarOpen ? 'active' : '' }}">
@@ -458,7 +461,7 @@
                 <div x-show="kalibrasiOpen" @unless($kalibrasiSidebarOpen) x-cloak @endunless class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ !$externalListUpSidebarContext && (request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('master-calibrator.*')) ? 'active' : '' }}"><span class="dot"></span><span>Jadwal Kalibrasi</span></a>
                     <a href="{{ route('external-list-up.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') || $externalListUpSidebarContext ? 'active' : '' }}"><span class="dot"></span><span>List Up External Calibration</span></a>
-                    <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('verifikasi.periode.*') && request('jenis') === 'kalibrasi' ? 'active' : '' }}"><span class="dot"></span><span>List Up Kalibrasi Internal</span></a>
+                    <a href="{{ route('verifikasi.periode.index', ['jenis' => 'kalibrasi']) }}" @click="sidebarOpen = false" class="sidebar-sublink {{ $internalCalibrationSidebarContext ? 'active' : '' }}"><span class="dot"></span><span>List Up Kalibrasi Internal</span></a>
                 </div>
             </nav>
 

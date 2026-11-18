@@ -18,7 +18,7 @@
     @endif
 
     <section class="feature-toolbar border border-slate-300 bg-white p-3">
-        <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div class="feature-toolbar-layout flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
                 <h1 class="text-lg font-semibold text-slate-900">Data Stock Alat Ukur QA Plant 2</h1>
                 <p class="mt-1 text-sm text-slate-600">Persediaan dan pergerakan alat ukur per bulan.</p>

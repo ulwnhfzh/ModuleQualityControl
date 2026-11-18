@@ -5,12 +5,18 @@ namespace Tests\Feature;
 use App\Imports\ListUpNgImport;
 use App\Imports\ProductionDataFolderImport;
 use App\Imports\SpreadsheetSheetSelector;
+use App\Models\InternalCalibrationListUp;
+use App\Models\InternalVerificationSchedule;
 use App\Models\ListUpNg;
 use App\Models\ProductionData;
 use App\Models\ToolDefect;
 use App\Models\User;
 use App\Services\EquipmentIdentityMatcher;
+use App\Services\ListUpNgStatusSynchronizer;
+use App\Exports\ListUpNgExport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -43,6 +49,10 @@ class ListUpNgTest extends TestCase
             ->assertSee('CARBIDE')
             ->assertSee('STEEL')
             ->assertSee('+ Tambah Type Baru')
+            ->assertDontSee('name="stock_qa"', false)
+            ->assertDontSee('name="no_spp"', false)
+            ->assertDontSee('name="note_order"', false)
+            ->assertSee('<option value="PRODUKSI 1"', false)
             ->assertSee('listUpNgToolTypes');
     }
 
@@ -70,7 +80,7 @@ class ListUpNgTest extends TestCase
                 'category_ng' => 'VERIFIKASI',
                 'note' => 'OVER STD',
             ])
-            ->assertRedirect(route('list-up-ng.index'))
+            ->assertRedirect(route('list-up-ng.index', ['tahun' => 2026]))
             ->assertSessionHas('success');
 
         $newType = ProductionData::where('tool_name', 'HANDRILL')
@@ -129,10 +139,12 @@ class ListUpNgTest extends TestCase
         $this->get(route('list-up-ng.index', ['tahun' => 2026]))
             ->assertOk()
             ->assertSee('ONLY 2026 TOOL')
+            ->assertDontSee('Stock QA')
+            ->assertDontSee('No SPP')
             ->assertViewHas('ngs', fn ($ngs) => $ngs->count() === 1);
     }
 
-    public function test_import_reads_split_stock_and_order_headers_and_syncs_exact_production_identity(): void
+    public function test_import_ignores_split_stock_and_order_columns_after_note(): void
     {
         $productionRow = ProductionData::create([
             'division' => 'QA 1',
@@ -179,11 +191,11 @@ class ListUpNgTest extends TestCase
         }
 
         $ng = ListUpNg::firstOrFail();
-        $this->assertSame(4, $ng->stock_qa);
-        $this->assertSame(5, $ng->stock_prod);
-        $this->assertSame('SPP-100', $ng->no_spp);
-        $this->assertSame('OPEN', $ng->status_order);
-        $this->assertSame('Order follow-up', $ng->note_order);
+        $this->assertSame(0, $ng->stock_qa);
+        $this->assertSame(0, $ng->stock_prod);
+        $this->assertNull($ng->no_spp);
+        $this->assertSame('CLOSED', $ng->status_order);
+        $this->assertNull($ng->note_order);
         $this->assertSame('Instrument damaged', $ng->note);
         $this->assertSame(1, array_sum(array_map(
             fn (ListUpNgImport $import): int => $import->getImportedCount(),
@@ -296,6 +308,280 @@ class ListUpNgTest extends TestCase
 
         $this->assertNull($previousYear->fresh()->nov);
         $this->assertSame('NG', $currentYear->fresh()->nov);
+    }
+
+    public function test_canonical_production_department_resolves_duplicate_tool_identity(): void
+    {
+        $productionOne = ProductionData::create([
+            'division' => 'P1',
+            'year' => 2026,
+            'tool_name' => 'SAME GAUGE',
+            'type' => 'DIGITAL',
+            'size' => '0-25MM',
+            'number_reg' => 'SAME-REG',
+        ]);
+        $productionTwo = ProductionData::create([
+            'division' => 'P2',
+            'year' => 2026,
+            'tool_name' => 'SAME GAUGE',
+            'type' => 'DIGITAL',
+            'size' => '0-25MM',
+            'number_reg' => 'SAME-REG',
+        ]);
+
+        ListUpNg::create([
+            'tahun' => 2026,
+            'tool_name' => 'SAME GAUGE',
+            'type' => 'DIGITAL',
+            'size' => '0-25MM',
+            'number_reg' => 'SAME-REG',
+            'ng_date' => '2026-09-10',
+            'dept' => 'PRODUKSI 1',
+            'category_ng' => 'VERIFIKASI',
+        ]);
+
+        $this->assertSame('NG', $productionOne->fresh()->sep);
+        $this->assertNull($productionTwo->fresh()->sep);
+    }
+
+    public function test_update_and_delete_reconcile_production_statuses_and_preserve_other_active_ng_rows(): void
+    {
+        $productionRow = ProductionData::create([
+            'division' => 'QA 1',
+            'category' => 'DATA ALAT UKUR ALL PRODUKSI',
+            'year' => 2026,
+            'tool_name' => 'RECONCILE GAUGE',
+            'type' => 'DIGITAL',
+            'size' => '0-25MM',
+            'number_reg' => 'REC-1',
+            'mar' => 'OK',
+            'is_year_template' => true,
+        ]);
+        $attributes = [
+            'tahun' => 2026,
+            'tool_name' => 'RECONCILE GAUGE',
+            'type' => 'DIGITAL',
+            'size' => '0-25MM',
+            'number_reg' => 'REC-1',
+            'dept' => 'QA 1',
+            'category_ng' => 'VERIFIKASI',
+            'note' => 'OVER STD',
+        ];
+        $firstNg = ListUpNg::create($attributes + ['ng_date' => '2026-03-10']);
+        $secondNg = ListUpNg::create($attributes + ['ng_date' => '2026-03-20']);
+
+        $this->assertSame('NG', $productionRow->fresh()->mar);
+        $this->assertFalse($productionRow->fresh()->is_year_template);
+
+        $firstNg->update(['ng_date' => '2026-04-15']);
+        $this->assertSame('NG', $productionRow->fresh()->mar);
+        $this->assertSame('NG', $productionRow->fresh()->apr);
+
+        $secondNg->delete();
+        $this->assertSame('OK', $productionRow->fresh()->mar);
+        $this->assertSame('NG', $productionRow->fresh()->apr);
+        $this->assertFalse($productionRow->fresh()->is_year_template);
+
+        $firstNg->delete();
+        $this->assertSame('OK', $productionRow->fresh()->mar);
+        $this->assertNull($productionRow->fresh()->apr);
+        $this->assertTrue($productionRow->fresh()->is_year_template);
+        $this->assertDatabaseCount('list_up_ng_status_snapshots', 0);
+    }
+
+    public function test_target_and_yearly_sync_bound_queries_with_unrelated_ng_rows(): void
+    {
+        $productionRow = ProductionData::create([
+            'division' => 'QA 1',
+            'year' => 2026,
+            'tool_name' => 'TARGET GAUGE',
+            'type' => 'DIGITAL',
+            'size' => '0-25MM',
+            'number_reg' => 'TARGET-REG',
+        ]);
+        $now = now();
+        $rows = [];
+        for ($index = 0; $index < 40; $index++) {
+            $rows[] = [
+                'tahun' => 2026,
+                'tool_name' => "UNRELATED GAUGE {$index}",
+                'type' => 'DIGITAL',
+                'size' => '0-25MM',
+                'number_reg' => null,
+                'ng_date' => '2026-03-10',
+                'dept' => 'QA 1',
+                'category_ng' => 'VERIFIKASI',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+        $rows[] = [
+            'tahun' => 2026,
+            'tool_name' => 'TARGET GAUGE',
+            'type' => 'DIGITAL',
+            'size' => '0-25MM',
+            'number_reg' => 'TARGET-REG',
+            'ng_date' => '2026-03-10',
+            'dept' => 'QA 1',
+            'category_ng' => 'VERIFIKASI',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        DB::table('list_up_ngs')->insert($rows);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('production', $productionRow->id);
+        $queryCount = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        $this->assertSame('NG', $productionRow->fresh()->mar);
+        $this->assertLessThan(30, $queryCount);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        app(ListUpNgStatusSynchronizer::class)->syncYear(2026);
+        $yearQueryCount = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        $this->assertLessThan(40, $yearQueryCount);
+    }
+
+    public function test_deleting_list_up_ng_restores_the_original_calibration_status(): void
+    {
+        $calibration = InternalCalibrationListUp::create([
+            'tahun' => 2026,
+            'company' => 'HAMATETSU',
+            'tool_name' => 'RESTORE CALIPER',
+            'tool_type' => 'DIGITAL',
+            'specification' => '0-150MM',
+            'serial_number' => 'RESTORE-SER',
+            'registration_number' => 'RESTORE-REG',
+            'shop' => 'QA 1',
+            'calibration_date' => '2026-05-10',
+            'jgm' => null,
+        ]);
+        $ng = ListUpNg::create([
+            'tahun' => 2026,
+            'tool_name' => 'RESTORE CALIPER',
+            'type' => 'DIGITAL',
+            'size' => '0-150MM',
+            'number_seri' => 'RESTORE-SER',
+            'number_reg' => 'RESTORE-REG',
+            'ng_date' => '2026-05-20',
+            'dept' => 'QA 1',
+            'category_ng' => 'KALIBRASI',
+        ]);
+
+        $this->assertSame('NG', $calibration->fresh()->jgm);
+
+        $ng->delete();
+
+        $this->assertNull($calibration->fresh()->jgm);
+        $this->assertDatabaseCount('list_up_ng_status_snapshots', 0);
+    }
+
+    public function test_yearly_resynchronization_clears_a_status_when_schedule_period_moves_away_from_ng_month(): void
+    {
+        $schedule = InternalVerificationSchedule::create([
+            'tahun' => 2026,
+            'company' => 'HAMATETSU',
+            'tool_name' => 'MOVE VERIFICATION',
+            'tool_type' => 'DIGITAL',
+            'specification' => '0-25MM',
+            'serial_number' => 'MOVE-SER',
+            'registration_number' => 'MOVE-REG',
+            'shop' => 'QA 1',
+            'period1_verification_date' => '2026-03-10',
+        ]);
+        ListUpNg::create([
+            'tahun' => 2026,
+            'tool_name' => 'MOVE VERIFICATION',
+            'type' => 'DIGITAL',
+            'size' => '0-25MM',
+            'number_seri' => 'MOVE-SER',
+            'number_reg' => 'MOVE-REG',
+            'ng_date' => '2026-03-20',
+            'dept' => 'QA 1',
+            'category_ng' => 'VERIFIKASI',
+        ]);
+
+        $this->assertSame('NG', $schedule->fresh()->period1_jgm);
+
+        $schedule->update(['period1_verification_date' => '2026-04-10']);
+        app(ListUpNgStatusSynchronizer::class)->syncYear(2026);
+
+        $this->assertNull($schedule->fresh()->period1_jgm);
+        $this->assertDatabaseCount('list_up_ng_status_snapshots', 0);
+    }
+
+    public function test_list_up_ng_export_stops_at_the_main_note_column(): void
+    {
+        $ng = ListUpNg::create([
+            'tahun' => 2026,
+            'tool_name' => 'EXPORT GAUGE',
+            'ng_date' => '2026-05-10',
+            'dept' => 'QA 1',
+            'category_ng' => 'VERIFIKASI',
+        ]);
+        $export = new ListUpNgExport(2026);
+        $mappedRow = $export->map($ng);
+
+        $this->assertCount(12, $export->headings());
+        $this->assertNotContains('NO SPP', $export->headings());
+        $this->assertCount(12, $mappedRow);
+    }
+
+    public function test_replacing_yearly_import_restores_status_for_removed_ng_rows(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $productionRow = ProductionData::create([
+            'division' => 'QA 1',
+            'category' => 'DATA ALAT UKUR ALL PRODUKSI',
+            'year' => 2026,
+            'tool_name' => 'REMOVED FROM WORKBOOK',
+            'type' => 'DIGITAL',
+            'size' => '0-25MM',
+            'number_reg' => 'IMPORT-REG',
+            'nov' => 'OK',
+            'is_year_template' => true,
+        ]);
+        ListUpNg::create([
+            'tahun' => 2026,
+            'tool_name' => 'REMOVED FROM WORKBOOK',
+            'type' => 'DIGITAL',
+            'size' => '0-25MM',
+            'number_reg' => 'IMPORT-REG',
+            'ng_date' => '2026-11-10',
+            'dept' => 'QA 1',
+            'category_ng' => 'VERIFIKASI',
+            'note' => 'OVER STD',
+        ]);
+        $workbook = new Spreadsheet;
+        $workbook->getActiveSheet()->fromArray([
+            ['TOOL NAME', 'NG DATE', 'DEPT', 'CATEGORY NG'],
+            ['OTHER GAUGE', '2026-11-15', 'QA 1', 'VERIFIKASI'],
+        ]);
+
+        $path = tempnam(sys_get_temp_dir(), 'list-up-ng-replace-');
+        (new Xlsx($workbook))->save($path);
+        $workbook->disconnectWorksheets();
+
+        try {
+            $upload = UploadedFile::fake()->createWithContent('replacement.xlsx', file_get_contents($path));
+            $this->actingAs($admin)
+                ->post(route('list-up-ng.import.store'), ['tahun' => 2026, 'file' => $upload])
+                ->assertRedirect(route('list-up-ng.index', ['tahun' => 2026]))
+                ->assertSessionHas('success');
+        } finally {
+            @unlink($path);
+        }
+
+        $this->assertDatabaseMissing('list_up_ngs', ['tool_name' => 'REMOVED FROM WORKBOOK']);
+        $this->assertDatabaseHas('list_up_ngs', ['tool_name' => 'OTHER GAUGE']);
+        $this->assertSame('OK', $productionRow->fresh()->nov);
+        $this->assertTrue($productionRow->fresh()->is_year_template);
+        $this->assertDatabaseCount('list_up_ng_status_snapshots', 0);
     }
 
     public function test_unique_registration_match_resolves_division_and_marks_production_even_if_serial_differs(): void

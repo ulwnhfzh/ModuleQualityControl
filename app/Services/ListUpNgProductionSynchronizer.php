@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\ListUpNg;
 use App\Models\ProductionData;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class ListUpNgProductionSynchronizer
@@ -37,27 +36,14 @@ class ListUpNgProductionSynchronizer
             return false;
         }
 
-        $productionRow = $selectedMatches->first();
-        $month = strtolower(Carbon::parse($ng->ng_date)->format('M'));
-        if ($productionRow->resultStatus($month) !== 'NG') {
-            $productionRow->setAttribute($month, 'NG');
-            $productionRow->is_year_template = false;
-            $productionRow->saveQuietly();
-        }
+        app(ListUpNgStatusSynchronizer::class)->syncChanges([], [$ng->getAttributes()]);
 
         return true;
     }
 
     public function syncYear(int $year): int
     {
-        $matched = 0;
-        foreach (ListUpNg::query()->where('tahun', $year)->get() as $ng) {
-            if ($this->sync($ng)) {
-                $matched++;
-            }
-        }
-
-        return $matched;
+        return app(ListUpNgStatusSynchronizer::class)->syncYear($year);
     }
 
     private function canonicalDivision(mixed $value): ?string

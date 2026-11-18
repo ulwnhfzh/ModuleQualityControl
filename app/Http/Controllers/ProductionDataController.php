@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ProductionData;
 use App\Models\InternalVerificationSchedule;
+use App\Services\ListUpNgStatusSynchronizer;
 use Illuminate\Http\Request;
 use App\Exports\ProductionDataExport;
 use App\Imports\ProductionDataImport;
@@ -135,6 +136,7 @@ class ProductionDataController extends Controller
 
         $productionRow = ProductionData::create($validated);
         InternalVerificationSchedule::syncForProductionRow($productionRow);
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('production', $productionRow->id);
 
         if ($request->input('save_mode') === 'another') {
             return redirect()->route('data-all-produksi.create', ['year' => $validated['year']])->with('success', 'Data berhasil disimpan.');
@@ -172,6 +174,7 @@ class ProductionDataController extends Controller
 
         $dataAllProduksi->update($validated);
         InternalVerificationSchedule::syncForProductionRow($dataAllProduksi->fresh());
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('production', $dataAllProduksi->id);
         return redirect()->route('data-all-produksi.index', [
             'division' => $request->division,
             'year' => $validated['year'],
@@ -183,6 +186,7 @@ class ProductionDataController extends Controller
         $division = $dataAllProduksi->division;
         $year = $dataAllProduksi->year;
         $dataAllProduksi->delete();
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('production', $dataAllProduksi->id);
         return redirect()->route('data-all-produksi.index', ['division' => $division, 'year' => $year])->with('success', 'Data berhasil dihapus.');
     }
 
@@ -232,12 +236,13 @@ class ProductionDataController extends Controller
                 throw new \RuntimeException('Workbook tidak memiliki sheet division yang dikenali untuk Data Produksi. Tidak ada data yang diimpor.');
             }
 
-            DB::transaction(function () use ($import, $request): void {
+            DB::transaction(function () use ($import, $request, $validated): void {
                 Excel::import($import, $request->file('file'));
                 if ($import->getImportedCount() === 0) {
                     throw new \RuntimeException('Tidak ada baris alat yang dapat dipetakan dari workbook.');
                 }
                 InternalVerificationSchedule::syncAllProductionRows();
+                app(ListUpNgStatusSynchronizer::class)->syncYear((int) $validated['year']);
             });
             return redirect()->route('data-all-produksi.index', ['year' => $validated['year']])->with('success', 'Data berhasil di-import!');
         } catch (\Exception $e) {

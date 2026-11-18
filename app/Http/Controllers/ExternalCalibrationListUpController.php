@@ -9,6 +9,7 @@ use App\Imports\SpreadsheetImportHeaders;
 use App\Imports\SpreadsheetSheetSelector;
 use App\Models\ExternalCalibrationListUp;
 use App\Models\ProductionData;
+use App\Services\ListUpNgStatusSynchronizer;
 use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -28,20 +29,34 @@ class ExternalCalibrationListUpController extends Controller
         $year = (int) ($filters['tahun'] ?? date('Y'));
         $toolName = trim($filters['tool_name'] ?? '');
         $shop = $filters['shop'] ?? '';
-        $toolNameList = $this->productionToolNameOptions($year, $shop);
-        if ($toolName !== '' && !$toolNameList->contains($toolName)) {
-            $toolName = '';
-        }
         $query = ExternalCalibrationListUp::where('tahun', $year);
         $shops = (clone $query)->whereNotNull('shop')->where('shop', '<>', '')
             ->distinct()->orderBy('shop')->pluck('shop');
         $shops = $this->mergeProductionShopOptions($year, $shops);
+        $toolNameList = $this->scheduleToolNameOptions($year, $shop);
+        if ($toolName !== '' && !$toolNameList->contains($toolName)) {
+            $toolName = '';
+        }
         if ($toolName !== '') $query->where('tool_name', $toolName);
         if ($shop !== '') $query->where('shop', $shop);
         $schedules = $query->orderBy('tool_name')->orderBy('registration_number')->orderBy('id')
             ->simplePaginate(100)->withQueryString();
 
         return view('external-calibration-list-up.index', compact('year', 'schedules', 'shops', 'toolNameList', 'toolName', 'shop'));
+    }
+
+    private function scheduleToolNameOptions(int $year, string $shop): Collection
+    {
+        $query = ExternalCalibrationListUp::query()->where('tahun', $year);
+        if ($shop !== '') {
+            $query->where('shop', $shop);
+        }
+
+        return $query->whereNotNull('tool_name')
+            ->where('tool_name', '<>', '')
+            ->distinct()
+            ->orderBy('tool_name')
+            ->pluck('tool_name');
     }
 
     private function productionToolNameOptions(int $year, string $shop): Collection
@@ -89,6 +104,7 @@ class ExternalCalibrationListUpController extends Controller
     public function store(Request $request)
     {
         $item = ExternalCalibrationListUp::create($this->validated($request));
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('external_calibration', $item->id);
         $this->logCreate('external_calibration_list_up', $item->id, $item->tool_name . ' - External Calibration (' . $item->tahun . ')', $item->toArray());
         return redirect()->route('external-list-up.index', ['tahun' => $item->tahun])->with('success', 'List Up External Calibration berhasil ditambahkan.');
     }
@@ -108,6 +124,7 @@ class ExternalCalibrationListUpController extends Controller
     {
         $before = $item->toArray();
         $item->update($this->validated($request));
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('external_calibration', $item->id);
         $this->logUpdate('external_calibration_list_up', $item->id, $item->tool_name . ' - External Calibration (' . $item->tahun . ')', $before, $item->fresh()->toArray());
         return redirect()->route('external-list-up.index', ['tahun' => $item->tahun])->with('success', 'List Up External Calibration berhasil diperbarui.');
     }
@@ -117,6 +134,7 @@ class ExternalCalibrationListUpController extends Controller
         $year = $item->tahun;
         $this->logDelete('external_calibration_list_up', $item->id, $item->tool_name . ' - External Calibration (' . $year . ')', $item->toArray());
         $item->delete();
+        app(ListUpNgStatusSynchronizer::class)->syncTarget('external_calibration', $item->id);
         return redirect()->route('external-list-up.index', ['tahun' => $year])->with('success', 'Data berhasil dihapus.');
     }
 
@@ -153,6 +171,7 @@ class ExternalCalibrationListUpController extends Controller
                 );
                 Excel::import($import, $request->file('file'));
             }
+            app(ListUpNgStatusSynchronizer::class)->syncYear((int) $data['tahun']);
             $this->logActivity('CREATE', 'external_calibration_list_up', null, 'Import External Calibration tahun ' . $data['tahun'], null, ['file' => $request->file('file')->getClientOriginalName()]);
             $message = 'Workbook List Up External Calibration berhasil diimpor.';
             if ($annualImport !== null) {

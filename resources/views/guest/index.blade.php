@@ -40,7 +40,7 @@
 {{-- CARD 2: FILTER --}}
 {{-- ============================================ --}}
 <div class="feature-toolbar bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-3">
-    <form method="GET" action="{{ route('guest.index') }}" class="flex flex-col sm:flex-row gap-3">
+    <form method="GET" action="{{ route('guest.index') }}" class="feature-toolbar-layout flex flex-col sm:flex-row gap-3">
         <input type="hidden" name="tab" value="{{ $tab }}">
 
         {{-- Search --}}

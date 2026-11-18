@@ -16,7 +16,7 @@
 
 {{-- HEADER --}}
 <div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-4 py-3">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div class="feature-toolbar-layout flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
             <h1 class="text-base font-bold text-gray-800">Notification</h1>
             <p class="text-xs text-gray-500 mt-0.5">Tenggat alat dan verifikasi yang memerlukan tindak lanjut</p>

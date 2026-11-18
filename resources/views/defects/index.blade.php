@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="feature-toolbar relative z-10 mb-3 overflow-visible bg-white px-3 py-2.5 shadow-sm sm:mb-4 sm:px-4 sm:py-3">
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div class="feature-toolbar-layout flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div class="flex min-w-0 flex-wrap items-center gap-3">
             <h1 class="text-sm font-bold uppercase text-slate-800 sm:text-base">Data NG</h1>
             <form method="GET" action="{{ route('defects.index') }}" class="flex flex-wrap items-center gap-2 sm:gap-3">

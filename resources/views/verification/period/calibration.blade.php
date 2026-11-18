@@ -5,7 +5,7 @@
     @if(session('success'))<div class="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">{{ session('success') }}</div>@endif
     @if($errors->any())<div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ $errors->first() }}</div>@endif
     
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div class="feature-toolbar-layout flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <!-- FILTER TAHUN -->
         <form method="GET" action="{{ route('verifikasi.periode.index') }}" class="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3 gap-y-3 sm:flex sm:flex-wrap">
             <!-- Hidden input agar saat ganti tahun, jenis tetap 'kalibrasi' -->

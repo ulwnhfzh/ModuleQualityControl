@@ -8,7 +8,7 @@
     @if($errors->any())
         <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ $errors->first() }}</div>
     @endif
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div class="feature-toolbar-layout flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <form method="GET" action="{{ route('verifikasi.periode.index') }}" class="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3 gap-y-3 sm:flex sm:flex-wrap">
             <label for="company-list-up" class="text-xs font-semibold text-slate-500">PERUSAHAAN</label>
             <select id="company-list-up" name="company" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">

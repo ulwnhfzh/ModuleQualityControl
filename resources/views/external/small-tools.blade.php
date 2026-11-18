@@ -15,19 +15,21 @@
 @endif
 
 <div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 p-3 sm:p-4">
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+    <div class="feature-toolbar-layout flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <form method="GET" action="{{ route('eksternal.small') }}" class="flex items-center gap-2 flex-wrap">
             @if(request('sidebar_context') === 'external-list-up')
                 <input type="hidden" name="sidebar_context" value="external-list-up">
             @endif
-            <label for="kategori-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">KATEGORI</label>
-            <select id="kategori-eksternal" aria-label="Kategori kalibrasi eksternal"
-                    onchange="this.form.action = this.value; this.form.submit()"
-                    class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="{{ route('eksternal.small') }}" selected>Small Tool</option>
-                <option value="{{ route('mesin.index', request('sidebar_context') === 'external-list-up' ? ['sidebar_context' => 'external-list-up'] : []) }}">Machine Alat Ukur</option>
-                <option value="{{ route('master-calibrator.index', request('sidebar_context') === 'external-list-up' ? ['sidebar_context' => 'external-list-up'] : []) }}">Master Kalibrator</option>
-            </select>
+            <div class="flex items-center gap-2">
+                <label for="kategori-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">KATEGORI</label>
+                <select id="kategori-eksternal" aria-label="Kategori kalibrasi eksternal"
+                        onchange="this.form.action = this.value; this.form.submit()"
+                        class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="{{ route('eksternal.small') }}" selected>Small Tool</option>
+                    <option value="{{ route('mesin.index', request('sidebar_context') === 'external-list-up' ? ['sidebar_context' => 'external-list-up'] : []) }}">Machine Alat Ukur</option>
+                    <option value="{{ route('master-calibrator.index', request('sidebar_context') === 'external-list-up' ? ['sidebar_context' => 'external-list-up'] : []) }}">Master Kalibrator</option>
+                </select>
+            </div>
             
             {{-- TAMBAHAN: Dropdown Perusahaan --}}
             <div id="container-perusahaan" class="flex items-center gap-2">
@@ -39,13 +41,15 @@
                 </select>
             </div>
 
-            <label for="tahun-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
-            <select id="tahun-eksternal" name="tahun" onchange="this.form.submit()"
-                    class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                @for($y = date('Y'); $y >= date('Y') - 12; $y--)
-                    <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
-                @endfor
-            </select>
+            <div class="flex items-center gap-2">
+                <label for="tahun-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
+                <select id="tahun-eksternal" name="tahun" onchange="this.form.submit()"
+                        class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @for($y = date('Y'); $y >= date('Y') - 12; $y--)
+                        <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
+                    @endfor
+                </select>
+            </div>
         </form>
 
         <div class="feature-toolbar-actions flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-wrap">

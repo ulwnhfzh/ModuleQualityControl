@@ -157,6 +157,10 @@
         min-width: 0;
     }
 
+    .feature-toolbar-layout {
+        min-width: 0;
+    }
+
     @media (max-width: 639px) {
         .feature-toolbar {
             padding: 0.75rem !important;
@@ -214,73 +218,108 @@
     }
 
     @container feature-toolbar (max-width: 850px) {
-        .feature-toolbar > div {
+        .feature-toolbar-layout {
             align-items: flex-start !important;
             flex-direction: column !important;
             justify-content: flex-start !important;
+            gap: 0.875rem;
         }
 
-        .feature-toolbar > div > * {
+        .feature-toolbar-layout > * {
             min-width: 0;
-            width: auto;
+            width: 100%;
             max-width: 100%;
         }
 
-        .feature-toolbar > div > div:first-child {
-            align-items: flex-start !important;
-            flex-direction: column !important;
-        }
-
-        .feature-toolbar form {
-            width: fit-content;
+        .feature-toolbar-layout form {
+            width: 100%;
             max-width: 100%;
         }
 
-        .feature-toolbar form:not(.responsive-filter-grid):not([class*="grid"]) {
+        .feature-toolbar-layout form:not(.responsive-filter-grid):not([class*="grid"]) {
             align-items: center;
             flex-wrap: wrap;
             gap: 0.75rem;
         }
 
-        .feature-toolbar form.responsive-filter-grid,
-        .feature-toolbar form[class*="grid"] {
+        .feature-toolbar-layout form.responsive-filter-grid,
+        .feature-toolbar-layout form[class*="grid"] {
             display: grid !important;
-            width: min(100%, 26rem);
-            grid-template-columns: max-content minmax(0, 1fr) !important;
+            grid-template-columns: minmax(7rem, max-content) minmax(0, 1fr) !important;
             align-items: center;
             column-gap: 0.75rem;
             row-gap: 0.75rem;
         }
 
-        .feature-toolbar form.responsive-filter-grid select,
-        .feature-toolbar form[class*="grid"] select {
+        .feature-toolbar-layout form.responsive-filter-grid label,
+        .feature-toolbar-layout form[class*="grid"] label {
+            min-width: 0;
+            white-space: nowrap;
+        }
+
+        .feature-toolbar-layout form.responsive-filter-grid select,
+        .feature-toolbar-layout form[class*="grid"] select {
             width: 100%;
         }
 
-        .feature-toolbar form select,
-        .feature-toolbar form input {
+        .feature-toolbar-layout form.responsive-filter-grid > button,
+        .feature-toolbar-layout form[class*="grid"] > button {
+            grid-column: 2;
+            justify-self: start;
+        }
+
+        .feature-toolbar-layout form select,
+        .feature-toolbar-layout form input {
             min-width: 0;
             max-width: 100%;
         }
 
-        .feature-toolbar-actions {
+        .feature-toolbar-layout .feature-toolbar-actions {
             display: flex !important;
             flex-wrap: wrap;
             align-items: center;
+            width: 100%;
             justify-content: flex-start !important;
             gap: 0.5rem;
         }
 
-        .feature-toolbar-actions > p:first-child {
+        .feature-toolbar-layout .feature-toolbar-actions > p:first-child {
             flex: 0 1 auto;
             grid-column: auto;
         }
 
-        .feature-toolbar-actions > a,
-        .feature-toolbar-actions > div,
-        .feature-toolbar-actions > div > button {
+        .feature-toolbar-layout .feature-toolbar-actions > a,
+        .feature-toolbar-layout .feature-toolbar-actions > div,
+        .feature-toolbar-layout .feature-toolbar-actions > div > button {
             width: auto;
             max-width: 100%;
+        }
+    }
+
+    @container feature-toolbar (max-width: 639px) {
+        .feature-toolbar-layout .feature-toolbar-actions {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            align-items: stretch !important;
+            justify-content: initial !important;
+        }
+
+        .feature-toolbar-layout .feature-toolbar-actions > p:first-child {
+            grid-column: 1 / -1;
+            margin: 0;
+        }
+
+        .feature-toolbar-layout .feature-toolbar-actions > a:last-child {
+            grid-column: 1 / -1;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .feature-toolbar-layout .feature-toolbar-actions > a:not(:last-child),
+        .feature-toolbar-layout .feature-toolbar-actions > div,
+        .feature-toolbar-layout .feature-toolbar-actions > div > button {
+            justify-content: center;
+            width: 100%;
         }
     }
 }

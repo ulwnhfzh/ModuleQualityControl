@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\ListUpNg;
 use App\Models\ProductionData;
+use App\Models\ToolDefect;
 use Illuminate\Http\Request;
 use App\Imports\ListUpNgImport;
 use App\Imports\SpreadsheetSheetSelector;
 use App\Exports\ListUpNgExport;
 use App\Services\EquipmentIdentityMatcher;
 use App\Services\ListUpNgRecapSynchronizer;
+use App\Services\ListUpNgStatusSynchronizer;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
@@ -19,11 +21,15 @@ use Illuminate\Validation\ValidationException;
 class ListUpNgController extends Controller
 {
     private const ADD_NEW_TYPE = '__add_new_type__';
+    private const DEPARTMENT_ALIASES = [
+        'QA INC', 'QA INSP', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'LSCC', 'ENG',
+    ];
 
     public function index(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
         $dept = $request->input('dept');
+        $departments = array_values(array_unique(array_merge(ToolDefect::DIVISIONS, self::DEPARTMENT_ALIASES)));
 
         $query = ListUpNg::where('tahun', $tahun);
 
@@ -33,7 +39,7 @@ class ListUpNgController extends Controller
 
         $ngs = $query->orderBy('ng_date', 'desc')->get();
 
-        return view('list-up-ng.index', compact('ngs', 'tahun', 'dept'));
+        return view('list-up-ng.index', compact('ngs', 'tahun', 'dept', 'departments'));
     }
 
     public function create()
@@ -44,8 +50,9 @@ class ListUpNgController extends Controller
             $selectedType = null;
         }
         $toolOptions = $this->productionToolOptions($selectedToolName, $selectedType);
+        $departments = array_values(array_unique(array_merge(ToolDefect::DIVISIONS, self::DEPARTMENT_ALIASES)));
 
-        return view('list-up-ng.create', compact('toolOptions', 'selectedToolName', 'selectedType'));
+        return view('list-up-ng.create', compact('toolOptions', 'selectedToolName', 'selectedType', 'departments'));
     }
 
     public function store(Request $request)
@@ -60,20 +67,11 @@ class ListUpNgController extends Controller
             'part_name' => 'nullable|string|max:255',
             'part_number' => 'nullable|string|max:255',
             'ng_date' => 'required|date',
-            'dept' => 'required|string',
-            'category_ng' => 'required|string',
+            'dept' => 'required|string|max:255',
+            'category_ng' => 'required|string|max:255',
             'note' => 'nullable|string',
-            'stock_qa' => 'nullable|integer',
-            'stock_prod' => 'nullable|integer',
-            'no_spp' => 'nullable|string|max:255',
-            'status_order' => 'nullable|string',
-            'note_order' => 'nullable|string',
         ]);
         $validated = $this->resolveTypeSelection($validated);
-
-        if (empty($validated['status_order'])) {
-            $validated['status_order'] = 'CLOSED';
-        }
 
         $validated['tahun'] = date('Y', strtotime($request->ng_date));
 
@@ -82,7 +80,8 @@ class ListUpNgController extends Controller
             ListUpNg::create($validated);
         });
 
-        return redirect()->route('list-up-ng.index')->with('success', 'Data NG berhasil ditambahkan.');
+        return redirect()->route('list-up-ng.index', ['tahun' => $validated['tahun']])
+            ->with('success', 'Data NG berhasil ditambahkan.');
     }
 
     public function edit(ListUpNg $listUpNg)
@@ -93,8 +92,9 @@ class ListUpNgController extends Controller
             $selectedType = null;
         }
         $toolOptions = $this->productionToolOptions($selectedToolName, $selectedType);
+        $departments = array_values(array_unique(array_merge(ToolDefect::DIVISIONS, self::DEPARTMENT_ALIASES)));
 
-        return view('list-up-ng.edit', compact('listUpNg', 'toolOptions', 'selectedToolName', 'selectedType'));
+        return view('list-up-ng.edit', compact('listUpNg', 'toolOptions', 'selectedToolName', 'selectedType', 'departments'));
     }
 
     public function update(Request $request, ListUpNg $listUpNg)
@@ -109,20 +109,11 @@ class ListUpNgController extends Controller
             'part_name' => 'nullable|string|max:255',
             'part_number' => 'nullable|string|max:255',
             'ng_date' => 'required|date',
-            'dept' => 'required|string',
-            'category_ng' => 'required|string',
+            'dept' => 'required|string|max:255',
+            'category_ng' => 'required|string|max:255',
             'note' => 'nullable|string',
-            'stock_qa' => 'nullable|integer',
-            'stock_prod' => 'nullable|integer',
-            'no_spp' => 'nullable|string|max:255',
-            'status_order' => 'nullable|string',
-            'note_order' => 'nullable|string',
         ]);
         $validated = $this->resolveTypeSelection($validated);
-
-        if (empty($validated['status_order'])) {
-            $validated['status_order'] = $listUpNg->status_order ?? 'CLOSED';
-        }
 
         $validated['tahun'] = date('Y', strtotime($request->ng_date));
 
@@ -131,13 +122,16 @@ class ListUpNgController extends Controller
             $listUpNg->update($validated);
         });
 
-        return redirect()->route('list-up-ng.index')->with('success', 'Data NG berhasil diupdate.');
+        return redirect()->route('list-up-ng.index', ['tahun' => $validated['tahun']])
+            ->with('success', 'Data NG berhasil diupdate.');
     }
 
     public function destroy(ListUpNg $listUpNg)
     {
+        $tahun = (int) $listUpNg->tahun;
         DB::transaction(fn () => $listUpNg->delete());
-        return redirect()->route('list-up-ng.index')->with('success', 'Data NG berhasil dihapus.');
+        return redirect()->route('list-up-ng.index', ['tahun' => $tahun])
+            ->with('success', 'Data NG berhasil dihapus.');
     }
 
     public function importForm()
@@ -176,23 +170,26 @@ class ListUpNgController extends Controller
                     ->map(fn (ListUpNg $row): array => $row->getAttributes())
                     ->all();
 
-                ListUpNgRecapSynchronizer::withoutAutomaticSync(function () use ($import, $sheetImports, $request, $validated): void {
-                    ListUpNg::where('tahun', $validated['tahun'])->delete();
-                    Excel::import($import, $request->file('file'));
+                ListUpNgStatusSynchronizer::withoutAutomaticSync(function () use ($import, $sheetImports, $request, $validated): void {
+                    ListUpNgRecapSynchronizer::withoutAutomaticSync(function () use ($import, $sheetImports, $request, $validated): void {
+                        ListUpNg::where('tahun', $validated['tahun'])->delete();
+                        Excel::import($import, $request->file('file'));
 
-                    $importedCount = array_sum(array_map(
-                        fn (ListUpNgImport $sheetImport): int => $sheetImport->getImportedCount(),
-                        $sheetImports,
-                    ));
-                    if ($importedCount === 0) {
-                        throw new RuntimeException("Tidak ada data List Up NG untuk tahun {$validated['tahun']}.");
-                    }
+                        $importedCount = array_sum(array_map(
+                            fn (ListUpNgImport $sheetImport): int => $sheetImport->getImportedCount(),
+                            $sheetImports,
+                        ));
+                        if ($importedCount === 0) {
+                            throw new RuntimeException("Tidak ada data List Up NG untuk tahun {$validated['tahun']}.");
+                        }
+                    });
                 });
 
                 $newRecords = ListUpNg::where('tahun', $validated['tahun'])
                     ->get()
                     ->map(fn (ListUpNg $row): array => $row->getAttributes())
                     ->all();
+                app(ListUpNgStatusSynchronizer::class)->syncYear((int) $validated['tahun']);
                 app(ListUpNgRecapSynchronizer::class)->syncChanges($oldRecords, $newRecords);
             });
 

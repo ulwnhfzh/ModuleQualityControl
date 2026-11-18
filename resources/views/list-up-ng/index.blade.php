@@ -15,7 +15,7 @@
 @endif
 
 <div class="feature-toolbar bg-white rounded-lg shadow-sm mb-3 md:mb-4 px-3 py-2.5 sm:px-4 sm:py-3">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div class="feature-toolbar-layout flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div class="flex flex-wrap items-center gap-3">
             <h1 class="text-sm sm:text-base font-bold text-gray-800 whitespace-nowrap">
                 List Up Total Tool Measurement NG - YEAR {{ $tahun }}
@@ -33,7 +33,7 @@
                     <label class="text-[10px] sm:text-xs font-semibold text-gray-500">DEPT</label>
                     <select name="dept" onchange="this.form.submit()" class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Semua Dept</option>
-                        @foreach(['QA 1', 'QA 2', 'QA INSP', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'PPIC 1', 'PPIC 2', 'LSCC'] as $d)
+                        @foreach($departments as $d)
                             <option value="{{ $d }}" {{ $dept == $d ? 'selected' : '' }}>{{ $d }}</option>
                         @endforeach
                     </select>

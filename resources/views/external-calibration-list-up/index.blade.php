@@ -6,7 +6,7 @@
 @if($errors->any())<div class="mb-3 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ $errors->first() }}</div>@endif
 
 <div class="feature-toolbar mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 lg:px-5">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div class="feature-toolbar-layout flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         
         {{-- BAGIAN KIRI: FILTER --}}
         <div class="flex flex-wrap items-center gap-3">
@@ -16,7 +16,7 @@
                 <option value="{{ route('mesin.index', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">Machine Alat Ukur</option>
                 <option value="{{ route('master-calibrator.index', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">Master Kalibrator</option>
             </select>
-            <form method="GET" action="{{ route('external-list-up.index') }}" class="flex flex-wrap items-center gap-2">
+            <form method="GET" action="{{ route('external-list-up.index') }}" class="responsive-filter-grid flex flex-wrap items-center gap-2">
                 <label for="external-list-up-year" class="text-xs font-semibold text-slate-500">TAHUN</label>
                 <select id="external-list-up-year" name="tahun" onchange="this.form.submit()" class="rounded-lg border-slate-300 bg-white px-3 py-2 text-sm">
                     @for($y = date('Y'); $y >= date('Y') - 12; $y--)

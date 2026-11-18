@@ -40,7 +40,7 @@
             @endif
         </div>
 
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
+        <div class="feature-toolbar-layout flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
             <form method="GET" action="{{ route('verifikasi.index') }}" class="responsive-filter-grid flex items-center gap-1.5">
                 <input type="hidden" name="mode" value="{{ $mode }}">
                 <label class="text-[10px] sm:text-xs font-semibold text-gray-500">PERUSAHAAN</label>
