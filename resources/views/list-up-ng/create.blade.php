@@ -77,9 +77,10 @@
             <div class="min-w-0">
                 <label class="block text-sm font-semibold mb-1">Category NG *</label>
                 <select name="category_ng" required class="w-full border p-2 rounded">
-                    <option value="VERIFIKASI" @selected(old('category_ng') == 'VERIFIKASI')>VERIFIKASI</option>
-                    <option value="KALIBRASI" @selected(old('category_ng') == 'KALIBRASI')>KALIBRASI</option>
-                    <option value="KALIBRASI EKSTENAL" @selected(old('category_ng') == 'KALIBRASI EKSTENAL')>KALIBRASI EKSTENAL</option>
+                    <option value="">-- Pilih Category NG --</option>
+                    @foreach($categoryNgOptions as $categoryOption)
+                        <option value="{{ $categoryOption }}" @selected(old('category_ng') === $categoryOption)>{{ $categoryOption }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="list-up-ng-form-note">

@@ -79,9 +79,12 @@
             <div class="min-w-0">
                 <label class="block text-sm font-semibold mb-1">Category NG *</label>
                 <select name="category_ng" required class="w-full border p-2 rounded">
-                    @foreach(['VERIFIKASI', 'KALIBRASI', 'KALIBRASI EKSTENAL'] as $c)
-                        <option value="{{ $c }}" @selected(old('category_ng', $listUpNg->category_ng) == $c)>{{ $c }}</option>
+                    @foreach($categoryNgOptions as $categoryOption)
+                        <option value="{{ $categoryOption }}" @selected(old('category_ng', $listUpNg->category_ng) === $categoryOption)>{{ $categoryOption }}</option>
                     @endforeach
+                    @if(! in_array((string) old('category_ng', $listUpNg->category_ng), $categoryNgOptions, true))
+                        <option value="{{ old('category_ng', $listUpNg->category_ng) }}" selected>{{ old('category_ng', $listUpNg->category_ng) }} (kategori lama)</option>
+                    @endif
                 </select>
             </div>
             <div class="list-up-ng-form-note">
