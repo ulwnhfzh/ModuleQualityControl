@@ -69,7 +69,7 @@
                 <input type="date" name="ng_date" required value="{{ old('ng_date', $listUpNg->ng_date->format('Y-m-d')) }}" class="w-full min-w-0 border p-2 rounded">
             </div>
             <div class="min-w-0">
-                <label class="block text-sm font-semibold mb-1">Dept *</label>
+                <label class="block text-sm font-semibold mb-1">Division *</label>
                 <select name="dept" required class="w-full border p-2 rounded">
                     @foreach($departments as $department)
                         <option value="{{ $department }}" @selected(old('dept', $listUpNg->dept) === $department)>{{ $department }}</option>

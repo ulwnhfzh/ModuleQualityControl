@@ -85,7 +85,7 @@
             <colgroup>
                 <col style="width:48px">
                 @if($selectedDivision === 'ALL')<col style="width:125px">@endif
-                <col style="width:170px"><col style="width:190px"><col style="width:105px"><col style="width:125px">
+                <col style="width:190px"><col style="width:105px"><col style="width:125px">
                 <col style="width:115px"><col style="width:115px"><col style="width:180px"><col style="width:170px">
                 @for($monthColumn = 0; $monthColumn < 12; $monthColumn++)<col style="width:64px">@endfor
                 <col style="width:220px"><col style="width:128px">
@@ -96,14 +96,13 @@
                     @if($selectedDivision === 'ALL')
                         <th rowspan="2" class="sticky-col border border-slate-600 px-2 py-3 text-center align-middle bg-blue-800" style="left:48px">Division</th>
                     @endif
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Category</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 text-left align-middle">Tool Name</th>
+                    <th rowspan="2" class="border border-slate-600 px-2 py-3 text-center align-middle">Tool Name</th>
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Type</th>
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Size</th>
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Number Seri</th>
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Number Reg</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 text-left align-middle">Part Name</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 text-left align-middle">Part Number</th>
+                    <th rowspan="2" class="border border-slate-600 px-2 py-3 text-center align-middle">Part Name</th>
+                    <th rowspan="2" class="border border-slate-600 px-2 py-3 text-center align-middle">Part Number</th>
                     <th colspan="12" class="border border-slate-600 px-2 py-2 bg-slate-700">Result</th>
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Note</th>
                     <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle text-center">Aksi</th>
@@ -133,14 +132,13 @@
                             <td class="sticky-col border border-slate-200 px-2 py-3 {{ $hasNg ? 'bg-rose-100' : ($index % 2 ? 'bg-slate-50' : 'bg-white') }} font-semibold text-blue-700" style="left:48px">{{ $item->division }}</td>
                         @endif
                         
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->category ?: '-' }}</td>
-                        <td class="border border-slate-200 px-2 py-3 text-left font-semibold text-slate-800"><span class="block truncate" title="{{ $item->tool_name }}">{{ $item->tool_name }}</span></td>
+                        <td class="border border-slate-200 px-2 py-3 font-semibold text-slate-800"><span class="block truncate" title="{{ $item->tool_name }}">{{ $item->tool_name }}</span></td>
                         <td class="border border-slate-200 px-2 py-3">{{ $item->type }}</td>
                         <td class="border border-slate-200 px-2 py-3">{{ $item->size }}</td>
                         <td class="border border-slate-200 px-2 py-3">{{ $item->number_seri ?: '-' }}</td>
                         <td class="border border-slate-200 px-2 py-3">{{ $item->number_reg ?: '-' }}</td>
-                        <td class="border border-slate-200 px-2 py-3 text-left"><span class="block truncate" title="{{ $item->part_name ?: '-' }}">{{ $item->part_name ?: '-' }}</span></td>
-                        <td class="border border-slate-200 px-2 py-3 text-left"><span class="block truncate" title="{{ $item->part_number ?: '-' }}">{{ $item->part_number ?: '-' }}</span></td>
+                        <td class="border border-slate-200 px-2 py-3"><span class="block truncate" title="{{ $item->part_name ?: '-' }}">{{ $item->part_name ?: '-' }}</span></td>
+                        <td class="border border-slate-200 px-2 py-3"><span class="block truncate" title="{{ $item->part_number ?: '-' }}">{{ $item->part_number ?: '-' }}</span></td>
                         
                         @foreach(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'] as $month)
                             @php($resultStatus = $item->resultStatus($month))
@@ -170,7 +168,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $selectedDivision === 'ALL' ? '24' : '23' }}" class="px-4 py-12 text-center text-slate-500">
+                        <td colspan="{{ $selectedDivision === 'ALL' ? '23' : '22' }}" class="px-4 py-12 text-center text-slate-500">
                             Belum ada data untuk pencarian ini.
                         </td>
                     </tr>

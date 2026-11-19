@@ -1,5 +1,11 @@
 @extends('layouts.app')
 
+@php
+    $isMasterKalibrator = $isMasterKalibrator ?? false;
+    $masterCalibrators = $masterCalibrators ?? collect();
+    $tools = $tools ?? collect();
+@endphp
+
 @section('content')
 
 @if(session('success'))
@@ -37,9 +43,10 @@
                     <label class="text-[10px] sm:text-xs font-semibold text-gray-500">KATEGORI</label>
                     <select name="kategori" onchange="this.form.submit()"
                             class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="Small Tool" {{ $kategori == 'Small Tool' ? 'selected' : '' }}>Small Tool</option>
-                        <option value="Machine" {{ $kategori == 'Machine' ? 'selected' : '' }}>Machine</option>
                         <option value="Jig" {{ $kategori == 'Jig' ? 'selected' : '' }}>Jig</option>
+                        <option value="Machine" {{ $kategori == 'Machine' ? 'selected' : '' }}>Machine</option>
+                        <option value="Master Kalibrator" {{ $kategori == 'Master Kalibrator' ? 'selected' : '' }}>Master Kalibrator</option>
+                        <option value="Small Tool" {{ $kategori == 'Small Tool' ? 'selected' : '' }}>Small Tool</option>
                     </select>
                 </div>
             </form>
@@ -47,17 +54,25 @@
 
         <div class="flex items-center justify-between md:justify-end gap-2 sm:gap-3">
             <span class="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
-                Total <strong class="text-gray-700">{{ $tools->count() }}</strong>
+                Total <strong class="text-gray-700">{{ $isMasterKalibrator ? $masterCalibrators->count() : $tools->count() }}</strong>
             </span>
 
             <div class="flex items-center gap-1.5 sm:gap-2">
 
                 @if(Auth::check() && Auth::user()->role === 'admin')
-                    <a href="{{ route('tools.import.form') }}"
-                       class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap
-                              px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
-                        @include('components.icons.import') Import
-                    </a>
+                    @if($isMasterKalibrator)
+                        <a href="{{ route('master-calibrator.import.form', ['tahun' => $tahun]) }}"
+                           class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap
+                                  px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                            @include('components.icons.import') Import
+                        </a>
+                    @else
+                        <a href="{{ route('tools.import.form') }}"
+                           class="bg-white border border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 transition inline-flex items-center gap-1 whitespace-nowrap
+                                  px-2.5 py-1.5 text-[11px] sm:px-3 sm:py-2 sm:text-sm">
+                            @include('components.icons.import') Import
+                        </a>
+                    @endif
 
                     <div class="relative inline-block" id="exportDropdown">
                         <button type="button" onclick="toggleExport()"
@@ -71,32 +86,61 @@
                         <div id="exportMenu"
                              class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
 
-                            <a href="{{ route('tools.export.csv', ['tahun' => $tahun, 'kategori' => $kategori]) }}"
-                               class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
-                                    <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
-                                    <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
-                                    <text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="9">X</text>
-                                </svg>
-                                <span class="font-medium">Export Excel</span>
-                            </a>
+                            @if($isMasterKalibrator)
+                                <a href="{{ route('master-calibrator.export', ['tahun' => $tahun]) }}"
+                                   class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
+                                        <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
+                                        <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
+                                        <text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="9">X</text>
+                                    </svg>
+                                    <span class="font-medium">Export Excel</span>
+                                </a>
 
-                            <a href="{{ route('tools.export.pdf', ['tahun' => $tahun, 'kategori' => $kategori]) }}"
-                               class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
-                                    <path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
-                                    <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
-                                    <text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="7">PDF</text>
-                                </svg>
-                                <span class="font-medium">Export PDF</span>
-                            </a>
+                                <a href="{{ route('master-calibrator.export.pdf', ['tahun' => $tahun]) }}"
+                                   class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
+                                        <path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
+                                        <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
+                                        <text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="7">PDF</text>
+                                    </svg>
+                                    <span class="font-medium">Export PDF</span>
+                                </a>
+                            @else
+                                <a href="{{ route('tools.export.csv', ['tahun' => $tahun, 'kategori' => $kategori]) }}"
+                                   class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition border-b border-gray-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
+                                        <path fill="#1D6F42" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
+                                        <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
+                                        <text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="9">X</text>
+                                    </svg>
+                                    <span class="font-medium">Export Excel</span>
+                                </a>
+
+                                <a href="{{ route('tools.export.pdf', ['tahun' => $tahun, 'kategori' => $kategori]) }}"
+                                   class="flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-red-50 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
+                                        <path fill="#DC2626" d="M14.5 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7.5L14.5 2z"/>
+                                        <path fill="#FFFFFF" d="M14 2v6h6L14 2z" opacity=".3"/>
+                                        <text x="12" y="17" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="7">PDF</text>
+                                    </svg>
+                                    <span class="font-medium">Export PDF</span>
+                                </a>
+                            @endif
                         </div>
                     </div>
 
-                    <a href="{{ route('tools.create', ['kategori' => $kategori]) }}"
-                       class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm">
-                        <span>+</span> Tambah
-                    </a>
+                    @if($isMasterKalibrator)
+                        <a href="{{ route('master-calibrator.create', ['tahun' => $tahun]) }}"
+                           class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm">
+                            <span>+</span> Tambah
+                        </a>
+                    @else
+                        <a href="{{ route('tools.create', ['kategori' => $kategori]) }}"
+                           class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm">
+                            <span>+</span> Tambah
+                        </a>
+                    @endif
                 @endif
             </div>
         </div>
@@ -107,6 +151,117 @@
     <span>←</span> Geser tabel ke kanan untuk lihat semua kolom <span>→</span>
 </p>
 
+@if($isMasterKalibrator)
+{{-- ========================================== --}}
+{{-- TABEL MASTER KALIBRATOR                    --}}
+{{-- ========================================== --}}
+<div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
+        <table class="w-full text-xs text-left whitespace-nowrap min-w-[1500px]">
+            <thead class="table-header uppercase">
+                <tr>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">No</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs min-w-[180px] text-center">Tool Name</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Type</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Size</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Number Seri</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Number Reg</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Part Name</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Part Number</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">JAN</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">FEB</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">MAR</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">APR</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">MEI</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">JUN</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">JUL</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">AUG</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">SEP</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">OCT</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">NOV</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">DEC</th>
+                    <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs text-center">Note</th>
+                    @if(Auth::check() && Auth::user()->role === 'admin')
+                    <th class="px-2 py-2 md:py-3 text-[10px] md:text-xs text-center bg-gray-800 text-white sticky right-0 z-10">Aksi</th>
+                    @endif
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($masterCalibrators as $index => $item)
+                <tr class="border-b {{ $index % 2 == 0 ? 'table-row-even' : 'table-row-odd' }} hover:bg-blue-50">
+                    <td class="px-2 py-2 font-semibold text-[11px] md:text-xs text-center">{{ $index + 1 }}</td>
+                    <td class="px-2 py-2 font-medium text-[11px] md:text-xs text-center">{{ strtoupper($item->tool_name) }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->type ?? '-' }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->size ?? '-' }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->number_seri ?? '-' }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->number_reg ?? '-' }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->part_name ?? '-' }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->part_number ?? '-' }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->jan ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->feb ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->mar ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->apr ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->may ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->jun ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->jul ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->aug ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->sep ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->oct ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->nov ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs">{{ $item->dec ?? 0 }}</td>
+                    <td class="px-2 py-2 text-center text-[11px] md:text-xs max-w-[200px] truncate" title="{{ $item->note }}">{{ $item->note ?? '-' }}</td>
+                    @if(Auth::check() && Auth::user()->role === 'admin')
+                    <td class="px-2 py-2 text-center bg-white sticky right-0 z-10 border-l border-gray-200">
+                        <div class="flex justify-center gap-1">
+                            <a href="{{ route('master-calibrator.edit', $item->id) }}"
+                               class="rounded bg-blue-600 px-2 py-1 text-[10px] text-white transition hover:bg-blue-700">Edit</a>
+                            <form action="{{ route('master-calibrator.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus?');" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="rounded bg-rose-600 px-2 py-1 text-[10px] text-white transition hover:bg-rose-700">Hapus</button>
+                            </form>
+                        </div>
+                    </td>
+                    @endif
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="{{ Auth::check() && Auth::user()->role === 'admin' ? 22 : 21 }}" class="text-center py-6 md:py-8 text-gray-500 text-xs md:text-sm px-4">
+                        Belum ada data Master Kalibrator untuk tahun <strong>{{ $tahun }}</strong>.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+            @if($masterCalibrators->count() > 0)
+            <tfoot>
+                <tr class="bg-blue-100 font-bold border-t-2 border-blue-300 text-blue-900">
+                    <td class="px-2 py-2 md:py-3 text-[11px] md:text-xs" colspan="8">TOTAL</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('jan') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('feb') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('mar') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('apr') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('may') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('jun') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('jul') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('aug') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('sep') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('oct') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('nov') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-center text-[11px] md:text-xs">{{ $masterCalibrators->sum('dec') }}</td>
+                    <td class="px-2 py-2 md:py-3 text-[11px] md:text-xs"></td>
+                    @if(Auth::check() && Auth::user()->role === 'admin')
+                    <td class="px-2 py-2 md:py-3 bg-blue-100 sticky right-0 z-10 border-l border-blue-300"></td>
+                    @endif
+                </tr>
+            </tfoot>
+            @endif
+        </table>
+    </div>
+</div>
+@else
+{{-- ========================================== --}}
+{{-- TABEL SMALL TOOL / MACHINE / JIG          --}}
+{{-- ========================================== --}}
 <div class="bg-white rounded-lg shadow-sm overflow-hidden">
     <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
         <table class="w-full text-xs text-left whitespace-nowrap min-w-[1500px]">
@@ -208,6 +363,7 @@
         </table>
     </div>
 </div>
+@endif
 
 {{-- ========================================== --}}
 {{-- SCRIPT SWEETALERT UNTUK ALERT JATUH TEMPO --}}

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tool;
+use App\Models\MasterCalibrator;
 use App\Models\ToolStock;
 use App\Models\DocumentCounter;
 use App\Models\User;
@@ -34,17 +35,27 @@ class ToolController extends Controller
         $kategori = $filters['kategori'] ?? 'Small Tool';
         $categories = Tool::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category');
 
-        $query = Tool::query();
+        $isMasterKalibrator = $kategori === 'Master Kalibrator';
+        $tools = collect();
+        $masterCalibrators = collect();
 
-        if ($tahun) {
-            $query->where('tahun', $tahun);
-        }
-        if ($kategori) {
-            $query->where('category', $kategori);
+        if ($isMasterKalibrator) {
+            $masterCalibrators = MasterCalibrator::where('tahun', $tahun)
+                ->orderBy('tool_name')->orderBy('size')->get();
+        } else {
+            $query = Tool::query();
+
+            if ($tahun) {
+                $query->where('tahun', $tahun);
+            }
+            if ($kategori) {
+                $query->where('category', $kategori);
+            }
+
+            $tools = $query->orderBy('tool_name', 'asc')->get();
         }
 
-        $tools = $query->orderBy('tool_name', 'asc')->get();
-        return view('tools.index', compact('tools', 'tahun', 'kategori', 'categories'));
+        return view('tools.index', compact('tools', 'tahun', 'kategori', 'categories', 'isMasterKalibrator', 'masterCalibrators'));
     }
 
     public function create()

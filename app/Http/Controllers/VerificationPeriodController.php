@@ -573,6 +573,7 @@ class VerificationPeriodController extends Controller
                 ->orderBy('division')
                 ->pluck('division'))
             ->filter(fn ($shop) => trim((string) $shop) !== '')
+            ->reject(fn ($shop) => mb_strtoupper(trim((string) $shop)) === 'LINE SCC')
             ->unique()
             ->sort()
             ->values();

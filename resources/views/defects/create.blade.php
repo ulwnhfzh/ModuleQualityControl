@@ -1,68 +1,285 @@
-@extends('layouts.app')
+<?php
 
-@section('content')
-<div class="bg-white rounded-lg shadow-sm p-6 max-w-4xl mx-auto">
-    <h2 class="text-lg font-bold text-gray-800 mb-4">Input Data Kerusakan Alat (NG)</h2>
-    
-    <form action="{{ route('defects.store') }}" method="POST">
-        @csrf
+namespace App\Http\Controllers;
+
+use App\Models\ToolDefect;
+use App\Models\ListUpNg;
+use App\Imports\ToolDefectsImport;
+use App\Exports\ToolDefectsExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+class ToolDefectController extends Controller
+{
+    public function index(Request $request)
+    {
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'bulan' => 'nullable|in:' . implode(',', ToolDefect::MONTHS),
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $bulanFilter = $filters['bulan'] ?? 'DEC';
+        $isListUpNgRecap = ListUpNg::where('tahun', $tahun)->exists();
+
+        $jenisKerusakan = ToolDefect::COUNT_FIELDS;
+
+        $yearData = ToolDefect::where('tahun', $tahun)->get();
+        $hasYearData = $yearData->isNotEmpty();
+        $rawData = $yearData->where('bulan', $bulanFilter);
+
+        $monthLabels = ['JAN' => 'JAN', 'FEB' => 'FEB', 'MAR' => 'MAR', 'APR' => 'APR', 'MAY' => 'MAY', 'JUN' => 'JUN', 'JUL' => 'JUL', 'AUG' => 'AUG', 'SEP' => 'SEP', 'OCT' => 'OCT', 'NOV' => 'NOV', 'DEC' => 'DEC'];
+        $monthlyTotals = array_fill_keys(array_keys($monthLabels), 0);
+        $defectTotals = array_fill_keys($jenisKerusakan, 0);
+        $divisionTotals = [];
+        foreach ($yearData as $row) {
+            $month = strtoupper((string) $row->bulan);
+            foreach ($jenisKerusakan as $field) {
+                $value = $this->defectValue($row, $field);
+                if (isset($monthlyTotals[$month])) {
+                    $monthlyTotals[$month] += $value;
+                }
+                $defectTotals[$field] += $value;
+                $divisionTotals[$row->division] = ($divisionTotals[$row->division] ?? 0) + $value;
+            }
+        }
+        arsort($defectTotals);
+        arsort($divisionTotals);
+
+        $toolNameTotals = [];
+        if (Schema::hasTable('tool_defect_details')) {
+            $toolNameTotals = DB::table('tool_defect_details')
+                ->where('tahun', $tahun)
+                ->select('tool_name', DB::raw('COUNT(*) as total'))
+                ->groupBy('tool_name')
+                ->orderByDesc('total')
+                ->limit(20)
+                ->get()
+                ->map(fn ($row) => ['label' => $row->tool_name, 'value' => (int) $row->total])
+                ->all();
+        }
+
+        $dataPerDivisi = [];
+        foreach ($rawData as $row) {
+            if (!isset($dataPerDivisi[$row->division])) {
+                $dataPerDivisi[$row->division] = array_fill_keys($jenisKerusakan, 0);
+                $dataPerDivisi[$row->division]['total'] = 0;
+                $dataPerDivisi[$row->division]['grand_total'] = 0;
+            }
+            foreach ($jenisKerusakan as $jenis) {
+                $value = $this->defectValue($row, $jenis);
+                $dataPerDivisi[$row->division][$jenis] += $value;
+                $dataPerDivisi[$row->division]['total'] += $value;
+            }
+        }
+
+        $grandTotalsByDivision = [];
+        foreach ($yearData as $row) {
+            $grandTotalsByDivision[$row->division] ??= 0;
+            foreach ($jenisKerusakan as $jenis) {
+                $grandTotalsByDivision[$row->division] += $this->defectValue($row, $jenis);
+            }
+        }
+
+        foreach ($dataPerDivisi as $divisi => &$data) {
+            $data['grand_total'] = $grandTotalsByDivision[$divisi] ?? 0;
+        }
+        unset($data);
+
+        $urutanDivisi = [
+            'ENGINEERING', 'L.SCC', 'PRODUKSI 1', 'PRODUKSI 2', 'PRODUKSI 3', 
+            'PRODUKSI 5', 'PRODUKSI 6', 'PRODUKSI 7', 'PRODUKSI 8', 
+            'PPIC 1', 'PPIC 2', 'QA INCOMING', 'QA INSPECTION', 'QA 1', 
+            'QA 1.2', 'QA 2', 'NISSHO'
+        ];
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Tahun</label>
-                <input type="number" name="tahun" value="{{ date('Y') }}" min="2000" max="2100" step="1" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-blue-500" required>
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Bulan</label>
-                <select name="bulan" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-blue-500" required>
-                    <option value="JAN">Januari</option>
-                    <option value="FEB">Februari</option>
-                    <option value="MAR">Maret</option>
-                    <option value="APR">April</option>
-                    <option value="MAY">Mei</option>
-                    <option value="JUN">Juni</option>
-                    <option value="JUL">Juli</option>
-                    <option value="AUG">Agustus</option>
-                    <option value="SEP">September</option>
-                    <option value="OCT">Oktober</option>
-                    <option value="NOV">November</option>
-                    <option value="DEC">Desember</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Divisi</label>
-                <select name="division" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-blue-500" required>
-                    <option value="">-- Pilih Divisi --</option>
-                    @foreach(['ENGINEERING', 'L.SCC', 'PRODUKSI 1', 'PRODUKSI 2', 'PRODUKSI 3', 'PRODUKSI 5', 'PRODUKSI 6', 'PRODUKSI 7', 'PRODUKSI 8', 'PPIC 1', 'PPIC 2', 'QA INCOMING', 'QA INSPECTION', 'QA 1', 'QA 1.2', 'QA 2', 'NISSHO'] as $div)
-                        <option value="{{ $div }}">{{ $div }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
+        $sortedData = [];
+        if ($hasYearData) {
+            foreach ($urutanDivisi as $div) {
+                if (isset($dataPerDivisi[$div])) {
+                    $sortedData[$div] = $dataPerDivisi[$div];
+                } else {
+                    $sortedData[$div] = array_fill_keys($jenisKerusakan, 0);
+                    $sortedData[$div]['total'] = 0;
+                    $sortedData[$div]['grand_total'] = 0;
+                }
+            }
+        }
 
-        <h3 class="font-bold text-gray-800 mb-3 border-b pb-2">Jenis Kerusakan (Isi angka 0 jika tidak ada)</h3>
+        $footerTotals = array_fill_keys($jenisKerusakan, 0);
+        $footerTotals['total'] = 0;
+        $footerTotals['grand_total'] = 0;
+
+        foreach ($sortedData as $data) {
+            foreach ($jenisKerusakan as $jenis) {
+                $footerTotals[$jenis] += $data[$jenis];
+            }
+            $footerTotals['total'] += $data['total'];
+            $footerTotals['grand_total'] += $data['grand_total'];
+        }
+
+        $existingDefects = $rawData->keyBy('division');
+
+        return view('defects.index', compact(
+            'tahun', 'bulanFilter', 'jenisKerusakan', 'sortedData', 'footerTotals', 'existingDefects', 'isListUpNgRecap', 'hasYearData',
+            'monthLabels', 'monthlyTotals', 'defectTotals', 'divisionTotals', 'toolNameTotals'
+        ));
+    }
+
+    private function defectValue(ToolDefect $row, string $field): int
+    {
+        if ($field === 'erorr') {
+            return (int) ($row->getAttribute('error') ?? $row->getAttribute('erorr') ?? 0);
+        }
+        return (int) ($row->getAttribute($field) ?? 0);
+    }
+
+    public function create()
+    {
+        return view('defects.create');
+    }
+
+    public function store(Request $request)
+    {
+        $rules = [
+            'tahun' => 'required|integer|between:2000,2100',
+            'bulan' => 'required|in:' . implode(',', ToolDefect::MONTHS),
+            'division' => 'required|in:' . implode(',', ToolDefect::DIVISIONS),
+        ];
+        foreach (ToolDefect::COUNT_FIELDS as $field) {
+            $rules[$field] = 'nullable|integer|min:0|max:2147483647';
+        }
+        $data = $request->validate($rules);
+
+        foreach (ToolDefect::COUNT_FIELDS as $col) {
+            $data[$col] = $data[$col] ?? 0;
+        }
+
+        if (ListUpNg::where('tahun', $data['tahun'])->exists()) {
+            return redirect()->route('defects.index', ['tahun' => $data['tahun'], 'bulan' => $data['bulan']])
+                ->with('error', 'Rekap tahun ini mengikuti Master Rekap dan perubahan List Up NG. Ubah data sumbernya di List Up NG.');
+        }
+
+        ToolDefect::create($data);
+        return redirect()->route('defects.index')->with('success', 'Data NG berhasil ditambahkan!');
+    }
+
+    // ===== FUNGSI BARU: EDIT =====
+    public function edit(Request $request, ToolDefect $defect)
+    {
+        $tahun = $request->get('tahun', $defect->tahun);
+        $bulan = $request->get('bulan', $defect->bulan);
+        return view('defects.edit', compact('defect', 'tahun', 'bulan'));
+    }
+
+    // ===== FUNGSI BARU: UPDATE =====
+    public function update(Request $request, ToolDefect $defect)
+    {
+        $rules = [
+            'tahun' => 'required|integer|between:2000,2100',
+            'bulan' => 'required|in:' . implode(',', ToolDefect::MONTHS),
+            'division' => 'required|in:' . implode(',', ToolDefect::DIVISIONS),
+        ];
+        foreach (ToolDefect::COUNT_FIELDS as $field) {
+            $rules[$field] = 'nullable|integer|min:0|max:2147483647';
+        }
+        $data = $request->validate($rules);
+
+        foreach (ToolDefect::COUNT_FIELDS as $col) {
+            $data[$col] = $data[$col] ?? 0;
+        }
+
+        if (ListUpNg::whereIn('tahun', [$defect->tahun, $data['tahun']])->exists()) {
+            return redirect()->route('defects.index', ['tahun' => $defect->tahun, 'bulan' => $defect->bulan])
+                ->with('error', 'Rekap tahun ini mengikuti Master Rekap dan perubahan List Up NG. Ubah data sumbernya di List Up NG.');
+        }
+
+        $defect->update($data);
+        return redirect()->route('defects.index', ['tahun' => $data['tahun'], 'bulan' => $data['bulan']])
+            ->with('success', 'Data NG berhasil diperbarui!');
+    }
+
+    // ===== FUNGSI BARU: DESTROY (HAPUS) =====
+    public function destroy(Request $request, ToolDefect $defect)
+    {
+        $tahun = $defect->tahun;
+        $bulan = $defect->bulan;
+        if (ListUpNg::where('tahun', $tahun)->exists()) {
+            return redirect()->route('defects.index', ['tahun' => $tahun, 'bulan' => $bulan])
+                ->with('error', 'Rekap tahun ini mengikuti Master Rekap dan perubahan List Up NG; data ini tidak dapat dihapus manual.');
+        }
+
+        $defect->delete();
+
+        return redirect()->route('defects.index', ['tahun' => $tahun, 'bulan' => $bulan])
+            ->with('success', 'Data NG berhasil dihapus!');
+    }
+
+    public function importForm()
+    {
+        return view('defects.import');
+    }
+
+    public function importStore(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:5120',
+            'tahun' => 'required|integer|between:2000,2100',
+        ]);
+
+        try {
+            $filePath = $request->file('file')->getRealPath();
+            $year = (int) $request->tahun;
+            DB::transaction(function () use ($filePath, $year): void {
+                (new ToolDefectsImport($year))->import($filePath);
+            });
+
+            return redirect()->route('defects.index', ['tahun' => $year])
+                ->with('success', 'Data NG berhasil di-import otomatis dari semua bulan!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal import: ' . $e->getMessage());
+        }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'bulan' => 'nullable|in:' . implode(',', ToolDefect::MONTHS),
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        return Excel::download(new ToolDefectsExport((int) $tahun), 'Data-NG-' . $tahun . '.xlsx');
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $filters = $request->validate([
+            'tahun' => 'nullable|integer|between:2000,2100',
+            'bulan' => 'nullable|in:' . implode(',', ToolDefect::MONTHS),
+        ]);
+        $tahun = $filters['tahun'] ?? date('Y');
+        $bulan = $filters['bulan'] ?? 'DEC';
         
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            @php
-                $jenisKerusakan = [
-                    'aus' => 'AUS', 'erorr' => 'ERORR', 'gompal' => 'GOMPAL', 'hilang' => 'HILANG',
-                    'karat' => 'KARAT', 'macet' => 'MACET', 'min_std' => 'MIN STD', 'over_std' => 'OVER STD',
-                    'patah' => 'PATAH', 'rusak' => 'RUSAK', 'seret' => 'SERET', 'lain_lain' => 'LAIN-LAIN'
-                ];
-            @endphp
+        $jenisKerusakan = ToolDefect::COUNT_FIELDS;
+        $rawData = ToolDefect::where('tahun', $tahun)->where('bulan', $bulan)->get();
+        
+        $dataPerDivisi = [];
+        foreach ($rawData as $row) {
+            if (!isset($dataPerDivisi[$row->division])) {
+                $dataPerDivisi[$row->division] = array_fill_keys($jenisKerusakan, 0);
+                $dataPerDivisi[$row->division]['total'] = 0;
+            }
+            foreach ($jenisKerusakan as $jenis) {
+                $dataPerDivisi[$row->division][$jenis] += $row->$jenis;
+                $dataPerDivisi[$row->division]['total'] += $row->$jenis;
+            }
+        }
 
-            @foreach($jenisKerusakan as $name => $label)
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">{{ $label }}</label>
-                <input type="number" name="{{ $name }}" value="0" min="0" max="2147483647" step="1" inputmode="numeric" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-blue-500">
-            </div>
-            @endforeach
-        </div>
+        $pdf = Pdf::loadView('defects.pdf', compact('tahun', 'bulan', 'dataPerDivisi', 'jenisKerusakan'))
+            ->setPaper('a4', 'landscape');
 
-        <div class="flex gap-2">
-            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 transition">Simpan Data</button>
-            <a href="{{ route('defects.index') }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded font-semibold hover:bg-gray-300 transition">Batal</a>
-        </div>
-    </form>
-</div>
-@endsection
+        return $pdf->download('Data-NG-' . $bulan . '-' . $tahun . '.pdf');
+    }
+}

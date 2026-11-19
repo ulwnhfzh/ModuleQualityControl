@@ -63,7 +63,7 @@ class ListUpNgRecapSynchronizer
         foreach (ListUpNg::query()->where('tahun', $year)->get() as $ng) {
             $division = $this->canonicalDivision($ng);
             if ($division === null) {
-                throw new RuntimeException("Department '{$ng->dept}' tidak dapat dipetakan ke Master Rekap Data NG.");
+                throw new RuntimeException("Division '{$ng->dept}' tidak dapat dipetakan ke Master Rekap Data NG.");
             }
 
             $month = strtoupper(Carbon::parse($ng->ng_date)->format('M'));
@@ -242,7 +242,7 @@ class ListUpNgRecapSynchronizer
             $year = (int) ($ng->tahun ?: $date->year);
             $division = $this->canonicalDivision($ng);
             if ($division === null) {
-                throw new RuntimeException("Department '{$ng->dept}' tidak dapat dipetakan ke Master Rekap Data NG.");
+                throw new RuntimeException("Division '{$ng->dept}' tidak dapat dipetakan ke Master Rekap Data NG.");
             }
 
             $month = strtoupper($date->format('M'));
@@ -269,7 +269,7 @@ class ListUpNgRecapSynchronizer
         foreach (ListUpNg::query()->where('tahun', $year)->get() as $ng) {
             $division = $this->canonicalDivision($ng);
             if ($division === null) {
-                throw new RuntimeException("Department '{$ng->dept}' tidak dapat dipetakan ke Master Rekap Data NG.");
+                throw new RuntimeException("Division '{$ng->dept}' tidak dapat dipetakan ke Master Rekap Data NG.");
             }
 
             $details[] = [
