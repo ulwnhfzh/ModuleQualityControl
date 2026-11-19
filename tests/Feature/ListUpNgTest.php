@@ -114,6 +114,50 @@ class ListUpNgTest extends TestCase
             ->assertSee('<option value="LEGACY TYPE"', false);
     }
 
+    public function test_category_ng_dropdown_offers_verification_and_calibration_options(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->get(route('list-up-ng.create'))
+            ->assertOk()
+            ->assertSee('-- Pilih Category NG --', false)
+            ->assertSee('<option value="VERIFIKASI"', false)
+            ->assertSee('<option value="KALIBRASI INTERNAL"', false)
+            ->assertSee('<option value="KALIBRASI EKSTERNAL"', false);
+
+        $listUpNg = ListUpNg::create([
+            'tahun' => 2026,
+            'tool_name' => 'CALIPER A',
+            'ng_date' => '2026-04-10',
+            'dept' => 'QA 1',
+            'category_ng' => 'KALIBRASI',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('list-up-ng.edit', $listUpNg))
+            ->assertOk()
+            ->assertSee('<option value="KALIBRASI INTERNAL"', false)
+            ->assertSee('<option value="KALIBRASI EKSTERNAL"', false)
+            ->assertSee('KALIBRASI (kategori lama)', false);
+    }
+
+    public function test_store_rejects_category_ng_outside_the_dropdown_options(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->post(route('list-up-ng.store'), [
+                'tool_name' => 'CALIPER B',
+                'ng_date' => '2026-05-10',
+                'dept' => 'QA 1',
+                'category_ng' => 'LUAR RANGE',
+            ])
+            ->assertSessionHasErrors('category_ng');
+
+        $this->assertDatabaseMissing('list_up_ngs', ['tool_name' => 'CALIPER B']);
+    }
+
     public function test_index_filters_list_up_ng_by_year_and_shows_an_empty_year(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

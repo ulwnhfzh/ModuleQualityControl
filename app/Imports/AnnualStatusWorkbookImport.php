@@ -39,14 +39,15 @@ class AnnualStatusWorkbookImport
             throw new RuntimeException('Header workbook bertingkat tidak cocok dengan fitur yang dipilih. Tidak ada data yang diimpor.');
         }
 
-        $category = match ($kind) {
-            'internal_calibration' => 'KALIBRASI',
-            'external_calibration' => 'KALIBRASI EKSTENAL',
+        $categoryPattern = match ($kind) {
+            'internal_calibration' => 'KALIBRASI%',
+            'external_calibration' => 'KALIBRASI EKSTERNAL',
             default => 'VERIFIKASI',
         };
         $this->ngRecords = ListUpNg::query()
             ->where('tahun', $year)
-            ->whereRaw('UPPER(TRIM(category_ng)) = ?', [$category])
+            ->whereRaw("(UPPER(TRIM(category_ng)) LIKE ? OR UPPER(TRIM(category_ng)) = 'KALIBRASI')", [$categoryPattern])
+            ->when($kind === 'internal_calibration', fn ($q) => $q->where('category_ng', 'not like', '%EKSTEN%')->where('category_ng', 'not like', '%EKSTER%'))
             ->get();
     }
 

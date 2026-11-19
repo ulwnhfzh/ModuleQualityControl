@@ -16,6 +16,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class ListUpNgController extends Controller
@@ -23,6 +24,11 @@ class ListUpNgController extends Controller
     private const ADD_NEW_TYPE = '__add_new_type__';
     private const DEPARTMENT_ALIASES = [
         'QA INC', 'QA INSP', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'LSCC', 'ENG',
+    ];
+    public const CATEGORY_NG_OPTIONS = [
+        'VERIFIKASI',
+        'KALIBRASI INTERNAL',
+        'KALIBRASI EKSTERNAL',
     ];
 
     public function index(Request $request)
@@ -51,8 +57,9 @@ class ListUpNgController extends Controller
         }
         $toolOptions = $this->productionToolOptions($selectedToolName, $selectedType);
         $departments = array_values(array_unique(array_merge(ToolDefect::DIVISIONS, self::DEPARTMENT_ALIASES)));
+        $categoryNgOptions = self::CATEGORY_NG_OPTIONS;
 
-        return view('list-up-ng.create', compact('toolOptions', 'selectedToolName', 'selectedType', 'departments'));
+        return view('list-up-ng.create', compact('toolOptions', 'selectedToolName', 'selectedType', 'departments', 'categoryNgOptions'));
     }
 
     public function store(Request $request)
@@ -68,7 +75,7 @@ class ListUpNgController extends Controller
             'part_number' => 'nullable|string|max:255',
             'ng_date' => 'required|date',
             'dept' => 'required|string|max:255',
-            'category_ng' => 'required|string|max:255',
+            'category_ng' => ['required', 'string', 'max:255', Rule::in(self::CATEGORY_NG_OPTIONS)],
             'note' => 'nullable|string',
         ]);
         $validated = $this->resolveTypeSelection($validated);
@@ -93,8 +100,9 @@ class ListUpNgController extends Controller
         }
         $toolOptions = $this->productionToolOptions($selectedToolName, $selectedType);
         $departments = array_values(array_unique(array_merge(ToolDefect::DIVISIONS, self::DEPARTMENT_ALIASES)));
+        $categoryNgOptions = self::CATEGORY_NG_OPTIONS;
 
-        return view('list-up-ng.edit', compact('listUpNg', 'toolOptions', 'selectedToolName', 'selectedType', 'departments'));
+        return view('list-up-ng.edit', compact('listUpNg', 'toolOptions', 'selectedToolName', 'selectedType', 'departments', 'categoryNgOptions'));
     }
 
     public function update(Request $request, ListUpNg $listUpNg)
@@ -110,7 +118,7 @@ class ListUpNgController extends Controller
             'part_number' => 'nullable|string|max:255',
             'ng_date' => 'required|date',
             'dept' => 'required|string|max:255',
-            'category_ng' => 'required|string|max:255',
+            'category_ng' => ['required', 'string', 'max:255', Rule::in(self::CATEGORY_NG_OPTIONS)],
             'note' => 'nullable|string',
         ]);
         $validated = $this->resolveTypeSelection($validated);
