@@ -13,20 +13,34 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ListUpNgExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
 {
     protected $tahun;
-    protected $dept;
+    protected $division;
+    protected $categoryNg;
+    protected $bulan;
 
-    public function __construct($tahun, $dept = null)
+    public function __construct($tahun, $division = null, $categoryNg = null, $bulan = null)
     {
         $this->tahun = $tahun;
-        $this->dept = $dept;
+        $this->division = $division;
+        $this->categoryNg = $categoryNg;
+        $this->bulan = $bulan;
     }
 
     public function collection()
     {
         $query = ListUpNg::where('tahun', $this->tahun);
-        if ($this->dept) {
-            $query->where('dept', $this->dept);
+
+        if ($this->bulan) {
+            $query->whereMonth('ng_date', $this->bulan);
         }
+
+        if ($this->division) {
+            $query->where('division', $this->division);
+        }
+
+        if ($this->categoryNg) {
+            $query->where('category_ng', $this->categoryNg);
+        }
+
         return $query->orderBy('ng_date', 'asc')->get();
     }
 
@@ -34,7 +48,7 @@ class ListUpNgExport implements FromCollection, WithHeadings, WithMapping, Shoul
     {
         return [
             'NO', 'TOOL NAME', 'TYPE', 'SIZE', 'NUMBER SERI', 'NUMBER REG.',
-            'PART NAME', 'PART NUMBER', 'NG DATE', 'DEPT.', 'CATEGORY NG', 'NOTE',
+            'PART NAME', 'PART NUMBER', 'NG DATE', 'DIVISION', 'CATEGORY NG', 'NOTE',
         ];
     }
 
@@ -52,7 +66,7 @@ class ListUpNgExport implements FromCollection, WithHeadings, WithMapping, Shoul
             $row->part_name ?? '-',
             $row->part_number ?? '-',
             $row->ng_date ? $row->ng_date->format('d/m/Y') : '-',
-            $row->dept,
+            $row->division ?? $row->dept,
             $row->category_ng,
             $row->note ?? '-',
         ];

@@ -16,7 +16,7 @@
                     <div class="w-full sm:w-auto min-w-[110px]">
                         <select id="year-select" name="year" onchange="this.form.submit()" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                             @foreach($yearOptions as $year)
-                                <option value="{{ $year }}" {{ $selectedYear === $year ? 'selected' : '' }}>YEAR {{ $year }}</option>
+                                <option value="{{ $year }}" {{ $selectedYear === $year ? 'selected' : '' }}> {{ $year }}</option>
                             @endforeach
                         </select>
                     </div>

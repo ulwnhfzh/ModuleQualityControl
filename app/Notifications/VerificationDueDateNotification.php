@@ -15,6 +15,8 @@ class VerificationDueDateNotification extends Notification
         public readonly string $nextDate,
         public readonly string $level,
         public readonly int $daysRemaining,
+        public readonly string $category = 'Verifikasi / Kalibrasi',
+        public readonly ?string $detailInfo = null,
     ) {
     }
 
@@ -27,14 +29,22 @@ class VerificationDueDateNotification extends Notification
     {
         $overdue = $this->level === 'terlambat';
         $date = \Carbon\Carbon::parse($this->nextDate)->format('d/m/Y');
-        $status = $overdue ? 'TERLAMBAT' : 'MENDEKATI TENGGAT';
+        $status = $overdue ? 'TERLAMBAT' : 'EXPIRED H-' . max(0, $this->daysRemaining);
 
-        return (new MailMessage)
-            ->subject("Pengingat verifikasi {$status}: {$this->toolName}")
+        $mail = (new MailMessage)
+            ->subject("[{$this->category}] Pengingat {$status}: {$this->toolName}")
             ->greeting('Halo Admin QC,')
-            ->line("Verification alat ukur {$this->toolName} memerlukan tindak lanjut.")
-            ->line("Tenggat verifikasi: {$date}")
-            ->line($overdue ? 'Tenggat sudah lewat ' . abs($this->daysRemaining) . ' hari.' : 'Tersisa ' . $this->daysRemaining . ' hari.')
-            ->action('Lihat daftar notifikasi', url('/notifikasi'));
+            ->line("Jadwal **{$this->category}** untuk alat ukur **{$this->toolName}** memerlukan tindak lanjut.");
+
+        if ($this->detailInfo) {
+            $mail->line("Detail Alat: {$this->detailInfo}");
+        }
+
+        return $mail
+            ->line("Tanggal Expired / Jatuh Tempo: **{$date}**")
+            ->line($overdue
+                ? 'Tenggat sudah lewat ' . abs($this->daysRemaining) . ' hari.'
+                : ($this->daysRemaining === 0 ? 'Jatuh tempo HARI INI.' : "Tersisa {$this->daysRemaining} hari lagi menuju expired."))
+            ->action('Lihat Daftar Notifikasi', url('/notifikasi'));
     }
 }

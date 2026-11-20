@@ -131,16 +131,25 @@
             </thead>
             <tbody>
                 @forelse($schedules as $index => $item)
-                    <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }} hover:bg-blue-50">
+                    @php($hasNg = strtoupper(trim((string) $item->jgm)) === 'NG')
+                    <tr id="schedule-{{ $item->id }}" class="target:ring-2 target:ring-blue-500 target:bg-blue-100/70 scroll-mt-24 {{ $hasNg ? 'bg-rose-100 text-rose-900 hover:bg-rose-200' : ($index % 2 ? 'bg-slate-50' : 'bg-white') . ' hover:bg-blue-50' }}">
                         <td class="border border-slate-200 px-3 py-2 text-center">{{ ($schedules->firstItem() ?? 1) + $index }}</td>
-                        <td class="border border-slate-200 px-3 py-2 font-semibold">{{ $item->tool_name }}</td>
+                        <td class="border border-slate-200 px-3 py-2 font-semibold {{ $hasNg ? 'text-rose-950' : '' }}">{{ $item->tool_name }}</td>
                         <td class="border border-slate-200 px-3 py-2">{{ $item->specification ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-center">{{ $item->serial_number ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-center">{{ $item->registration_number ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-center">{{ $item->shop ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-center">{{ $item->calibration_date?->format('d F Y') ?? '-' }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-center">{{ $item->next_calibration_date?->format('d F Y') ?? '-' }}</td>
-                        <td class="border border-slate-200 px-3 py-2 text-center">{{ $item->jgm ?: '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-2 text-center">
+                            @if(strtoupper(trim((string) $item->jgm)) === 'NG')
+                                <span class="rounded bg-rose-600 px-2 py-1 font-bold text-white">NG</span>
+                            @elseif(strtoupper(trim((string) $item->jgm)) === 'OK')
+                                <span class="rounded bg-blue-600 px-2 py-1 font-semibold text-white">OK</span>
+                            @else
+                                {{ $item->jgm ?: '-' }}
+                            @endif
+                        </td>
                         <td class="border border-slate-200 px-3 py-2 text-center">{{ $item->calibration_count ?? '-' }}</td>
                         <td class="max-w-xs whitespace-normal border border-slate-200 px-3 py-2">{{ $item->note ?: '-' }}</td>
                         @if(Auth::check() && Auth::user()->role === 'admin')

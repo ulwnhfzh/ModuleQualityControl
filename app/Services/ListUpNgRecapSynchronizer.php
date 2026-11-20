@@ -63,7 +63,8 @@ class ListUpNgRecapSynchronizer
         foreach (ListUpNg::query()->where('tahun', $year)->get() as $ng) {
             $division = $this->canonicalDivision($ng);
             if ($division === null) {
-                throw new RuntimeException("Division '{$ng->dept}' tidak dapat dipetakan ke Master Rekap Data NG.");
+                $rawDiv = $ng->division ?? $ng->dept;
+                throw new RuntimeException("Division '{$rawDiv}' tidak dapat dipetakan ke Master Rekap Data NG.");
             }
 
             $month = strtoupper(Carbon::parse($ng->ng_date)->format('M'));
@@ -118,14 +119,6 @@ class ListUpNgRecapSynchronizer
         });
     }
 
-    /**
-     * Apply only the changes between two sets of List Up NG records. This keeps
-     * an imported Master Rekap as the starting total instead of rebuilding it
-     * from notes that may not represent every imported count.
-     *
-     * @param array<int, array<string, mixed>> $oldRecords
-     * @param array<int, array<string, mixed>> $newRecords
-     */
     public function syncChanges(array $oldRecords, array $newRecords): void
     {
         if (self::isAutomaticSyncSuspended()) {
@@ -228,11 +221,6 @@ class ListUpNgRecapSynchronizer
         }
     }
 
-    /**
-     * @param array<int, array<string, mixed>> $records
-     * @param array<string, int> $deltas
-     * @param array<int, bool> $years
-     */
     private function accumulateChanges(array $records, int $direction, array &$deltas, array &$years): void
     {
         foreach ($records as $attributes) {
@@ -242,7 +230,8 @@ class ListUpNgRecapSynchronizer
             $year = (int) ($ng->tahun ?: $date->year);
             $division = $this->canonicalDivision($ng);
             if ($division === null) {
-                throw new RuntimeException("Division '{$ng->dept}' tidak dapat dipetakan ke Master Rekap Data NG.");
+                $rawDiv = $ng->division ?? $ng->dept;
+                throw new RuntimeException("Division '{$rawDiv}' tidak dapat dipetakan ke Master Rekap Data NG.");
             }
 
             $month = strtoupper($date->format('M'));
@@ -269,7 +258,8 @@ class ListUpNgRecapSynchronizer
         foreach (ListUpNg::query()->where('tahun', $year)->get() as $ng) {
             $division = $this->canonicalDivision($ng);
             if ($division === null) {
-                throw new RuntimeException("Division '{$ng->dept}' tidak dapat dipetakan ke Master Rekap Data NG.");
+                $rawDiv = $ng->division ?? $ng->dept;
+                throw new RuntimeException("Division '{$rawDiv}' tidak dapat dipetakan ke Master Rekap Data NG.");
             }
 
             $details[] = [
@@ -294,9 +284,6 @@ class ListUpNgRecapSynchronizer
         });
     }
 
-    /**
-     * @return array<int, string>
-     */
     private function categoriesFromNote(?string $note): array
     {
         $normalized = ' ' . $this->normalizeNote($note) . ' ';
@@ -325,7 +312,7 @@ class ListUpNgRecapSynchronizer
 
     private function canonicalDivision(ListUpNg $ng): ?string
     {
-        $division = $this->canonicalDivisionName($ng->dept);
+        $division = $this->canonicalDivisionName((string) ($ng->division ?? $ng->dept));
         if ($division !== null) {
             return $division;
         }

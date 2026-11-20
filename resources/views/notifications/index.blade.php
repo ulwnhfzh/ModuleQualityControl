@@ -83,9 +83,9 @@
     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide">Verification Belum Dikonfirmasi</p>
-                <p class="text-3xl font-bold text-amber-700 mt-1">{{ $verifikasiBelumDikonfirmasi->count() }}</p>
-                <p class="text-[10px] text-amber-600 mt-0.5">Tahun {{ $hariIni->year }} · ada aktivitas tercatat</p>
+                <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide">Expired H-5 (Verif & Kalibrasi)</p>
+                <p class="text-3xl font-bold text-amber-700 mt-1">{{ isset($jadwalExpiredH5) ? $jadwalExpiredH5->count() : 0 }}</p>
+                <p class="text-[10px] text-amber-600 mt-0.5">Verifikasi, Kalibrasi Int & Eks</p>
             </div>
             <div class="bg-amber-200 text-amber-700 rounded-lg p-2.5">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -93,6 +93,68 @@
         </div>
     </div>
 </div>
+
+{{-- TABEL PENGINGAT EXPIRED H-5 (VERIFIKASI, KALIBRASI INTERNAL, KALIBRASI EKSTERNAL) --}}
+@if(isset($jadwalExpiredH5) && $jadwalExpiredH5->isNotEmpty())
+<div class="mb-4 overflow-hidden rounded-lg border border-rose-200 bg-white shadow-sm">
+    <div class="border-b border-rose-200 bg-rose-50 px-4 py-3 flex items-center justify-between">
+        <div>
+            <h3 class="text-sm font-semibold text-rose-900">Pengingat Expired Verifikasi & Kalibrasi (H-5 & Terlambat)</h3>
+            <p class="mt-0.5 text-xs text-rose-700">Mencakup Verifikasi Internal, Kalibrasi Internal, dan Kalibrasi Eksternal yang akan expired dalam ≤ 5 hari atau sudah lewat.</p>
+        </div>
+        <span class="rounded-full bg-rose-600 px-2.5 py-0.5 text-xs font-bold text-white">{{ $jadwalExpiredH5->count() }} Alat</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-800 text-white uppercase">
+                <tr>
+                    <th class="px-3 py-2.5 text-[10px]">No</th>
+                    <th class="px-3 py-2.5 text-[10px]">Kategori</th>
+                    <th class="px-3 py-2.5 text-[10px]">Tool Name</th>
+                    <th class="px-3 py-2.5 text-[10px]">Spec / Type</th>
+                    <th class="px-3 py-2.5 text-[10px]">No. Reg / Seri</th>
+                    <th class="px-3 py-2.5 text-[10px] text-center">Shop</th>
+                    <th class="px-3 py-2.5 text-[10px] text-center">Tanggal Expired</th>
+                    <th class="px-3 py-2.5 text-[10px] text-center">Status</th>
+                    <th class="px-3 py-2.5 text-[10px] text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($jadwalExpiredH5 as $idx => $sched)
+                    <tr class="border-b last:border-0 {{ $sched->sisa_hari < 0 ? 'bg-rose-50/70 hover:bg-rose-100/70' : 'bg-orange-50/50 hover:bg-orange-100/60' }}">
+                        <td class="px-3 py-2 font-semibold">{{ $idx + 1 }}</td>
+                        <td class="px-3 py-2">
+                            <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">{{ $sched->category }}</span>
+                            @if($sched->company)
+                                <div class="text-[9px] text-slate-500 mt-0.5">{{ $sched->company }}</div>
+                            @endif
+                        </td>
+                        <td class="px-3 py-2 font-semibold text-slate-900">{{ $sched->tool_name }}</td>
+                        <td class="px-3 py-2 text-slate-600">{{ $sched->specification ?: ($sched->tool_type ?: '-') }}</td>
+                        <td class="px-3 py-2 text-slate-600">{{ $sched->registration_number ?: ($sched->serial_number ?: '-') }}</td>
+                        <td class="px-3 py-2 text-center font-medium">{{ $sched->shop ?: '-' }}</td>
+                        <td class="px-3 py-2 text-center font-semibold">{{ \Carbon\Carbon::parse($sched->next_date)->format('d/m/Y') }}</td>
+                        <td class="px-3 py-2 text-center">
+                            @if($sched->sisa_hari < 0)
+                                <span class="rounded bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">Terlambat {{ abs($sched->sisa_hari) }} hari</span>
+                            @elseif($sched->sisa_hari === 0)
+                                <span class="rounded bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">Expired Hari Ini</span>
+                            @else
+                                <span class="rounded bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">H-{{ $sched->sisa_hari }} ({{ $sched->sisa_hari }} hari lagi)</span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-2 text-center">
+                            <a href="{{ $sched->route_url }}" class="inline-block rounded bg-blue-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-blue-700">
+                                Perbarui Jadwal
+                            </a>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
 
 @if($verifikasiBelumDikonfirmasi->isNotEmpty())
 <div class="mb-4 overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm">
@@ -267,7 +329,7 @@
 @endforeach
 
 {{-- EMPTY STATE --}}
-@if($alatTerlambat->count() == 0 && $alatJatuhTempo7->count() == 0 && $alatJatuhTempo30->count() == 0 && $verifikasiBelumDikonfirmasi->isEmpty())
+@if($alatTerlambat->count() == 0 && $alatJatuhTempo7->count() == 0 && $alatJatuhTempo30->count() == 0 && $verifikasiBelumDikonfirmasi->isEmpty() && (!isset($jadwalExpiredH5) || $jadwalExpiredH5->isEmpty()))
 <div class="bg-blue-50 border border-blue-200 rounded-xl p-12 text-center">
     <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto text-blue-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

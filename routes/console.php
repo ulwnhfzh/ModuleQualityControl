@@ -8,8 +8,10 @@ use App\Models\User;
 use App\Models\Verification;
 use App\Models\Setting;
 use App\Notifications\VerificationDueDateNotification;
+use App\Services\ScheduleExpiryNotifier;
 use App\Imports\ProductionDataFolderImport;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
@@ -34,6 +36,7 @@ Artisan::command('verifikasi:reminders', function (): void {
         ->all();
     $sent = 0;
 
+    // 1. Pengingat ExternalMachine yang sudah ada
     ExternalMachine::whereNotNull('next_date')
         ->whereDate('next_date', '<=', $limit->toDateString())
         ->orderBy('id')
@@ -60,6 +63,7 @@ Artisan::command('verifikasi:reminders', function (): void {
                     $nextDate->toDateString(),
                     $level,
                     $days,
+                    'Kalibrasi Mesin Eksternal',
                 ));
                 DB::table('verification_reminder_logs')->insert([
                     'eksternal_mesin_id' => $tool->id,
@@ -72,8 +76,37 @@ Artisan::command('verifikasi:reminders', function (): void {
             }
         });
 
+    // 2. Pengingat H-5 Expired Verifikasi, Kalibrasi Internal, dan Kalibrasi Eksternal
+    $dueSchedules = app(ScheduleExpiryNotifier::class)->dueItems($today);
+    foreach ($dueSchedules as $item) {
+        $cacheKey = "schedule_reminder_sent:{$item->unique_key}:{$item->next_date}:{$item->level}";
+        if (Cache::has($cacheKey)) {
+            continue;
+        }
+
+        $details = collect([
+            $item->company,
+            $item->shop ? "Shop: {$item->shop}" : null,
+            $item->specification ? "Spec: {$item->specification}" : null,
+            $item->registration_number ? "Reg: {$item->registration_number}" : null,
+            $item->serial_number ? "SN: {$item->serial_number}" : null,
+        ])->filter()->implode(' | ');
+
+        Notification::send($admins, new VerificationDueDateNotification(
+            $item->tool_name,
+            $item->next_date,
+            $item->level,
+            $item->sisa_hari,
+            $item->category,
+            $details !== '' ? $details : null,
+        ));
+
+        Cache::forever($cacheKey, now()->toDateTimeString());
+        $sent++;
+    }
+
     $this->info("Pengingat email terkirim untuk {$sent} alat.");
-})->purpose('Kirim pengingat email verifikasi mendekati tenggat dan terlambat.');
+})->purpose('Kirim pengingat email verifikasi dan kalibrasi (H-5 & terlambat).');
 
 Artisan::command('data-all-produksi:import-folder {path}', function (string $path): void {
     $summary = app(ProductionDataFolderImport::class)->import($path);

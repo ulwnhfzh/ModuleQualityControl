@@ -6,6 +6,7 @@ use App\Models\ExternalMachine;
 use App\Models\NotificationStatus;
 use App\Models\Setting;
 use App\Models\Verification;
+use App\Services\ScheduleExpiryNotifier;
 use App\Traits\LogsActivity;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -89,11 +90,15 @@ class NotificationController extends Controller
             return $item;
         })->values();
 
+        // Jadwal Verifikasi, Kalibrasi Internal, & Kalibrasi Eksternal H-5 & Terlambat
+        $jadwalExpiredH5 = app(ScheduleExpiryNotifier::class)->dueItems($hariIni);
+
         return view('notifications.index', compact(
             'alatTerlambat',
             'alatJatuhTempo7',
             'alatJatuhTempo30',
             'verifikasiBelumDikonfirmasi',
+            'jadwalExpiredH5',
             'hariIni',
             'warningCepat',
             'warningStandar'

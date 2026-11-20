@@ -119,9 +119,10 @@
             </thead>
             <tbody>
                 @forelse($schedules as $index => $schedule)
-                    <tr class="{{ $index % 2 ? 'bg-slate-50' : 'bg-white' }} hover:bg-blue-50">
+                    @php($hasNg = strtoupper(trim((string) $schedule->jgm)) === 'NG' || strtoupper(trim((string) $schedule->period2_jgm)) === 'NG')
+                    <tr id="schedule-{{ $schedule->id }}" class="target:ring-2 target:ring-blue-500 target:bg-blue-100/70 scroll-mt-24 {{ $hasNg ? 'bg-rose-100 text-rose-900 hover:bg-rose-200' : ($index % 2 ? 'bg-slate-50' : 'bg-white') . ' hover:bg-blue-50' }}">
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ ($schedules->firstItem() ?? 1) + $index }}</td>
-                        <td class="border border-slate-200 px-3 py-3 font-semibold text-slate-800">{{ $schedule->tool_name }}</td>
+                        <td class="border border-slate-200 px-3 py-3 font-semibold {{ $hasNg ? 'text-rose-950' : 'text-slate-800' }}">{{ $schedule->tool_name }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->tool_type }}</td>
                         <td class="border border-slate-200 px-3 py-3">{{ $schedule->specification ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->serial_number ?: '-' }}</td>
@@ -130,7 +131,15 @@
                         
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->calibration_date?->locale('id')->translatedFormat('d F Y') ?? '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->next_calibration_date?->locale('id')->translatedFormat('d F Y') ?? '-' }}</td>
-                        <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->jgm ?: '-' }}</td>
+                        <td class="border border-slate-200 px-3 py-3 text-center">
+                            @if(strtoupper(trim((string) $schedule->jgm)) === 'NG')
+                                <span class="rounded bg-rose-600 px-2 py-1 font-bold text-white">NG</span>
+                            @elseif(strtoupper(trim((string) $schedule->jgm)) === 'OK')
+                                <span class="rounded bg-blue-600 px-2 py-1 font-semibold text-white">OK</span>
+                            @else
+                                {{ $schedule->jgm ?: '-' }}
+                            @endif
+                        </td>
                         
                         @if(Auth::check() && Auth::user()->role === 'admin')
                             <td class="border border-slate-200 px-3 py-3"><div class="flex justify-center gap-2">

@@ -196,7 +196,7 @@ class ListUpNgStatusSynchronizer
         $date = Carbon::parse($ng->ng_date);
         $year = (int) $date->year;
         $toolName = $this->normalizeKey($ng->tool_name);
-        $department = $this->canonicalDivision($ng->dept);
+        $department = $this->canonicalDivision($ng->division ?? $ng->dept);
         if ($toolName === '') {
             return;
         }
@@ -255,7 +255,7 @@ class ListUpNgStatusSynchronizer
     private function resolveProductionMatches(ListUpNg $ng)
     {
         $matches = app(EquipmentIdentityMatcher::class)->productionMatches($ng);
-        $department = $this->canonicalDivision($ng->dept);
+        $department = $this->canonicalDivision($ng->division ?? $ng->dept);
         $departmentMatches = $matches->filter(fn (ProductionData $row): bool => $this->canonicalDivision($row->division) === $department
         );
 
@@ -273,7 +273,7 @@ class ListUpNgStatusSynchronizer
             'number_seri' => $row->number_seri,
             'number_reg' => $row->number_reg,
         ]));
-        $department = $this->canonicalDivision($ng->dept);
+        $department = $this->canonicalDivision($ng->division ?? $ng->dept);
         $departmentMatches = $matches->filter(fn (ProductionData $row): bool => $this->canonicalDivision($row->division) === $department);
 
         return $departmentMatches->isNotEmpty()
@@ -334,6 +334,11 @@ class ListUpNgStatusSynchronizer
                     continue;
                 }
 
+                // Jika jadwal verifikasi/kalibrasi terkait sudah dinyatakan OK, maka status di Data All Produksi dianggap OK
+                if ($this->isResolvedOkInSchedule($ng)) {
+                    continue;
+                }
+
                 $matches = $productionRows->filter(fn (ProductionData $row): bool => $matcher->matches($ng->getAttributes(), [
                     'type' => $row->type,
                     'size' => $row->size,
@@ -341,7 +346,7 @@ class ListUpNgStatusSynchronizer
                     'number_reg' => $row->number_reg,
                 ]));
                 $departmentMatches = $matches->filter(fn (ProductionData $row): bool =>
-                    $this->canonicalDivision($row->division) === $this->canonicalDivision($ng->dept)
+                    $this->canonicalDivision($row->division) === $this->canonicalDivision($ng->division ?? $ng->dept)
                 );
                 $selectedMatches = $departmentMatches->isNotEmpty()
                     ? $departmentMatches
@@ -365,12 +370,56 @@ class ListUpNgStatusSynchronizer
                 continue;
             }
 
-            if ($this->canonicalDivision($ng->dept) !== $this->canonicalDivision($target->shop)) {
+            if ($this->canonicalDivision($ng->division ?? $ng->dept) !== $this->canonicalDivision($target->shop)) {
                 continue;
             }
 
             if ($this->matchesTargetIdentity($type, $ng->getAttributes(), $target)) {
                 return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Mengecek apakah item NG sudah dinyatakan OK pada jadwal Verifikasi / Kalibrasi terkait.
+     */
+    private function isResolvedOkInSchedule(ListUpNg $ng): bool
+    {
+        $category = $this->categoryType($ng->category_ng);
+        if ($category === null) {
+            return false;
+        }
+
+        $date = Carbon::parse($ng->ng_date);
+        $year = (int) $date->year;
+        $toolName = $this->normalizeKey($ng->tool_name);
+        $department = $this->canonicalDivision($ng->division ?? $ng->dept);
+
+        $class = match ($category) {
+            'internal_calibration' => InternalCalibrationListUp::class,
+            'external_calibration' => ExternalCalibrationListUp::class,
+            'internal_verification' => InternalVerificationSchedule::class,
+        };
+
+        $rows = $class::query()
+            ->where('tahun', $year)
+            ->whereRaw('UPPER(TRIM(tool_name)) = ?', [$toolName])
+            ->get()
+            ->filter(fn (Model $row): bool => $this->canonicalDivision($row->getAttribute('shop')) === $department
+                && $this->matchesTargetIdentity($category, $ng->getAttributes(), $row)
+            );
+
+        if ($rows->count() !== 1) {
+            return false;
+        }
+
+        $row = $rows->first();
+        foreach ($this->periods($category) as $period) {
+            $periodDate = $row->getAttribute($period['date']);
+            if ($periodDate && Carbon::parse($periodDate)->format('Y-m') === $date->format('Y-m')) {
+                return strtoupper(trim((string) $row->getAttribute($period['status']))) === 'OK';
             }
         }
 
@@ -397,7 +446,7 @@ class ListUpNgStatusSynchronizer
                 'number_reg' => $row->number_reg,
             ]));
             $departmentMatches = $matches->filter(fn (ProductionData $row): bool =>
-                $this->canonicalDivision($row->division) === $this->canonicalDivision($ng->dept)
+                $this->canonicalDivision($row->division) === $this->canonicalDivision($ng->division ?? $ng->dept)
             );
             $selectedMatches = $departmentMatches->isNotEmpty()
                 ? $departmentMatches
@@ -407,7 +456,7 @@ class ListUpNgStatusSynchronizer
         }
 
         if ($this->categoryType($ng->category_ng) !== $type
-            || $this->canonicalDivision($ng->dept) !== $this->canonicalDivision($target->shop)
+            || $this->canonicalDivision($ng->division ?? $ng->dept) !== $this->canonicalDivision($target->shop)
             || ! $this->matchesTargetIdentity($type, $ng->getAttributes(), $target)) {
             return false;
         }

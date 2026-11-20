@@ -28,18 +28,43 @@ class ListUpNgController extends Controller
     public function index(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
-        $dept = $request->input('dept');
-        $departments = array_values(array_unique(array_merge(ToolDefect::DIVISIONS, self::DEPARTMENT_ALIASES)));
+        $bulan = $request->input('bulan');
+        $division = $request->input('division');
+        $categoryNg = $request->input('category_ng');
+
+        $departments = ListUpNg::where('tahun', $tahun)
+            ->whereNotNull('division')
+            ->where('division', '<>', '')
+            ->distinct()
+            ->orderBy('division', 'asc')
+            ->pluck('division')
+            ->toArray();
+
+        $categories = ListUpNg::where('tahun', $tahun)
+            ->whereNotNull('category_ng')
+            ->where('category_ng', '<>', '')
+            ->distinct()
+            ->orderBy('category_ng', 'asc')
+            ->pluck('category_ng')
+            ->toArray();
 
         $query = ListUpNg::where('tahun', $tahun);
 
-        if ($dept) {
-            $query->where('dept', $dept);
+        if ($bulan) {
+            $query->whereMonth('ng_date', $bulan);
+        }
+
+        if ($division) {
+            $query->where('division', $division);
+        }
+
+        if ($categoryNg) {
+            $query->where('category_ng', $categoryNg);
         }
 
         $ngs = $query->orderBy('ng_date', 'desc')->get();
 
-        return view('list-up-ng.index', compact('ngs', 'tahun', 'dept', 'departments'));
+        return view('list-up-ng.index', compact('ngs', 'tahun', 'bulan', 'division', 'categoryNg', 'departments', 'categories'));
     }
 
     public function create()
@@ -50,7 +75,14 @@ class ListUpNgController extends Controller
             $selectedType = null;
         }
         $toolOptions = $this->productionToolOptions($selectedToolName, $selectedType);
-        $departments = array_values(array_unique(array_merge(ToolDefect::DIVISIONS, self::DEPARTMENT_ALIASES)));
+
+        // INJECT DARI DATABASE
+        $departments = ListUpNg::whereNotNull('division')
+            ->where('division', '<>', '')
+            ->distinct()
+            ->orderBy('division', 'asc')
+            ->pluck('division')
+            ->toArray();
 
         return view('list-up-ng.create', compact('toolOptions', 'selectedToolName', 'selectedType', 'departments'));
     }
@@ -67,7 +99,7 @@ class ListUpNgController extends Controller
             'part_name' => 'nullable|string|max:255',
             'part_number' => 'nullable|string|max:255',
             'ng_date' => 'required|date',
-            'dept' => 'required|string|max:255',
+            'division' => 'required|string|max:255', // UBAH
             'category_ng' => 'required|string|max:255',
             'note' => 'nullable|string',
         ]);
@@ -92,7 +124,14 @@ class ListUpNgController extends Controller
             $selectedType = null;
         }
         $toolOptions = $this->productionToolOptions($selectedToolName, $selectedType);
-        $departments = array_values(array_unique(array_merge(ToolDefect::DIVISIONS, self::DEPARTMENT_ALIASES)));
+
+        // INJECT DARI DATABASE
+        $departments = ListUpNg::whereNotNull('division')
+            ->where('division', '<>', '')
+            ->distinct()
+            ->orderBy('division', 'asc')
+            ->pluck('division')
+            ->toArray();
 
         return view('list-up-ng.edit', compact('listUpNg', 'toolOptions', 'selectedToolName', 'selectedType', 'departments'));
     }
@@ -109,7 +148,7 @@ class ListUpNgController extends Controller
             'part_name' => 'nullable|string|max:255',
             'part_number' => 'nullable|string|max:255',
             'ng_date' => 'required|date',
-            'dept' => 'required|string|max:255',
+            'division' => 'required|string|max:255', // UBAH
             'category_ng' => 'required|string|max:255',
             'note' => 'nullable|string',
         ]);
@@ -153,7 +192,7 @@ class ListUpNgController extends Controller
                 [
                     ['tool_name', 'nama_alat'],
                     ['ng_date', 'tanggal_ng'],
-                    ['dept', 'division'],
+                    ['division', 'dept'], // UBAH: mendukung header 'division' atau 'dept' di Excel
                     ['category_ng', 'kategori_ng'],
                 ],
                 function (int $rowHeader) use (&$sheetImports, $validated): ListUpNgImport {
@@ -203,22 +242,33 @@ class ListUpNgController extends Controller
     public function exportExcel(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
-        $dept = $request->input('dept');
-        return Excel::download(new ListUpNgExport($tahun, $dept), "List_Up_NG_{$tahun}.xlsx");
+        $bulan = $request->input('bulan');
+        $division = $request->input('division');
+        $categoryNg = $request->input('category_ng');
+
+        return Excel::download(new ListUpNgExport($tahun, $division, $categoryNg, $bulan), "List_Up_NG_{$tahun}.xlsx");
     }
 
     public function exportPdf(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
-        $dept = $request->input('dept');
+        $bulan = $request->input('bulan');
+        $division = $request->input('division');
+        $categoryNg = $request->input('category_ng');
 
         $query = ListUpNg::where('tahun', $tahun);
-        if ($dept) {
-            $query->where('dept', $dept);
+        if ($bulan) {
+            $query->whereMonth('ng_date', $bulan);
+        }
+        if ($division) {
+            $query->where('division', $division);
+        }
+        if ($categoryNg) {
+            $query->where('category_ng', $categoryNg);
         }
         $ngs = $query->orderBy('ng_date', 'asc')->get();
 
-        $pdf = Pdf::loadView('list-up-ng.pdf', compact('ngs', 'tahun', 'dept'));
+        $pdf = Pdf::loadView('list-up-ng.pdf', compact('ngs', 'tahun', 'bulan', 'division', 'categoryNg'));
         $pdf->setPaper('a4', 'landscape');
 
         return $pdf->download("List_Up_NG_{$tahun}.pdf");
@@ -297,7 +347,7 @@ class ListUpNgController extends Controller
             return;
         }
 
-        $division = $this->canonicalProductionDivision($data['dept'] ?? '');
+        $division = $this->canonicalProductionDivision($data['division'] ?? ''); // UBAH: dept -> division
         $prototype = $masterRows->first(
             fn (ProductionData $row): bool => $this->canonicalProductionDivision($row->division) === $division
         ) ?? $masterRows->first();

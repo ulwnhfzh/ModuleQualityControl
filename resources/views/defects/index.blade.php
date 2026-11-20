@@ -10,12 +10,12 @@
                     YEAR
                     <select name="tahun" onchange="this.form.submit()" class="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs sm:px-2.5 sm:py-1.5 sm:text-sm">
                         @for($y = date('Y'); $y >= 2014; $y--)
-                            <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
+                            <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}> {{ $y }}</option>
                         @endfor
                     </select>
                 </label>
                 <label class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 sm:text-xs">
-                    BULAN
+                    MONTH
                     <select name="bulan" onchange="this.form.submit()" class="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs sm:px-2.5 sm:py-1.5 sm:text-sm">
                         @foreach(['JAN'=>'JANUARI','FEB'=>'FEBRUARI','MAR'=>'MARET','APR'=>'APRIL','MAY'=>'MEI','JUN'=>'JUNI','JUL'=>'JULI','AUG'=>'AGUSTUS','SEP'=>'SEPTEMBER','OCT'=>'OKTOBER','NOV'=>'NOVEMBER','DEC'=>'DESEMBER'] as $k => $v)
                             <option value="{{ $k }}" {{ $bulanFilter == $k ? 'selected' : '' }}>{{ $v }}</option>

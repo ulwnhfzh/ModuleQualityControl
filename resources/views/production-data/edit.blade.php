@@ -104,7 +104,6 @@
                     @foreach(['jan'=>'JAN', 'feb'=>'FEB', 'mar'=>'MAR', 'apr'=>'APR', 'may'=>'MEI', 'jun'=>'JUN', 'jul'=>'JUL', 'aug'=>'AUG', 'sep'=>'SEP', 'oct'=>'OCT', 'nov'=>'NOV', 'dec'=>'DEC'] as $key => $label)
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">{{ $label }}</label>
-                            <!-- UBAH KE TYPE="TEXT" -->
                             <input type="text" name="{{ $key }}" value="{{ old($key, $item->$key) }}" class="w-full rounded-lg border-slate-300 text-sm text-center focus:ring-blue-500 focus:border-blue-500" placeholder="OK / NG / 10">
                         </div>
                     @endforeach
@@ -119,10 +118,10 @@
             </div>
 
             <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-slate-200">
-                <a href="{{ route('data-all-produksi.index', ['division' => $item->division]) }}" class="inline-flex justify-center items-center rounded-lg border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition">Batal</a>
+                <a href="{{ route('data-all-produksi.index', ['division' => $item->division, 'year' => $item->year]) }}" class="inline-flex justify-center items-center rounded-lg border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition">Batal</a>
                 <button type="submit" class="inline-flex justify-center items-center rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 shadow-sm transition">Perbarui Data</button>
             </div>
         </form>
     </div>
 </div>
-@endsection2
+@endsection

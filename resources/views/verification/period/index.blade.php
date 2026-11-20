@@ -18,16 +18,16 @@
                 @endforeach
             </select>
             
-            <label for="jenis-list-up" class="text-xs font-semibold text-slate-500">JENIS LIST UP</label>
+            <label for="jenis-list-up" class="text-xs font-semibold text-slate-500">TYPE LIST UP</label>
             <select id="jenis-list-up" name="jenis" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
                 <option value="verifikasi" {{ $jenis === 'verifikasi' ? 'selected' : '' }}>Verification Internal</option>
                 <option value="verifikasi_qc2" id="option-qc2" {{ $jenis === 'verifikasi_qc2' ? 'selected' : '' }}>Verification Internal QC2</option>
             </select>
 
-            <label for="tahun" class="text-xs font-semibold text-slate-500">TAHUN</label>
+            <label for="tahun" class="text-xs font-semibold text-slate-500">YEAR</label>
             <select id="tahun" name="tahun" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
                 @for($y = max((int) date('Y') + 2, $tahun); $y >= date('Y') - 12; $y--)
-                    <option value="{{ $y }}" @selected($tahun === $y)>YEAR {{ $y }}</option>
+                    <option value="{{ $y }}" @selected($tahun === $y)>{{ $y }}</option>
                 @endfor
             </select>
 
@@ -145,7 +145,7 @@
             <tbody>
                 @forelse($schedules as $index => $schedule)
                     @php($hasNg = strtoupper(trim((string) $schedule->period1_jgm)) === 'NG' || strtoupper(trim((string) $schedule->period2_jgm)) === 'NG')
-                    <tr class="{{ $hasNg ? 'bg-rose-100 text-rose-900 hover:bg-rose-200' : ($index % 2 ? 'bg-slate-50' : 'bg-white') . ' hover:bg-blue-50/50' }}">
+                    <tr id="schedule-{{ $schedule->id }}" class="target:ring-2 target:ring-blue-500 target:bg-blue-100/70 scroll-mt-24 {{ $hasNg ? 'bg-rose-100 text-rose-900 hover:bg-rose-200' : ($index % 2 ? 'bg-slate-50' : 'bg-white') . ' hover:bg-blue-50/50' }}">
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ ($schedules->firstItem() ?? 1) + $index }}</td>
                         <td class="border border-slate-200 px-3 py-3 font-semibold text-slate-800">{{ $schedule->tool_name ?: '-' }}</td>
                         <td class="border border-slate-200 px-3 py-3 text-center">{{ $schedule->tool_type ?: '-' }}</td>

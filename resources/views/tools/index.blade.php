@@ -30,17 +30,17 @@
 
             <form method="GET" action="{{ route('tools.index') }}" class="flex flex-wrap items-center gap-2 sm:gap-3">
                 <div class="flex items-center gap-1.5">
-                    <label class="text-[10px] sm:text-xs font-semibold text-gray-500">TAHUN</label>
+                    <label class="text-[10px] sm:text-xs font-semibold text-gray-500">YEAR</label>
                     <select name="tahun" onchange="this.form.submit()"
                             class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @for($y = date('Y'); $y >= date('Y') - 12; $y--)
-                            <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
+                            <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}> {{ $y }}</option>
                         @endfor
                     </select>
                 </div>
 
                 <div class="flex items-center gap-1.5">
-                    <label class="text-[10px] sm:text-xs font-semibold text-gray-500">KATEGORI</label>
+                    <label class="text-[10px] sm:text-xs font-semibold text-gray-500">CATEGORY</label>
                     <select name="kategori" onchange="this.form.submit()"
                             class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="Jig" {{ $kategori == 'Jig' ? 'selected' : '' }}>Jig</option>
