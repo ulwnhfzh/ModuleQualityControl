@@ -19,7 +19,7 @@ class ListUpNgProductionSynchronizer
         }
 
         $matches = app(EquipmentIdentityMatcher::class)->productionMatches($ng);
-        $department = $this->canonicalDivision($ng->dept);
+        $department = $this->canonicalDivision($ng->division);
         $departmentMatches = $matches->filter(fn (ProductionData $row): bool =>
             $this->canonicalDivision($row->division) === $department
         );

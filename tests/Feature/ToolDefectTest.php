@@ -109,7 +109,7 @@ class ToolDefectTest extends TestCase
             'type' => 'MICROMETER',
             'size' => '0-25MM',
             'ng_date' => '2026-01-15',
-            'dept' => 'PRODUKSI 1',
+            'division' => 'PRODUKSI 1',
             'category_ng' => 'VERIFIKASI',
             'note' => 'OVER STD',
         ]);
@@ -174,7 +174,7 @@ class ToolDefectTest extends TestCase
             'size' => '0-25MM',
             'number_reg' => 'REG-B',
             'ng_date' => '2026-01-20',
-            'dept' => 'PRODUKSI 1',
+            'division' => 'PRODUKSI 1',
             'category_ng' => 'VERIFIKASI',
             'note' => 'RUSAK',
         ]);
@@ -214,9 +214,9 @@ class ToolDefectTest extends TestCase
             ->get(route('defects.index', ['tahun' => 2026, 'bulan' => 'JAN']))
             ->assertOk()
             ->assertSee('Data NG')
-            ->assertSee('YEAR 2014')
-            ->assertSee('YEAR 2026')
-            ->assertDontSee('YEAR 2013')
+            ->assertSee('value="2014"', false)
+            ->assertSee('value="2026"', false)
+            ->assertDontSee('value="2013"', false)
             ->assertSee('EDIT')
             ->assertSee('feature-toolbar relative z-10 mb-3 overflow-visible', false)
             ->assertSee('onclick="toggleExportNg()"', false)
@@ -263,7 +263,7 @@ class ToolDefectTest extends TestCase
             'type' => 'MICROMETER',
             'size' => '0-25MM',
             'ng_date' => '2026-03-15',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
             'note' => 'OVER STD',
         ]);

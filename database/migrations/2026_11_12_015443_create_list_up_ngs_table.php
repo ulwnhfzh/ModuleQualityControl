@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('part_name')->nullable();
             $table->string('part_number')->nullable();
             $table->date('ng_date');
-            $table->string('dept');
+            $table->string('division');
             $table->string('category_ng');
             $table->text('note')->nullable();
             $table->integer('stock_qa')->default(0);

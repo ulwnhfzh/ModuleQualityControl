@@ -39,9 +39,9 @@ class ListUpNgImport implements ToCollection, WithStartRow
         $hasSplitHeader = isset($rows[1]) && $this->isSplitSubheader($rows[1]);
         $subheader = $hasSplitHeader ? $rows[1] : [];
         $columns = $this->columnMap($header, $subheader);
-        $required = ['tool_name', 'ng_date', 'dept', 'category_ng'];
+        $required = ['tool_name', 'ng_date', 'division', 'category_ng'];
         if (array_diff($required, array_keys($columns)) !== []) {
-            throw new RuntimeException('Header List Up NG tidak memiliki kolom alat, tanggal NG, department, dan kategori NG.');
+            throw new RuntimeException('Header List Up NG tidak memiliki kolom alat, tanggal NG, division, dan kategori NG.');
         }
 
         foreach (array_slice($rows, $hasSplitHeader ? 2 : 1) as $row) {
@@ -51,10 +51,10 @@ class ListUpNgImport implements ToCollection, WithStartRow
             }
 
             $date = SpreadsheetInput::date($this->value($row, $columns, 'ng_date'), "{$name} / ng_date");
-            $department = $this->value($row, $columns, 'dept');
+            $department = $this->value($row, $columns, 'division');
             $category = $this->value($row, $columns, 'category_ng');
             if ($date === null || $department === null || $category === null) {
-                throw new RuntimeException("{$name}: tanggal NG, department, dan kategori NG wajib diisi.");
+                throw new RuntimeException("{$name}: tanggal NG, division, dan kategori NG wajib diisi.");
             }
             if ($this->expectedYear !== null && (int) substr($date, 0, 4) !== $this->expectedYear) {
                 throw new RuntimeException("{$name}: tanggal {$date} tidak termasuk tahun {$this->expectedYear}.");
@@ -70,7 +70,7 @@ class ListUpNgImport implements ToCollection, WithStartRow
                 'part_name' => $this->value($row, $columns, 'part_name'),
                 'part_number' => $this->value($row, $columns, 'part_number'),
                 'ng_date' => $date,
-                'dept' => $department,
+                'division' => $department,
                 'category_ng' => $category,
                 'note' => $this->value($row, $columns, 'note'),
             ]);
@@ -93,7 +93,7 @@ class ListUpNgImport implements ToCollection, WithStartRow
             'part_name' => ['part_name', 'nama_part'],
             'part_number' => ['part_number', 'nomor_part'],
             'ng_date' => ['ng_date', 'tanggal_ng'],
-            'dept' => ['dept', 'division', 'department'],
+            'division' => ['dept', 'division', 'department'],
             'category_ng' => ['category_ng', 'kategori_ng'],
             'note' => ['note', 'keterangan'],
         ];

@@ -76,7 +76,7 @@ class ListUpNgTest extends TestCase
                 'size' => '18 mm',
                 'number_reg' => 'HD-001',
                 'ng_date' => '2026-11-16',
-                'dept' => 'QA 1',
+                'division' => 'QA 1',
                 'category_ng' => 'VERIFIKASI',
                 'note' => 'OVER STD',
             ])
@@ -103,7 +103,7 @@ class ListUpNgTest extends TestCase
             'tool_name' => 'LEGACY TOOL',
             'type' => 'LEGACY TYPE',
             'ng_date' => '2026-10-15',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
         ]);
 
@@ -121,17 +121,17 @@ class ListUpNgTest extends TestCase
             'tahun' => 2026,
             'tool_name' => 'ONLY 2026 TOOL',
             'ng_date' => '2026-03-15',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
         ]);
 
         $this->actingAs($admin)
             ->get(route('list-up-ng.index', ['tahun' => 2024]))
             ->assertOk()
-            ->assertSee('YEAR 2014')
+            ->assertSee('value="2014"', false)
             ->assertSee('YEAR 2024')
-            ->assertSee('YEAR 2026')
-            ->assertDontSee('YEAR 2013')
+            ->assertSee('value="2026"', false)
+            ->assertDontSee('value="2013"', false)
             ->assertSee('Belum ada data List Up NG untuk YEAR')
             ->assertDontSee('ONLY 2026 TOOL')
             ->assertViewHas('ngs', fn ($ngs) => $ngs->isEmpty());
@@ -159,7 +159,7 @@ class ListUpNgTest extends TestCase
         $sheet = $workbook->getActiveSheet();
         $sheet->setTitle('LIST UP NG');
         $sheet->fromArray([
-            ['NO', 'TOOL NAME', 'TYPE', 'SIZE', 'NUMBER SERI', 'NUMBER REG.', 'PART NAME', 'PART NUMBER', 'NG DATE', 'DEPT', 'CATEGORY NG', 'NOTE', 'STOCK', null, 'STATUS ORDER', null, null],
+            ['NO', 'TOOL NAME', 'TYPE', 'SIZE', 'NUMBER SERI', 'NUMBER REG.', 'PART NAME', 'PART NUMBER', 'NG DATE', 'division', 'CATEGORY NG', 'NOTE', 'STOCK', null, 'STATUS ORDER', null, null],
             [null, null, null, null, null, null, null, null, null, null, null, null, 'QA', 'PROD', 'NO SPP', 'OPEN/CLOSED', 'NOTE'],
             [1, 'GAUGE A', 'MICROMETER', '0-25MM', 'SER-100', 'REG-100', 'PART A', 'P-100', '2026-03-15', 'QA 1', 'KALIBRASI', 'Instrument damaged', 4, 5, 'SPP-100', 'OPEN', 'Order follow-up'],
         ]);
@@ -175,7 +175,7 @@ class ListUpNgTest extends TestCase
                 [
                     ['tool_name', 'nama_alat'],
                     ['ng_date', 'tanggal_ng'],
-                    ['dept', 'division'],
+                    ['division', 'division'],
                     ['category_ng', 'kategori_ng'],
                 ],
                 function (int $rowHeader) use (&$sheetImports): ListUpNgImport {
@@ -208,7 +208,7 @@ class ListUpNgTest extends TestCase
     {
         $workbook = new Spreadsheet;
         $workbook->getActiveSheet()->fromArray([
-            ['TOOL NAME', 'NG DATE', 'DEPT', 'CATEGORY NG'],
+            ['TOOL NAME', 'NG DATE', 'division', 'CATEGORY NG'],
             ['GAUGE A', '2025-03-15', 'QA 1', 'KALIBRASI'],
         ]);
 
@@ -222,7 +222,7 @@ class ListUpNgTest extends TestCase
                 [
                     ['tool_name', 'nama_alat'],
                     ['ng_date', 'tanggal_ng'],
-                    ['dept', 'division'],
+                    ['division', 'division'],
                     ['category_ng', 'kategori_ng'],
                 ],
                 fn (int $rowHeader): ListUpNgImport => new ListUpNgImport($rowHeader, 2026),
@@ -243,7 +243,7 @@ class ListUpNgTest extends TestCase
             'type' => 'MICROMETER',
             'size' => '0-25MM',
             'ng_date' => '2026-03-15',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
             'note' => 'OVER STD, RUSAK, OVER STD',
         ]);
@@ -301,7 +301,7 @@ class ListUpNgTest extends TestCase
             'size' => '0-25MM',
             'number_reg' => 'REG-YEAR',
             'ng_date' => '2026-11-16',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
             'note' => 'OVER STD',
         ]);
@@ -336,7 +336,7 @@ class ListUpNgTest extends TestCase
             'size' => '0-25MM',
             'number_reg' => 'SAME-REG',
             'ng_date' => '2026-09-10',
-            'dept' => 'PRODUKSI 1',
+            'division' => 'PRODUKSI 1',
             'category_ng' => 'VERIFIKASI',
         ]);
 
@@ -363,7 +363,7 @@ class ListUpNgTest extends TestCase
             'type' => 'DIGITAL',
             'size' => '0-25MM',
             'number_reg' => 'REC-1',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
             'note' => 'OVER STD',
         ];
@@ -409,7 +409,7 @@ class ListUpNgTest extends TestCase
                 'size' => '0-25MM',
                 'number_reg' => null,
                 'ng_date' => '2026-03-10',
-                'dept' => 'QA 1',
+                'division' => 'QA 1',
                 'category_ng' => 'VERIFIKASI',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -422,7 +422,7 @@ class ListUpNgTest extends TestCase
             'size' => '0-25MM',
             'number_reg' => 'TARGET-REG',
             'ng_date' => '2026-03-10',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
             'created_at' => $now,
             'updated_at' => $now,
@@ -469,7 +469,7 @@ class ListUpNgTest extends TestCase
             'number_seri' => 'RESTORE-SER',
             'number_reg' => 'RESTORE-REG',
             'ng_date' => '2026-05-20',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'KALIBRASI',
         ]);
 
@@ -502,7 +502,7 @@ class ListUpNgTest extends TestCase
             'number_seri' => 'MOVE-SER',
             'number_reg' => 'MOVE-REG',
             'ng_date' => '2026-03-20',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
         ]);
 
@@ -521,7 +521,7 @@ class ListUpNgTest extends TestCase
             'tahun' => 2026,
             'tool_name' => 'EXPORT GAUGE',
             'ng_date' => '2026-05-10',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
         ]);
         $export = new ListUpNgExport(2026);
@@ -553,13 +553,13 @@ class ListUpNgTest extends TestCase
             'size' => '0-25MM',
             'number_reg' => 'IMPORT-REG',
             'ng_date' => '2026-11-10',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
             'note' => 'OVER STD',
         ]);
         $workbook = new Spreadsheet;
         $workbook->getActiveSheet()->fromArray([
-            ['TOOL NAME', 'NG DATE', 'DEPT', 'CATEGORY NG'],
+            ['TOOL NAME', 'NG DATE', 'division', 'CATEGORY NG'],
             ['OTHER GAUGE', '2026-11-15', 'QA 1', 'VERIFIKASI'],
         ]);
 
@@ -603,7 +603,7 @@ class ListUpNgTest extends TestCase
             'number_seri' => 'FINAL INSPECTION',
             'number_reg' => 'J-495',
             'ng_date' => '2026-07-14',
-            'dept' => 'PPIC',
+            'division' => 'PPIC',
             'category_ng' => 'VERIFIKASI',
             'note' => 'MIN STD',
         ]);
@@ -645,7 +645,7 @@ class ListUpNgTest extends TestCase
             'size' => '+0.01 Ø20.623 0',
             'number_seri' => 'FINAL INSPECTION',
             'number_reg' => 'J-491',
-            'dept' => 'PPIC',
+            'division' => 'PPIC',
         ]);
 
         $this->assertTrue(app(EquipmentIdentityMatcher::class)->productionMatches($ng)->isEmpty());
@@ -661,7 +661,7 @@ class ListUpNgTest extends TestCase
             'number_seri' => '2407663-1',
             'number_reg' => 'TR-61',
             'ng_date' => '2026-07-14',
-            'dept' => 'QA INSP',
+            'division' => 'QA INSP',
             'category_ng' => 'VERIFIKASI',
             'note' => 'OVER STD',
         ]);

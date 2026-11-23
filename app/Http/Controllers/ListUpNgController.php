@@ -25,6 +25,16 @@ class ListUpNgController extends Controller
         'QA INC', 'QA INSP', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'LSCC', 'ENG',
     ];
 
+    /**
+     * Daftar divisi standar yang selalu tampil di dropdown Division,
+     * digabung dengan divisi yang sudah ada di database.
+     */
+    private const STANDARD_DIVISIONS = [
+        'QA 1', 'QA 2', 'QA INC', 'QA INSP', 'PPIC 1', 'PPIC 2', 'LINE SCC',
+        'PRODUKSI 1', 'PRODUKSI 2', 'PRODUKSI 3', 'PRODUKSI 5', 'PRODUKSI 6', 'PRODUKSI 7', 'PRODUKSI 8',
+        'ENGINEERING', 'NISSHO',
+    ];
+
     public function index(Request $request)
     {
         $tahun = $request->input('tahun', date('Y'));
@@ -76,13 +86,7 @@ class ListUpNgController extends Controller
         }
         $toolOptions = $this->productionToolOptions($selectedToolName, $selectedType);
 
-        // INJECT DARI DATABASE
-        $departments = ListUpNg::whereNotNull('division')
-            ->where('division', '<>', '')
-            ->distinct()
-            ->orderBy('division', 'asc')
-            ->pluck('division')
-            ->toArray();
+        $departments = $this->departmentOptions();
 
         return view('list-up-ng.create', compact('toolOptions', 'selectedToolName', 'selectedType', 'departments'));
     }
@@ -125,13 +129,7 @@ class ListUpNgController extends Controller
         }
         $toolOptions = $this->productionToolOptions($selectedToolName, $selectedType);
 
-        // INJECT DARI DATABASE
-        $departments = ListUpNg::whereNotNull('division')
-            ->where('division', '<>', '')
-            ->distinct()
-            ->orderBy('division', 'asc')
-            ->pluck('division')
-            ->toArray();
+        $departments = $this->departmentOptions();
 
         return view('list-up-ng.edit', compact('listUpNg', 'toolOptions', 'selectedToolName', 'selectedType', 'departments'));
     }
@@ -272,6 +270,27 @@ class ListUpNgController extends Controller
         $pdf->setPaper('a4', 'landscape');
 
         return $pdf->download("List_Up_NG_{$tahun}.pdf");
+    }
+
+    /**
+     * Daftar divisi untuk dropdown form: divisi standar digabung
+     * dengan divisi yang sudah ada di List Up NG, tanpa duplikat.
+     */
+    private function departmentOptions(): array
+    {
+        return collect(self::STANDARD_DIVISIONS)
+            ->merge(
+                ListUpNg::whereNotNull('division')
+                    ->where('division', '<>', '')
+                    ->distinct()
+                    ->pluck('division')
+            )
+            ->map(fn ($division) => trim((string) $division))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
     }
 
     private function productionToolOptions(?string $selectedToolName = null, ?string $selectedType = null): array

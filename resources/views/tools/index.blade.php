@@ -43,10 +43,10 @@
                     <label class="text-[10px] sm:text-xs font-semibold text-gray-500">CATEGORY</label>
                     <select name="kategori" onchange="this.form.submit()"
                             class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="Jig" {{ $kategori == 'Jig' ? 'selected' : '' }}>Jig</option>
-                        <option value="Machine" {{ $kategori == 'Machine' ? 'selected' : '' }}>Machine</option>
-                        <option value="Master Kalibrator" {{ $kategori == 'Master Kalibrator' ? 'selected' : '' }}>Master Kalibrator</option>
-                        <option value="Small Tool" {{ $kategori == 'Small Tool' ? 'selected' : '' }}>Small Tool</option>
+                        <option value="Jig" {{ $kategori == 'Jig' ? 'selected' : '' }}>JIG</option>
+                        <option value="Machine" {{ $kategori == 'Machine' ? 'selected' : '' }}>MACHINE</option>
+                        <option value="Master Kalibrator" {{ $kategori == 'Master Kalibrator' ? 'selected' : '' }}>MASTER KALIBRATOR</option>
+                        <option value="Small Tool" {{ $kategori == 'Small Tool' ? 'selected' : '' }}>SMALL TOOL</option>
                     </select>
                 </div>
             </form>

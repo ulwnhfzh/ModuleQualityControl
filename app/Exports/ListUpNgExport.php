@@ -66,7 +66,7 @@ class ListUpNgExport implements FromCollection, WithHeadings, WithMapping, Shoul
             $row->part_name ?? '-',
             $row->part_number ?? '-',
             $row->ng_date ? $row->ng_date->format('d/m/Y') : '-',
-            $row->division ?? $row->dept,
+            $row->division ?? $row->division,
             $row->category_ng,
             $row->note ?? '-',
         ];

@@ -33,7 +33,7 @@
 
             <label for="verification-shop" class="text-xs font-semibold text-slate-500">SHOP</label>
             <select id="verification-shop" name="shop" onchange="this.form.submit()" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-auto">
-                <option value="">Semua Shop</option>
+                <option value="">ALL SHOP</option>
                 @foreach($shops as $shopOption)
                     <option value="{{ $shopOption }}" @selected($shop === $shopOption)>{{ $shopOption }}</option>
                 @endforeach
@@ -41,7 +41,7 @@
 
             <label for="verification-tool-name" class="text-xs font-semibold text-slate-500">TOOL NAME</label>
             <select id="verification-tool-name" name="tool_name" class="w-full min-w-0 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-48">
-                <option value="">Semua Tool</option>
+                <option value="">ALL TOOL</option>
                 @foreach($toolNameList as $toolOption)
                     <option value="{{ $toolOption }}" @selected($toolName === $toolOption)>{{ $toolOption }}</option>
                 @endforeach

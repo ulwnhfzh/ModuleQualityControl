@@ -10,29 +10,29 @@
         
         {{-- BAGIAN KIRI: FILTER --}}
         <div class="flex flex-wrap items-center gap-3">
-            <label for="external-category" class="text-xs font-semibold text-slate-500">KATEGORI</label>
+            <label for="external-category" class="text-xs font-semibold text-slate-500">CATEGORY</label>
             <select id="external-category" onchange="location.href=this.value" class="rounded-lg border-slate-300 bg-white px-3 py-2 text-sm">
-                <option value="{{ route('eksternal.small', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">Small Tool</option>
-                <option value="{{ route('mesin.index', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">Machine Alat Ukur</option>
-                <option value="{{ route('master-calibrator.index', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">Master Kalibrator</option>
+                <option value="{{ route('eksternal.small', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">SMALL TOOL</option>
+                <option value="{{ route('mesin.index', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">MACHINE ALAT UKUR</option>
+                <option value="{{ route('master-calibrator.index', ['tahun' => $year, 'sidebar_context' => 'external-list-up']) }}">MASTER KALIBRATOR</option>
             </select>
             <form method="GET" action="{{ route('external-list-up.index') }}" class="responsive-filter-grid flex flex-wrap items-center gap-2">
-                <label for="external-list-up-year" class="text-xs font-semibold text-slate-500">TAHUN</label>
+                <label for="external-list-up-year" class="text-xs font-semibold text-slate-500">YEAR</label>
                 <select id="external-list-up-year" name="tahun" onchange="this.form.submit()" class="rounded-lg border-slate-300 bg-white px-3 py-2 text-sm">
                     @for($y = date('Y'); $y >= date('Y') - 12; $y--)
-                        <option value="{{ $y }}" @selected($year == $y)>YEAR {{ $y }}</option>
+                        <option value="{{ $y }}" @selected($year == $y)> {{ $y }}</option>
                     @endfor
                 </select>
                 <label for="external-list-up-shop" class="text-xs font-semibold text-slate-500">SHOP</label>
                 <select id="external-list-up-shop" name="shop" onchange="this.form.submit()" class="rounded-lg border-slate-300 bg-white px-3 py-2 text-sm">
-                    <option value="">Semua Shop</option>
+                    <option value="">ALL SHOP</option>
                     @foreach($shops as $shopOption)
                         <option value="{{ $shopOption }}" @selected($shop === $shopOption)>{{ $shopOption }}</option>
                     @endforeach
                 </select>
                 <label for="external-list-up-tool-name" class="text-xs font-semibold text-slate-500">TOOL NAME</label>
                 <select id="external-list-up-tool-name" name="tool_name" class="w-40 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm sm:w-48">
-                    <option value="">Semua Tool</option>
+                    <option value="">ALL TOOL</option>
                     @foreach($toolNameList as $toolOption)
                         <option value="{{ $toolOption }}" @selected($toolName === $toolOption)>{{ $toolOption }}</option>
                     @endforeach

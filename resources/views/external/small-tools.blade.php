@@ -21,13 +21,13 @@
                 <input type="hidden" name="sidebar_context" value="external-list-up">
             @endif
             <div class="flex items-center gap-2">
-                <label for="kategori-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">KATEGORI</label>
+                <label for="kategori-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">CATEGORY</label>
                 <select id="kategori-eksternal" aria-label="Kategori kalibrasi eksternal"
                         onchange="this.form.action = this.value; this.form.submit()"
                         class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="{{ route('eksternal.small') }}" selected>Small Tool</option>
-                    <option value="{{ route('mesin.index', request('sidebar_context') === 'external-list-up' ? ['sidebar_context' => 'external-list-up'] : []) }}">Machine Alat Ukur</option>
-                    <option value="{{ route('master-calibrator.index', request('sidebar_context') === 'external-list-up' ? ['sidebar_context' => 'external-list-up'] : []) }}">Master Kalibrator</option>
+                    <option value="{{ route('eksternal.small') }}" selected>SMALL TOOL</option>
+                    <option value="{{ route('mesin.index', request('sidebar_context') === 'external-list-up' ? ['sidebar_context' => 'external-list-up'] : []) }}">MACHINE ALAT UKUR</option>
+                    <option value="{{ route('master-calibrator.index', request('sidebar_context') === 'external-list-up' ? ['sidebar_context' => 'external-list-up'] : []) }}">MASTER KALIBRATOR</option>
                 </select>
             </div>
             
@@ -42,11 +42,11 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <label for="tahun-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">TAHUN</label>
+                <label for="tahun-eksternal" class="text-[10px] sm:text-xs font-semibold text-gray-500 whitespace-nowrap">YEAR</label>
                 <select id="tahun-eksternal" name="tahun" onchange="this.form.submit()"
                         class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1.5 sm:px-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @for($y = date('Y'); $y >= date('Y') - 12; $y--)
-                        <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>YEAR {{ $y }}</option>
+                        <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}> {{ $y }}</option>
                     @endfor
                 </select>
             </div>

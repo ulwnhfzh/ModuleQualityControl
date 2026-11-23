@@ -15,8 +15,8 @@
 <body>
 
     <h2 style="text-align: center; margin-bottom: 5px;">LIST UP TOTAL TOOL MEASUREMENT NG {{ $tahun }}</h2>
-    @if($dept)
-        <p style="text-align: center; margin-top: 0;">Departemen: <strong>{{ $dept }}</strong></p>
+    @if($division)
+        <p style="text-align: center; margin-top: 0;">Departemen: <strong>{{ $division }}</strong></p>
     @endif
 
     <table class="data">

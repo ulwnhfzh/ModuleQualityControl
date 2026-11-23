@@ -196,7 +196,7 @@ class ListUpNgStatusSynchronizer
         $date = Carbon::parse($ng->ng_date);
         $year = (int) $date->year;
         $toolName = $this->normalizeKey($ng->tool_name);
-        $department = $this->canonicalDivision($ng->division ?? $ng->dept);
+        $department = $this->canonicalDivision($ng->division);
         if ($toolName === '') {
             return;
         }
@@ -255,7 +255,7 @@ class ListUpNgStatusSynchronizer
     private function resolveProductionMatches(ListUpNg $ng)
     {
         $matches = app(EquipmentIdentityMatcher::class)->productionMatches($ng);
-        $department = $this->canonicalDivision($ng->division ?? $ng->dept);
+        $department = $this->canonicalDivision($ng->division);
         $departmentMatches = $matches->filter(fn (ProductionData $row): bool => $this->canonicalDivision($row->division) === $department
         );
 
@@ -273,7 +273,7 @@ class ListUpNgStatusSynchronizer
             'number_seri' => $row->number_seri,
             'number_reg' => $row->number_reg,
         ]));
-        $department = $this->canonicalDivision($ng->division ?? $ng->dept);
+        $department = $this->canonicalDivision($ng->division);
         $departmentMatches = $matches->filter(fn (ProductionData $row): bool => $this->canonicalDivision($row->division) === $department);
 
         return $departmentMatches->isNotEmpty()
@@ -346,7 +346,7 @@ class ListUpNgStatusSynchronizer
                     'number_reg' => $row->number_reg,
                 ]));
                 $departmentMatches = $matches->filter(fn (ProductionData $row): bool =>
-                    $this->canonicalDivision($row->division) === $this->canonicalDivision($ng->division ?? $ng->dept)
+                    $this->canonicalDivision($row->division) === $this->canonicalDivision($ng->division)
                 );
                 $selectedMatches = $departmentMatches->isNotEmpty()
                     ? $departmentMatches
@@ -370,7 +370,7 @@ class ListUpNgStatusSynchronizer
                 continue;
             }
 
-            if ($this->canonicalDivision($ng->division ?? $ng->dept) !== $this->canonicalDivision($target->shop)) {
+            if ($this->canonicalDivision($ng->division) !== $this->canonicalDivision($target->shop)) {
                 continue;
             }
 
@@ -395,7 +395,7 @@ class ListUpNgStatusSynchronizer
         $date = Carbon::parse($ng->ng_date);
         $year = (int) $date->year;
         $toolName = $this->normalizeKey($ng->tool_name);
-        $department = $this->canonicalDivision($ng->division ?? $ng->dept);
+        $department = $this->canonicalDivision($ng->division);
 
         $class = match ($category) {
             'internal_calibration' => InternalCalibrationListUp::class,
@@ -446,7 +446,7 @@ class ListUpNgStatusSynchronizer
                 'number_reg' => $row->number_reg,
             ]));
             $departmentMatches = $matches->filter(fn (ProductionData $row): bool =>
-                $this->canonicalDivision($row->division) === $this->canonicalDivision($ng->division ?? $ng->dept)
+                $this->canonicalDivision($row->division) === $this->canonicalDivision($ng->division)
             );
             $selectedMatches = $departmentMatches->isNotEmpty()
                 ? $departmentMatches
@@ -456,7 +456,7 @@ class ListUpNgStatusSynchronizer
         }
 
         if ($this->categoryType($ng->category_ng) !== $type
-            || $this->canonicalDivision($ng->division ?? $ng->dept) !== $this->canonicalDivision($target->shop)
+            || $this->canonicalDivision($ng->division) !== $this->canonicalDivision($target->shop)
             || ! $this->matchesTargetIdentity($type, $ng->getAttributes(), $target)) {
             return false;
         }

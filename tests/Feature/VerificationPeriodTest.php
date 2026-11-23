@@ -328,7 +328,7 @@ class VerificationPeriodTest extends TestCase
             'number_seri' => 'EDIT-SER',
             'number_reg' => 'EDIT-REG',
             'ng_date' => '2026-03-20',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'KALIBRASI',
         ]);
         $this->assertSame('NG', $schedule->fresh()->getAttribute('jgm'));

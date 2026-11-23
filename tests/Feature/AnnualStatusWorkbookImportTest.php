@@ -110,7 +110,7 @@ class AnnualStatusWorkbookImportTest extends TestCase
             'number_seri' => 'SER-2',
             'number_reg' => 'REG-2',
             'ng_date' => '2026-07-03',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'VERIFIKASI',
         ]);
 
@@ -172,7 +172,7 @@ class AnnualStatusWorkbookImportTest extends TestCase
             'number_seri' => 'SER-4',
             'number_reg' => 'REG-4',
             'ng_date' => '2026-03-10',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'KALIBRASI',
         ]);
         $this->assertNull($schedule->fresh()->jgm);
@@ -185,7 +185,7 @@ class AnnualStatusWorkbookImportTest extends TestCase
             'number_seri' => 'SER-4',
             'number_reg' => 'REG-4',
             'ng_date' => '2026-04-20',
-            'dept' => 'QA 1',
+            'division' => 'QA 1',
             'category_ng' => 'KALIBRASI',
         ]);
         $this->assertSame('NG', $schedule->fresh()->jgm);
@@ -211,7 +211,7 @@ class AnnualStatusWorkbookImportTest extends TestCase
             'number_seri' => 'SER-5',
             'number_reg' => 'REG-5',
             'ng_date' => '2026-05-20',
-            'dept' => 'QA 2',
+            'division' => 'QA 2',
             'category_ng' => 'KALIBRASI EKSTENAL',
         ]);
         $this->assertSame('NG', $schedule->fresh()->jgm);
@@ -240,7 +240,7 @@ class AnnualStatusWorkbookImportTest extends TestCase
             'number_seri' => 'SER-6',
             'number_reg' => 'REG-6',
             'ng_date' => '2026-03-20',
-            'dept' => 'P3',
+            'division' => 'P3',
             'category_ng' => 'VERIFIKASI',
         ]);
 

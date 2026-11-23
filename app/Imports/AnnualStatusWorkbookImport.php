@@ -333,7 +333,7 @@ class AnnualStatusWorkbookImport
     private function matchesIdentity(array $ng, array $record): bool
     {
         if ($this->normalize($ng['tool_name'] ?? null) !== $this->normalize($record['tool_name'] ?? null)
-            || $this->canonicalDivision($ng['dept'] ?? null) !== $this->canonicalDivision($record['shop'] ?? null)
+            || $this->canonicalDivision($ng['division'] ?? null) !== $this->canonicalDivision($record['shop'] ?? null)
             || $this->normalize($ng['size'] ?? null) !== $this->normalize($record['specification'] ?? null)) {
             return false;
         }

@@ -35,10 +35,10 @@ class ProductionDataTest extends TestCase
             ->get(route('data-all-produksi.index', ['year' => 2026]))
             ->assertOk()
             ->assertSee('DATA ALAT UKUR ALL PRODUKSI')
-            ->assertSee('YEAR 2014')
-            ->assertSee('YEAR 2025')
-            ->assertSee('YEAR 2026')
-            ->assertDontSee('YEAR 2013')
+            ->assertSee('value="2014"', false)
+            ->assertSee('value="2025"', false)
+            ->assertSee('value="2026"', false)
+            ->assertDontSee('value="2013"', false)
             ->viewData('data');
 
         $this->assertSame(
@@ -96,7 +96,7 @@ class ProductionDataTest extends TestCase
         $response = $this->actingAs($admin)
             ->get(route('data-all-produksi.index', ['year' => 2024]))
             ->assertOk()
-            ->assertSee('YEAR 2024')
+            ->assertSee('value="2024"', false)
             ->assertSee('Belum ada data untuk pencarian ini.')
             ->assertDontSee('TEMPLATE ONLY TOOL')
             ->assertDontSee('CURRENT YEAR TOOL');

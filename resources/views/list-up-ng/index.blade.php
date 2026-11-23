@@ -40,7 +40,7 @@
                 <div class="flex items-center gap-1.5">
                     <label class="text-[10px] sm:text-xs font-semibold text-gray-500">MONTH</label>
                     <select name="bulan" onchange="this.form.submit()" class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Semua Bulan</option>
+                        <option value="">ALL MONTH</option>
                         @foreach($namaBulan as $num => $label)
                             <option value="{{ $num }}" {{ (string) $bulan === (string) $num ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
@@ -49,7 +49,7 @@
                 <div class="flex items-center gap-1.5">
                     <label class="text-[10px] sm:text-xs font-semibold text-gray-500">DIVISION</label>
                     <select name="division" onchange="this.form.submit()" class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Semua Division</option>
+                        <option value="">ALL DIVISION</option>
                         @foreach($departments as $d)
                             <option value="{{ $d }}" {{ $division == $d ? 'selected' : '' }}>{{ $d }}</option>
                         @endforeach
@@ -58,7 +58,7 @@
                 <div class="flex items-center gap-1.5">
                     <label class="text-[10px] sm:text-xs font-semibold text-gray-500">CATEGORY</label>
                     <select name="category_ng" onchange="this.form.submit()" class="border border-gray-300 rounded text-xs sm:text-sm bg-white px-2 py-1 sm:px-2.5 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Semua Category</option>
+                        <option value="">ALL CATEGORY</option>
                         @foreach($categories as $cat)
                             <option value="{{ $cat }}" {{ $categoryNg == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                         @endforeach

@@ -67,10 +67,10 @@
             </div>
             <div class="min-w-0">
                 <label class="block text-sm font-semibold mb-1">Division *</label>
-                <select name="dept" required class="w-full border p-2 rounded">
+                <select name="division" required class="w-full border p-2 rounded">
                     <option value="">-- Pilih Division --</option>
                     @foreach($departments as $department)
-                        <option value="{{ $department }}" @selected(old('dept') === $department)>{{ $department }}</option>
+                        <option value="{{ $department }}" @selected(old('division') === $department)>{{ $department }}</option>
                     @endforeach
                 </select>
             </div>

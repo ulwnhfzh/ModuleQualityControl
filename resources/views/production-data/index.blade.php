@@ -27,7 +27,7 @@
                     <label for="division-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">DIVISION</label>
                     <div class="w-full sm:w-auto min-w-[130px]">
                         <select id="division-select" name="division" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="ALL" {{ $selectedDivision === 'ALL' ? 'selected' : '' }}>Semua Division</option>
+                            <option value="ALL" {{ $selectedDivision === 'ALL' ? 'selected' : '' }}>ALL DIVISION</option>
                             @foreach($divisionList as $division)
                                 <option value="{{ $division }}" {{ $selectedDivision === $division ? 'selected' : '' }}>{{ $division }}</option>
                             @endforeach
@@ -39,7 +39,7 @@
                     <label for="category-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">CATEGORY</label>
                     <div class="w-full sm:w-auto min-w-[170px]">
                         <select id="category-select" name="category" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="ALL" {{ $selectedCategory === 'ALL' ? 'selected' : '' }}>Semua Kategori</option>
+                            <option value="ALL" {{ $selectedCategory === 'ALL' ? 'selected' : '' }}>ALL CATEGORY</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category }}" {{ $selectedCategory === $category ? 'selected' : '' }}>{{ $category }}</option>
                             @endforeach
@@ -52,7 +52,7 @@
                     <label for="tool-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">TOOL NAME</label>
                     <div class="w-full sm:w-auto min-w-[180px]">
                         <select id="tool-select" name="tool_name" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Semua Tool</option>
+                            <option value="">ALL TOOL</option>
                             @foreach($toolNameList as $toolName)
                                 <option value="{{ $toolName }}" {{ $searchTool === $toolName ? 'selected' : '' }}>{{ $toolName }}</option>
                             @endforeach
@@ -205,7 +205,7 @@
                 if (!response.ok) throw new Error('Request gagal');
 
                 const tools = await response.json();
-                toolSelect.replaceChildren(new Option('Semua Tool', ''));
+                toolSelect.replaceChildren(new Option('All Tool', ''));
                 tools.forEach(function (tool) {
                     const option = new Option(tool, tool);
                     option.selected = tool === currentTool;
