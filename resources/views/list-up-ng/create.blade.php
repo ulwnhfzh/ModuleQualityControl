@@ -30,7 +30,7 @@
                 <label class="block text-sm font-semibold mb-1">Type</label>
                 <select id="type" name="type" class="w-full border p-2 rounded">
                     <option value="">-- Pilih Type --</option>
-                    @foreach($toolOptions[$selectedToolName] ?? [] as $typeOption)
+                    @foreach(($toolOptions[$selectedToolName ?? ''] ?? []) as $typeOption)
                         <option value="{{ $typeOption }}" @selected($selectedType === $typeOption)>{{ $typeOption }}</option>
                     @endforeach
                     <option value="__add_new_type__" @selected(old('type') === '__add_new_type__')>+ Tambah Type Baru</option>
