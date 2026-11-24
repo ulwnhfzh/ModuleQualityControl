@@ -101,7 +101,7 @@
             <h3 class="font-semibold text-gray-800 text-sm">Ringkasan per Fitur</h3>
             <a href="{{ route('reports.index', ['tab' => 'log']) }}" class="text-xs font-semibold text-blue-700 hover:text-blue-900">Buka log audit →</a>
         </div>
-        <table class="w-full text-xs text-left">
+        <table class="data-grid w-full text-xs text-left border-collapse">
             <thead class="bg-gray-100 text-gray-700 uppercase">
                 <tr>
                     <th class="px-4 py-2 font-semibold">Jenis</th>
@@ -142,8 +142,8 @@
         <h3 class="font-semibold text-gray-800 text-sm">⏰ Alat Jatuh Tempo Kalibrasi ({{ $warningDays }} Hari ke Depan)</h3>
         <span class="text-[10px] text-gray-500">Per {{ $tanggalCarbon->format('d F Y') }}</span>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-xs text-left">
+    <div class="overflow-x-auto table-sticky-scroll">
+        <table class="data-grid w-full text-xs text-left border-collapse">
             <thead class="bg-amber-600 text-white uppercase">
                 <tr>
                     <th class="px-3 py-2.5 text-[10px]">No</th>

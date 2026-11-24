@@ -43,7 +43,7 @@
             display: flex; align-items: center; justify-content: center;
         }
         .sidebar-link .icon svg { width: 18px; height: 18px; stroke-width: 2; }
-        
+
         .sidebar-sublink {
             display: flex; align-items: center; gap: 10px;
             padding: 8px 12px; border-radius: 6px;
@@ -67,9 +67,9 @@
             background-color: #0070f2;
             box-shadow: 0 0 0 3px rgba(0, 112, 242, 0.16);
         }
-        
+
         .chevron { transition: transform 0.2s ease; }
-        
+
         .sidebar-section {
             font-size: 10px; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.08em; color: #6a7d90; padding: 0 12px; margin: 16px 0 6px;
@@ -79,7 +79,7 @@
         .main-content table { border-collapse: collapse; background-color: #fff; }
         .main-content table th,
         .main-content table td { border: 1px solid #d9d9d9; }
-        
+
         .main-content table thead tr:first-child th {
             background-color: #0070f2;
             border-color: #0054b5;
@@ -146,7 +146,7 @@
             background-color: #0054b5;
             border-color: #0054b5;
         }
-        
+
         .sidebar-scroll::-webkit-scrollbar { width: 4px; }
         .sidebar-scroll::-webkit-scrollbar-thumb { background: #b8c4ce; border-radius: 2px; }
         html, body { overflow-x: hidden; }
@@ -203,7 +203,7 @@
     <header class="bg-white border-b border-slate-200 fixed top-0 left-0 right-0 z-50 h-16">
         <div class="h-full px-2 sm:px-4 lg:px-6 flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-2 min-w-0 flex-1">
-                <button type="button" 
+                <button type="button"
                         @click="if (window.innerWidth >= 1024) { sidebarDesktopOpen = !sidebarDesktopOpen } else { sidebarOpen = !sidebarOpen }"
                         class="bg-slate-100 hover:bg-slate-200 rounded-lg p-2 shrink-0 transition">
                     <svg x-show="!sidebarOpen && !sidebarDesktopOpen" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -287,7 +287,7 @@
                kalibrasiOpen: {{ $kalibrasiSidebarOpen ? 'true' : 'false' }}
            }">
         <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
-            
+
             <p class="sidebar-section">Data & Master</p>
             <nav class="px-3 space-y-1">
                 <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -343,7 +343,7 @@
                     <span class="flex-1 text-left">Kalibrasi Alat</span>
                     <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
-                
+
                 <div x-show="kalibrasiOpen" @unless($kalibrasiSidebarOpen) x-cloak @endunless class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" class="sidebar-sublink {{ !$externalListUpSidebarContext && (request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('master-calibrator.*')) ? 'active' : '' }}"><span class="dot"></span><span>Jadwal Kalibrasi</span></a>
                     <a href="{{ route('external-list-up.index') }}" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') || $externalListUpSidebarContext ? 'active' : '' }}"><span class="dot"></span><span>List Up External Calibration</span></a>
@@ -405,7 +405,7 @@
                kalibrasiOpen: {{ $kalibrasiSidebarOpen ? 'true' : 'false' }}
            }">
         <div class="flex-1 overflow-y-auto sidebar-scroll py-4">
-            
+
             <p class="sidebar-section">Data & Master</p>
             <nav class="px-3 space-y-1">
                 <a href="{{ route('dashboard') }}" @click="sidebarOpen = false" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -457,7 +457,7 @@
                     <span class="flex-1 text-left">Kalibrasi Alat</span>
                     <svg class="chevron w-4 h-4" :class="kalibrasiOpen ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
-                
+
                 <div x-show="kalibrasiOpen" @unless($kalibrasiSidebarOpen) x-cloak @endunless class="pl-3 space-y-1 mt-1">
                     <a href="{{ route('eksternal.small') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ !$externalListUpSidebarContext && (request()->routeIs('eksternal.small*') || request()->routeIs('mesin.*') || request()->routeIs('master-calibrator.*')) ? 'active' : '' }}"><span class="dot"></span><span>Jadwal Kalibrasi</span></a>
                     <a href="{{ route('external-list-up.index') }}" @click="sidebarOpen = false" class="sidebar-sublink {{ request()->routeIs('external-list-up.*') || $externalListUpSidebarContext ? 'active' : '' }}"><span class="dot"></span><span>List Up External Calibration</span></a>
@@ -520,6 +520,42 @@
                 e.target.setSelectionRange(start, end);
             }
         });
+    </script>
+
+    <!-- Jendela detail untuk sel tabel yang terpotong -->
+    <dialog id="cell-detail-dialog" class="m-auto border border-slate-300 p-0 shadow-xl backdrop:bg-slate-900/40" style="width:min(92vw,520px)">
+        <div class="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
+            <h2 class="text-sm font-bold text-slate-800">Detail</h2>
+            <button type="button" data-cell-close class="px-2 text-xl leading-none text-slate-500 hover:text-slate-800" aria-label="Tutup">&times;</button>
+        </div>
+        <p id="cell-detail-text" class="px-4 py-4 text-sm leading-relaxed text-slate-800 break-words whitespace-pre-line"></p>
+    </dialog>
+    <script>
+        (function () {
+            const dialog = document.getElementById('cell-detail-dialog');
+            const detailText = document.getElementById('cell-detail-text');
+            const cellSelector = '.table-sticky-scroll table tbody td';
+
+            const isClipped = (el) => el.scrollWidth > el.clientWidth + 1;
+
+            // Tooltip: isi title dengan teks lengkap hanya kalau sel memang terpotong
+            document.addEventListener('mouseover', function (e) {
+                const cell = e.target.closest(cellSelector);
+                if (cell && isClipped(cell)) cell.title = cell.textContent.trim();
+            });
+
+            // Klik sel yang terpotong: buka jendela berisi teks lengkap
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('a, button, form, input, select, label')) return;
+                const cell = e.target.closest(cellSelector);
+                if (!cell || !isClipped(cell)) return;
+                detailText.textContent = cell.textContent.trim();
+                dialog.showModal();
+            });
+
+            dialog.querySelector('[data-cell-close]').addEventListener('click', () => dialog.close());
+            dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+        })();
     </script>
 
 </body>

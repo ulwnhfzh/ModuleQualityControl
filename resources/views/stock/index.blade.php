@@ -18,43 +18,47 @@
     @endif
 
     <section class="feature-toolbar border border-slate-300 bg-white p-3">
-        <div class="feature-toolbar-layout flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-                <h1 class="text-lg font-semibold text-slate-900">Data Stock Alat Ukur QA Plant 2</h1>
-                <p class="mt-1 text-sm text-slate-600">Persediaan dan pergerakan alat ukur per bulan.</p>
+        <div class="feature-toolbar-layout flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <!-- KIRI: Judul -->
+            <div class="min-w-0">
+                <h1 class="text-base font-semibold text-slate-900 sm:text-lg">Data Stock Alat Ukur QA Plant 2</h1>
+                <p class="mt-1 text-xs text-slate-600 sm:text-sm">Persediaan dan pergerakan alat ukur per bulan.</p>
             </div>
-            <form method="GET" action="{{ route('stock.index') }}" class="flex flex-wrap items-end gap-2.5">
-                <label class="text-xs font-semibold text-gray-600">Tahun
-                    <select name="tahun" class="mt-1 block min-h-9 border-slate-400 text-sm">
+
+            <!-- KANAN: Filter -->
+            <form method="GET" action="{{ route('stock.index') }}" class="flex w-full min-w-0 flex-wrap items-end gap-2 xl:w-auto xl:flex-nowrap xl:gap-3">
+                <label class="flex min-w-0 basis-[calc(50%-0.25rem)] flex-col gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:basis-auto">Tahun
+                    <select name="tahun" class="w-full min-w-0 rounded-md border-slate-300 bg-white py-1.5 pl-2 pr-8 text-xs normal-case tracking-normal text-slate-800 focus:border-blue-500 focus:ring-blue-500 sm:w-auto xl:w-[100px]">
                         @for($year = date('Y'); $year >= date('Y') - 12; $year--)
                             <option value="{{ $year }}" @selected($tahun === $year)>{{ $year }}</option>
                         @endfor
                     </select>
                 </label>
-                <label class="text-xs font-semibold text-gray-600">Kategori
-                    <select name="kategori" class="mt-1 block min-h-9 border-slate-400 text-sm">
+                <label class="flex min-w-0 basis-[calc(50%-0.25rem)] flex-col gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:basis-auto">Kategori
+                    <select name="kategori" class="w-full min-w-0 rounded-md border-slate-300 bg-white py-1.5 pl-2 pr-8 text-xs normal-case tracking-normal text-slate-800 focus:border-blue-500 focus:ring-blue-500 sm:w-auto xl:w-[140px]">
                         @foreach(['Small Tool', 'Machine', 'Jig'] as $option)
                             <option value="{{ $option }}" @selected($kategori === $option)>{{ $option }}</option>
                         @endforeach
                     </select>
                 </label>
                 {{-- DROPDOWN BULAN --}}
-                <label class="text-xs font-semibold text-gray-600">Bulan
-                    <select name="bulan" class="mt-1 block min-h-9 border-slate-400 text-sm">
+                <label class="flex min-w-0 basis-[calc(50%-0.25rem)] flex-col gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:basis-auto">Bulan
+                    <select name="bulan" class="w-full min-w-0 rounded-md border-slate-300 bg-white py-1.5 pl-2 pr-8 text-xs normal-case tracking-normal text-slate-800 focus:border-blue-500 focus:ring-blue-500 sm:w-auto xl:w-[120px]">
                         @foreach($months as $m => $name)
                             <option value="{{ $m }}" @selected($selectedMonth === $m)>{{ $name }}</option>
                         @endforeach
                     </select>
                 </label>
-                <button class="min-h-9 border border-blue-700 bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Tampilkan</button>
+                <button class="inline-flex w-full basis-full items-center justify-center whitespace-nowrap border border-blue-700 bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 sm:w-auto sm:basis-auto xl:py-1.5">Tampilkan</button>
             </form>
         </div>
+
         @if(Auth::user()->role === 'admin')
         <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-3">
             <a href="{{ route('stock.export', ['tahun' => $tahun, 'kategori' => $kategori]) }}" class="inline-flex items-center gap-1.5 border border-blue-700 bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">@include('components.icons.export') Export Excel</a>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('stock.import.form', ['tahun' => $tahun, 'kategori' => $kategori]) }}" class="inline-flex items-center gap-1.5 border border-blue-600 bg-white px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50">@include('components.icons.import') Import</a>
-                <button type="button" onclick="document.getElementById('stock-entry-dialog').showModal()" class="inline-flex items-center justify-center whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm">Tambah Data Stock</button>
+                <a href="{{ route('stock.import.form', ['tahun' => $tahun, 'kategori' => $kategori]) }}" class="inline-flex items-center gap-1.5 border border-blue-600 bg-white px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50">@include('components.icons.import') Import</a>
+                <button type="button" onclick="document.getElementById('stock-entry-dialog').showModal()" class="inline-flex items-center justify-center whitespace-nowrap rounded bg-black px-3 py-2 text-xs font-semibold text-white transition hover:bg-gray-800">Tambah Data Stock</button>
             </div>
         </div>
         @endif
@@ -147,9 +151,9 @@
             </div>
             <span class="text-sm text-slate-600">{{ $rows->count() }} alat</span>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto table-sticky-scroll table-fill-screen">
             {{-- STRUKTUR TABEL ASLI, TAPI HANYA MERENDER 1 BULAN --}}
-            <table class="w-full min-w-[1840px] border-collapse text-xs text-slate-800">
+            <table class="period-grid data-grid w-full min-w-[1840px] border-collapse text-xs text-slate-800">
                 <thead class="text-center font-semibold uppercase text-white">
                     <tr>
                         <th rowspan="3" class="px-3 py-3">No</th>
@@ -158,20 +162,20 @@
                         <th rowspan="3" class="min-w-24 px-3 py-3">Number Order</th>
                         <th rowspan="3" class="min-w-28 px-3 py-3">Spesifikasi</th>
                         <th rowspan="2" class="min-w-28 px-3 py-3">Stock Awal Tahun</th>
-                        
+
                         {{-- HANYA RENDER 1 BULAN SESUAI DROPDOWN --}}
                         <th colspan="16" class="px-3 py-3">{{ strtoupper($selectedMonthName) }} — PERGERAKAN</th>
-                        
+
                         <th rowspan="2" class="min-w-28 px-3 py-3">Stock Akhir Tahun</th>
                     </tr>
-                    <tr class="bg-blue-50 text-slate-700">
+                    <tr class="text-slate-700">
                         <th colspan="4" class="min-w-[240px] px-3 py-3">MASUK · QTY</th>
                         <th colspan="4" class="min-w-[240px] px-3 py-3">KELUAR · QTY</th>
                         <th colspan="4" class="min-w-[560px] px-3 py-3">TANGGAL MASUK</th>
                         <th colspan="4" class="min-w-[560px] px-3 py-3">TANGGAL KELUAR</th>
                     </tr>
                     <tr>
-                            <th class="min-w-28 px-3 py-2 font-bold">QTY</th>
+                        <th class="min-w-28 px-3 py-2 font-bold">QTY</th>
                         @foreach(range(1, 16) as $slot)
                             @if($slot <= 8)
                                 <th class="min-w-[60px] px-3 py-2">{{ (($slot - 1) % 4) + 1 }}</th>
@@ -195,7 +199,7 @@
                             <td class="border border-gray-300 px-2 py-2 text-center">{{ $stock->type }}</td>
                             <td class="border border-gray-300 px-2 py-2 text-center">{{ $stock->order_number ?: '—' }}</td>
                             <td class="border border-gray-300 px-2 py-2">{{ $stock->specification ?: '—' }}</td>
-                            
+
                             {{-- Stock Awal Tahun --}}
                             <td class="border border-gray-300 bg-blue-50 px-3 py-3 text-center font-bold text-blue-900">{{ $row['stock_awal_tahun'] }}</td>
 
@@ -204,7 +208,7 @@
                                 @php $movementSlot = $monthSlots['in'][$slotIndex] ?? null; @endphp
                                 <td class="min-w-[60px] border border-gray-300 px-3 py-3 text-center">{{ $movementSlot['quantity'] ?? '' }}</td>
                             @endforeach
-                            
+
                             {{-- OUT slots --}}
                             @foreach(range(0, 3) as $slotIndex)
                                 @php $movementSlot = $monthSlots['out'][$slotIndex] ?? null; @endphp

@@ -94,8 +94,8 @@
         <p class="text-xs text-slate-500 mt-1">Struktur kolom mengikuti workbook master: identitas alat, hasil per bulan, dan catatan.</p>
     </div>
 
-    <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
-        <table class="w-full text-xs text-left whitespace-nowrap min-w-[1500px]">
+    <div class="overflow-x-auto table-sticky-scroll"style="-webkit-overflow-scrolling: touch;">
+        <table class="data-grid w-full text-xs text-left whitespace-nowrap min-w-[1500px] border-collapse">
             <thead class="table-header uppercase bg-blue-600 text-white">
                 <tr>
                     <th class="px-2 py-2 md:py-3 border-r border-blue-700 text-[10px] md:text-xs">No</th>

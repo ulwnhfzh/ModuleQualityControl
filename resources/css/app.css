@@ -46,6 +46,22 @@
 
 /* Shared polish for data-heavy screens across the application. */
 @layer components {
+    /* Biar position: sticky bisa bekerja, body tidak boleh jadi area scroll sendiri.
+       clip tetap memotong konten yang melebar ke samping tanpa membuat area scroll. */
+    body {
+        overflow-x: clip !important;
+    }
+
+    /* Toolbar tetap di bawah header aplikasi hanya di layar besar (di mobile tidak sticky agar tidak menutupi tabel) */
+    @media (min-width: 1024px) {
+        main .feature-toolbar {
+            position: sticky;
+            top: 4rem;
+            z-index: 30;
+            background-color: #ffffff;
+        }
+    }
+
     .main-content,
     .main-content > div {
         min-width: 0;
@@ -76,6 +92,44 @@
 
     main .overflow-x-auto::-webkit-scrollbar-thumb:hover {
         background: #64748b;
+    }
+
+    /* ------------------------------------------------------------------
+       Header tabel DIAM saat scroll vertikal, hanya baris data yang bergerak.
+       Pemakaian: tambahkan class "table-sticky-scroll" pada div pembungkus
+       tabel (yang ber-overflow-x-auto). Posisi "top" tiap baris header
+       dihitung otomatis oleh setupStickyTableHeaders() di app.js.
+       ------------------------------------------------------------------ */
+    main .table-sticky-scroll {
+        position: relative;
+        overflow: auto;
+        isolation: isolate;
+        max-height: 70vh;   /* cadangan browser lama */
+        max-height: 70dvh;  /* mobile: ikut tinggi layar nyata */
+    }
+
+    main .table-sticky-scroll::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    /* Tabel penuh layar: tinggi pastinya dihitung app.js; ini hanya nilai awal sebelum JS jalan */
+    main .table-sticky-scroll.table-fill-screen {
+        max-height: calc(100vh - 14rem);
+        max-height: calc(100dvh - 14rem);
+    }
+
+    main .table-sticky-scroll thead th {
+        position: sticky;
+        top: -1px;          /* border-collapse: separuh garis atas ada di luar sel, -1px menutup celah */
+        z-index: 20;
+        /* border-collapse tidak ikut bergerak, jadi garis bawah header digambar ulang */
+        box-shadow: inset 0 -1px 0 #d9d9d9;
+    }
+
+    /* Kolom Aksi (sticky kanan) tetap di atas header lain saat scroll horizontal */
+    main .table-sticky-scroll thead th[class*="right-0"],
+    main .table-sticky-scroll thead th.sticky-col {
+        z-index: 30;
     }
 
     main :where(input, select, textarea, button, a):focus-visible {
@@ -137,6 +191,57 @@
         z-index: 30;
     }
 
+    /* Garis tabel data: satu warna (#cbd5e1) di semua sel termasuk kolom sticky.
+       Digambar dengan box-shadow di dalam sel, bukan border, supaya tidak hilang saat tabel digeser.
+       Tidak memakai will-change agar garis bawah baris tidak tertimpa latar baris berikutnya. */
+    main .table-sticky-scroll table.data-grid {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+    }
+
+    main .table-sticky-scroll table.data-grid th,
+    main .table-sticky-scroll table.data-grid td {
+        border: 0 !important;
+        box-shadow: inset -1px -1px 0 #cbd5e1;
+    }
+
+    /* Garis kiri tabel */
+    main .table-sticky-scroll table.data-grid tr > :first-child {
+        box-shadow: inset 1px 0 0 #cbd5e1, inset -1px -1px 0 #cbd5e1;
+    }
+
+    /* Header biru satu warna. Garis pemisah di header putih transparan, garis bawah biru tua. */
+    main .table-sticky-scroll table.data-grid thead th {
+        background-color: #0070f2 !important;
+        color: #ffffff !important;
+        border: 0 !important;
+        box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.35), inset 0 -1px 0 #0058c2;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    /* Garis atas header baris pertama */
+    main .table-sticky-scroll table.data-grid thead tr:first-child th {
+        box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.35), inset 0 -1px 0 #0058c2, inset 0 1px 0 #0058c2;
+    }
+
+    main .table-sticky-scroll table.data-grid thead tr:first-child th:first-child {
+        box-shadow: inset 1px 0 0 #0058c2, inset -1px 0 0 rgba(255, 255, 255, 0.35), inset 0 -1px 0 #0058c2, inset 0 1px 0 #0058c2;
+    }
+
+    /* Header bertingkat (rowspan): seluruh header ditempel sebagai satu blok.
+       Garis mengikuti aturan tabel data di atas. */
+    main .table-sticky-scroll table.period-grid thead {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+
+    main .table-sticky-scroll table.period-grid thead th {
+        position: static !important;
+        top: auto !important;
+    }
+
     main .period-grid th,
     main .period-grid td {
         white-space: nowrap;
@@ -151,6 +256,71 @@
     main .period-grid thead tr:nth-child(1) th { top: 0; }
     main .period-grid thead tr:nth-child(2) th { top: 34px; }
     main .period-grid thead tr:nth-child(3) th { top: 68px; }
+
+    /* Semua header tabel rata tengah (horizontal dan vertikal), termasuk yang sebelumnya text-left */
+    main table thead th {
+        text-align: center !important;
+        vertical-align: middle;
+    }
+
+    /* Isi sel tabel rata tengah */
+    main table tbody td {
+        text-align: center !important;
+        vertical-align: middle;
+    }
+
+    /* Teks panjang di sel tabel data: dipotong dengan (…). Teks lengkap muncul sebagai tooltip,
+       dan saat sel diklik (lihat script di layouts/app.blade.php). */
+    main .table-sticky-scroll table tbody td {
+        max-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Sel yang berisi tombol, link, atau form tidak dipotong */
+    main .table-sticky-scroll table tbody td:has(a, button, form, input, select, span.rounded) {
+        max-width: none;
+        overflow: visible;
+    }
+
+    /* Badge OK/NG tetap satu baris dan tidak dipotong */
+    main table tbody td span.rounded {
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    /* Tombol aksi di dalam tabel (EDIT dan HAPUS) dibuat outline netral agar tidak bentrok
+       dengan badge OK (biru) dan NG (merah). Badge di dalam tabel tidak terpengaruh. */
+    main table tbody td a[class*="bg-blue-600"],
+    main table tbody td button[class*="bg-blue-600"] {
+        background-color: #e0e7ff !important;
+        color: #3730a3 !important;
+        border: 1px solid #c7d2fe !important;
+        font-weight: 600;
+        box-shadow: 0 1px 2px rgba(55, 48, 163, 0.08);
+    }
+
+    main table tbody td a[class*="bg-blue-600"]:hover,
+    main table tbody td button[class*="bg-blue-600"]:hover {
+        background-color: #c7d2fe !important;
+        border-color: #a5b4fc !important;
+    }
+
+    main table tbody td a[class*="bg-rose-600"],
+    main table tbody td button[class*="bg-rose-600"] {
+        background-color: #fff1f2!important;
+        color: #9f1239 !important;
+        border: 1px solid #fda4af !important;
+        font-weight: 600;
+        box-shadow: 0 1px 2px rgba(159, 18, 57, 0.08);
+    }
+
+    main table tbody td a[class*="bg-rose-600"]:hover,
+    main table tbody td button[class*="bg-rose-600"]:hover {
+        background-color: #fecdd3 !important;
+        border-color: #fb7185 !important;
+    }
 
     .feature-toolbar > div,
     .feature-toolbar form {

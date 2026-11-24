@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    // Kolom AKSI hanya relevan jika rekap diisi manual (bukan otomatis dari List Up NG)
+    $showAksi = !$isListUpNgRecap;
+@endphp
+
 <div class="feature-toolbar relative z-10 mb-3 overflow-visible bg-white px-3 py-2.5 shadow-sm sm:mb-4 sm:px-4 sm:py-3">
     <div class="feature-toolbar-layout flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div class="flex min-w-0 flex-wrap items-center gap-3">
@@ -73,21 +78,43 @@
         </div>
     @endif
 
+    <!-- Garis tabel rekap digambar per sel (box-shadow), supaya tidak hilang saat tabel digeser ke samping -->
+    <style>
+        .defect-grid { border-collapse: separate !important; border-spacing: 0 !important; }
+        .defect-grid th,
+        .defect-grid td { border: 0 !important; box-shadow: inset -1px -1px 0 #cbd5e1; }
+        .defect-grid tr > :first-child { box-shadow: inset 1px 0 0 #cbd5e1, inset -1px -1px 0 #cbd5e1; }
+        .defect-grid thead th tr:not(:first-child) th { box-shadow: inset -1px -1px 0 #cbd5e1; }
+        .defect-grid thead tr:first-child th { box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.35), inset 0 -1px 0 #0058c2, inset 0 1px 0 #0058c2; }
+    </style>
+
     <!-- TABEL REKAPITULASI -->
     <div class="overflow-x-auto rounded-lg border border-slate-200">
-        <table class="w-full min-w-[1100px] border-collapse text-center text-xs text-slate-700">
+        <table class="defect-grid w-full min-w-[1040px] table-fixed border-collapse text-center text-[11px] text-slate-700">
+            <colgroup>
+                <col style="width:40px">
+                <col style="width:125px">
+                @foreach($jenisKerusakan as $jenis)
+                    <col style="width:54px">
+                @endforeach
+                <col style="width:64px">
+                <col style="width:76px">
+                @if($showAksi)<col style="width:88px">@endif
+            </colgroup>
             <thead>
                 <tr class="font-bold uppercase">
-                    <th class="border border-slate-600 p-2" rowspan="2">NO</th>
-                    <th class="border border-slate-600 p-2" rowspan="2">DIVISION</th>
-                    <th class="border border-slate-600 p-2" colspan="12">{{ $bulanFilter }}</th>
-                    <th class="border border-slate-600 p-2" rowspan="2">TOTAL</th>
-                    <th class="border border-slate-600 p-2" rowspan="2">GRAND TOTAL</th>
-                    <th class="border border-slate-600 p-2" rowspan="2">AKSI</th>
+                    <th class="sticky-col border border-slate-600 px-1 py-2 leading-tight" rowspan="2" style="position:sticky;left:0;z-index:30">NO</th>
+                    <th class="sticky-col border border-slate-600 px-1 py-2 leading-tight" rowspan="2" style="position:sticky;left:40px;z-index:30">DIVISION</th>
+                    <th class="border border-slate-600 px-1 py-2 leading-tight" colspan="12">{{ $bulanFilter }}</th>
+                    <th class="border border-slate-600 px-1 py-2 leading-tight" rowspan="2">TOTAL</th>
+                    <th class="border border-slate-600 px-1 py-2 leading-tight" rowspan="2">GRAND TOTAL</th>
+                    @if($showAksi)
+                        <th class="border border-slate-600 px-1 py-2 leading-tight" rowspan="2">AKSI</th>
+                    @endif
                 </tr>
                 <tr class="font-semibold uppercase">
                     @foreach($jenisKerusakan as $jenis)
-                        <th class="border border-slate-300 px-2 py-2">{{ strtoupper(str_replace('_', ' ', $jenis)) }}</th>
+                        <th class="border border-slate-300 px-1 py-2 text-[10px] leading-tight break-words">{{ strtoupper(str_replace('_', ' ', $jenis)) }}</th>
                     @endforeach
                 </tr>
             </thead>
@@ -100,39 +127,39 @@
                         $dbData = $existingDefects[$division] ?? null;
                     @endphp
                     <tr class="{{ $no % 2 ? 'bg-white' : 'bg-slate-50' }} hover:bg-blue-50">
-                        <td class="border border-slate-200 p-2 font-semibold">{{ $no++ }}</td>
-                        <td class="border border-slate-200 p-2 text-left font-semibold whitespace-nowrap">{{ $division }}</td>
+                        <td class="sticky-col border border-slate-200 px-1 py-2 font-semibold" style="position:sticky;left:0;z-index:10;background:inherit">{{ $no++ }}</td>
+                        <td class="sticky-col border border-slate-200 whitespace-nowrap px-2 py-2 text-left font-semibold" style="position:sticky;left:40px;z-index:10;background:inherit">{{ $division }}</td>
 
                         @foreach($jenisKerusakan as $jenis)
-                            <td class="border border-slate-200 p-2">{{ $data[$jenis] ?: '' }}</td>
+                            <td class="border border-slate-200 px-1 py-2">{{ $data[$jenis] ?: '' }}</td>
                         @endforeach
 
-                        <td class="border border-slate-200 p-2 font-bold">{{ $data['total'] ?: '' }}</td>
-                        <td class="border border-slate-200 p-2 font-bold">{{ $data['grand_total'] ?: '' }}</td>
+                        <td class="border border-slate-200 px-1 py-2 font-bold">{{ $data['total'] ?: '' }}</td>
+                        <td class="border border-slate-200 px-1 py-2 font-bold">{{ $data['grand_total'] ?: '' }}</td>
 
-                        <td class="border border-slate-200 p-2 text-center whitespace-nowrap">
-                            @if($isListUpNgRecap)
-                                <span class="text-[10px] font-semibold text-emerald-700">AUTO</span>
-                            @elseif($dbData)
-                                <div class="flex justify-center gap-1">
-                                    <a href="{{ route('defects.edit', $dbData->id) }}?tahun={{ $tahun }}&bulan={{ $bulanFilter }}"
-                                       class="rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white hover:bg-blue-700">EDIT</a>
-                                    <form action="{{ route('defects.destroy', $dbData->id) }}" method="POST"
-                                          onsubmit="return confirm('Hapus data untuk divisi {{ $division }} bulan {{ $bulanFilter }}?')" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="rounded bg-rose-600 px-1.5 py-0.5 text-[10px] font-bold text-white hover:bg-rose-700">HAPUS</button>
-                                    </form>
-                                </div>
-                            @else
-                                <span class="text-[10px] text-gray-400 italic">-</span>
-                            @endif
-                        </td>
+                        @if($showAksi)
+                            <td class="border border-slate-200 px-1 py-2 text-center whitespace-nowrap">
+                                @if($dbData)
+                                    <div class="flex justify-center gap-1">
+                                        <a href="{{ route('defects.edit', $dbData->id) }}?tahun={{ $tahun }}&bulan={{ $bulanFilter }}"
+                                           class="rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white hover:bg-blue-700">EDIT</a>
+                                        <form action="{{ route('defects.destroy', $dbData->id) }}" method="POST"
+                                              onsubmit="return confirm('Hapus data untuk divisi {{ $division }} bulan {{ $bulanFilter }}?')" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="rounded bg-rose-600 px-1.5 py-0.5 text-[10px] font-bold text-white hover:bg-rose-700">HAPUS</button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <span class="text-[10px] italic text-gray-400">-</span>
+                                @endif
+                            </td>
+                        @endif
                     </tr>
                     @endforeach
                 @else
                     <tr>
-                        <td colspan="{{ count($jenisKerusakan) + 5 }}" class="px-4 py-10 text-center text-slate-500">
+                        <td colspan="{{ count($jenisKerusakan) + 4 + ($showAksi ? 1 : 0) }}" class="px-4 py-10 text-center text-slate-500">
                             Belum ada data rekap NG untuk YEAR <strong>{{ $tahun }}</strong>.
                         </td>
                     </tr>
@@ -141,13 +168,15 @@
             @if($hasYearData)
                 <tfoot>
                     <tr class="font-bold">
-                        <td colspan="2" class="border border-slate-300 p-2 text-right uppercase">TOTAL</td>
+                        <td colspan="2" class="border border-slate-300 px-2 py-2 text-right uppercase" style="position:sticky;left:0;z-index:10;background:#eaf3fc">TOTAL</td>
                         @foreach($jenisKerusakan as $jenis)
-                            <td class="border border-slate-300 p-2">{{ $footerTotals[$jenis] ?: '' }}</td>
+                            <td class="border border-slate-300 px-1 py-2">{{ $footerTotals[$jenis] ?: '' }}</td>
                         @endforeach
-                        <td class="border border-slate-300 p-2">{{ $footerTotals['total'] ?: '' }}</td>
-                        <td class="border border-slate-300 p-2">{{ $footerTotals['grand_total'] ?: '' }}</td>
-                        <td class="border border-slate-300 p-2"></td>
+                        <td class="border border-slate-300 px-1 py-2">{{ $footerTotals['total'] ?: '' }}</td>
+                        <td class="border border-slate-300 px-1 py-2">{{ $footerTotals['grand_total'] ?: '' }}</td>
+                        @if($showAksi)
+                            <td class="border border-slate-300 px-1 py-2"></td>
+                        @endif
                     </tr>
                 </tfoot>
             @endif
@@ -200,7 +229,6 @@
     const ngDivisionLabels = @json(array_keys($divisionTotals));
     const ngDivisionValues = @json(array_values($divisionTotals));
     const ngToolRows = @json($toolNameTotals);
-    const ngPalette = ['#2563eb', '#3b82f6', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2', '#4f46e5', '#65a30d', '#ea580c', '#db2777', '#475569', '#9333ea'];
     const ngPercentShare = values => {
         const total = values.reduce((sum, value) => sum + Number(value || 0), 0);
         return values.map(value => total

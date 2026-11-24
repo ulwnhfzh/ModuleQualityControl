@@ -104,7 +104,7 @@
         </div>
         <span class="rounded-full bg-rose-600 px-2.5 py-0.5 text-xs font-bold text-white">{{ $jadwalExpiredH5->count() }} Alat</span>
     </div>
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto table-sticky-scroll">
         <table class="w-full text-left text-xs text-slate-700">
             <thead class="bg-slate-800 text-white uppercase">
                 <tr>
@@ -162,7 +162,7 @@
         <h3 class="text-sm font-semibold text-amber-900">Verification Menunggu Konfirmasi</h3>
         <p class="mt-0.5 text-xs text-amber-700">Hanya record tahun ini yang memiliki aktivitas dan belum dicatat pemeriksanya.</p>
     </div>
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto table-sticky-scroll">
         <table class="w-full text-left text-xs text-slate-700">
             <thead class="bg-slate-800 text-white uppercase">
                 <tr>
@@ -214,7 +214,7 @@
         <div class="px-4 py-3 border-b {{ $tabel['border'] }} {{ $tabel['bg'] }}">
             <h3 class="font-semibold {{ $tabel['text'] }} text-sm">{{ $tabel['title'] }}</h3>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto table-sticky-scroll">
             <table class="w-full text-xs text-left">
                 <thead class="bg-gray-800 text-white uppercase">
                     <tr>

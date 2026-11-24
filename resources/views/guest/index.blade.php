@@ -149,8 +149,8 @@
         </div>
         <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">{{ $data['induk']->count() }} alat</span>
     </div>
-    <div class="overflow-x-auto table-scroll">
-        <table class="w-full text-xs text-left whitespace-nowrap min-w-[1200px]">
+    <div class="overflow-x-auto table-sticky-scroll">
+        <table class="data-grid w-full text-xs text-left whitespace-nowrap min-w-[1200px]">
             <thead>
                 <tr>
                     <th style="{{ $thStyle }}">No</th>
@@ -248,8 +248,8 @@
         </div>
         <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">{{ $data['verifikasi']->count() }} jadwal</span>
     </div>
-    <div class="overflow-x-auto table-scroll">
-        <table class="w-full text-xs text-left whitespace-nowrap min-w-[900px]">
+    <div class="overflow-x-auto table-sticky-scroll">
+        <table class="data-grid w-full text-xs text-left whitespace-nowrap min-w-[900px]">
             <thead>
                 <tr>
                     <th style="{{ $thStyle }} width:50px;">No</th>
@@ -302,8 +302,8 @@
         </div>
         <span class="text-xs font-semibold text-purple-700 bg-purple-100 px-3 py-1 rounded-full">{{ $data['internal']->count() }} jadwal</span>
     </div>
-    <div class="overflow-x-auto table-scroll">
-        <table class="w-full text-xs text-left whitespace-nowrap min-w-[1000px]">
+    <div class="overflow-x-auto table-sticky-scroll">
+        <table class="data-grid w-full text-xs text-left whitespace-nowrap min-w-[1000px]">
             <thead>
                 <tr>
                     <th style="{{ $thStyle }} width:50px;">No</th>
@@ -387,8 +387,8 @@
         </div>
         <span class="text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">{{ $data['eksternal']->count() }} jadwal</span>
     </div>
-    <div class="overflow-x-auto table-scroll">
-        <table class="w-full text-xs text-left whitespace-nowrap min-w-[1000px]">
+    <div class="overflow-x-auto table-sticky-scroll">
+        <table class="data-grid w-full text-xs text-left whitespace-nowrap min-w-[1000px]">
             <thead>
                 <tr>
                     <th style="{{ $thStyle }} width:50px;">No</th>
@@ -473,8 +473,8 @@
         </div>
         <span class="text-xs font-semibold text-rose-700 bg-rose-100 px-3 py-1 rounded-full">{{ $data['mesin']->count() }} mesin</span>
     </div>
-    <div class="overflow-x-auto table-scroll">
-        <table class="w-full text-xs text-left whitespace-nowrap min-w-[1400px]">
+    <div class="overflow-x-auto table-sticky-scroll">
+        <table class="data-grid w-full text-xs text-left whitespace-nowrap min-w-[1400px]">
             <thead>
                 <tr>
                     <th style="{{ $thStyle }} width:50px;">No</th>

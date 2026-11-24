@@ -2,28 +2,31 @@
 
 @section('content')
 <div class="feature-toolbar mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-    <div class="feature-toolbar-layout flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
+    <div class="feature-toolbar-layout flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <!-- KIRI: Judul -->
+        <div class="min-w-0">
             <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Persediaan QA</p>
             <h1 class="mt-1 text-lg font-bold text-slate-900 sm:text-xl">Laporan Stock Alat Ukur QA Plant 2</h1>
             <p class="mt-1 text-sm text-slate-500">Laporan bulanan stok awal, barang masuk, barang keluar, dan stok akhir.</p>
         </div>
-        <form method="GET" action="{{ route('stock.summary') }}" class="grid grid-cols-2 gap-2 sm:flex sm:items-end">
-            <label class="text-xs font-semibold text-slate-600">Tahun
-                <select name="tahun" class="mt-1 block w-full rounded-lg border-slate-300 text-sm sm:w-auto">
+
+        <!-- KANAN: Filter -->
+        <form method="GET" action="{{ route('stock.summary') }}" class="flex w-full min-w-0 flex-wrap items-end gap-2 xl:w-auto xl:gap-3">
+            <label class="flex min-w-0 basis-[calc(50%-0.25rem)] flex-col gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:basis-auto">Tahun
+                <select name="tahun" class="w-full min-w-0 rounded-md border-slate-300 bg-white py-1.5 pl-2 pr-8 text-xs normal-case tracking-normal text-slate-800 focus:border-blue-500 focus:ring-blue-500 sm:w-auto xl:w-[100px]">
                     @for($year = date('Y'); $year >= date('Y') - 12; $year--)
                         <option value="{{ $year }}" @selected($tahun === $year)>{{ $year }}</option>
                     @endfor
                 </select>
             </label>
-            <label class="text-xs font-semibold text-slate-600">Kategori
-                <select name="kategori" class="mt-1 block w-full rounded-lg border-slate-300 text-sm sm:w-auto">
+            <label class="flex min-w-0 basis-[calc(50%-0.25rem)] flex-col gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:basis-auto">Kategori
+                <select name="kategori" class="w-full min-w-0 rounded-md border-slate-300 bg-white py-1.5 pl-2 pr-8 text-xs normal-case tracking-normal text-slate-800 focus:border-blue-500 focus:ring-blue-500 sm:w-auto xl:w-[140px]">
                     @foreach(['Small Tool', 'Machine', 'Jig'] as $option)
                         <option value="{{ $option }}" @selected($kategori === $option)>{{ $option }}</option>
                     @endforeach
                 </select>
             </label>
-            <button class="col-span-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 sm:col-span-1">Tampilkan</button>
+            <button class="inline-flex w-full basis-full items-center justify-center whitespace-nowrap rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-700 sm:w-auto sm:basis-auto xl:py-1.5">Tampilkan</button>
         </form>
     </div>
 </div>
@@ -33,8 +36,8 @@
         <h2 class="text-sm font-bold text-slate-800">Tabel Stock Bulanan</h2>
         <p class="mt-1 text-xs text-slate-500">Stock Akhir bulan menjadi Stock Awal bulan berikutnya.</p>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full min-w-[980px] border-collapse text-sm text-slate-800">
+    <div class="overflow-x-auto table-sticky-scroll">
+        <table class="data-grid w-full min-w-[980px] border-collapse text-sm text-slate-800">
             <thead class="bg-slate-300">
                 <tr>
                     <th class="border border-slate-400 px-3 py-3 text-left">Bulan</th>

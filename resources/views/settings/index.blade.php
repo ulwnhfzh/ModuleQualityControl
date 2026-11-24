@@ -37,8 +37,8 @@
 </div>
 
 <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full text-xs text-left">
+    <div class="overflow-x-auto table-sticky-scroll">
+        <table class="data-grid w-full text-xs text-left border-collapse">
             <thead class="bg-gray-800 text-white uppercase">
                 <tr>
                     <th class="px-4 py-3 text-[11px] md:text-xs">No</th>

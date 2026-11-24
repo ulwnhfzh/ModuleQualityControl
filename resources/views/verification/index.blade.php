@@ -127,7 +127,7 @@
 </p>
 
 <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-    <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
+    <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;z">
 
         @if($mode == 'bulanan')
         <table class="w-full text-xs text-left whitespace-nowrap min-w-[1250px]">

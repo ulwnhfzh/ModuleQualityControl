@@ -86,7 +86,7 @@
 </p>
 
 <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-    <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
+    <div class="overflow-x-auto table-sticky-scroll" style="-webkit-overflow-scrolling: touch;">
         <table class="w-full text-xs text-left whitespace-nowrap min-w-[1100px]">
             <thead class="table-header uppercase">
                 <tr>

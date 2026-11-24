@@ -112,8 +112,8 @@
         <h1 class="font-semibold text-slate-800">List Up External Calibration</h1>
         <p class="mt-1 text-xs text-slate-500">PT Hamatetsu Indonesia · Tahun {{ $year }} · {{ $schedules->count() }} baris pada halaman ini</p>
     </header>
-    <div class="overflow-x-auto">
-        <table class="w-full min-w-[1500px] border-collapse text-xs text-slate-700">
+    <div class="overflow-x-auto table-sticky-scroll table-fill-screen">
+        <table class="period-grid data-grid w-full min-w-[1500px] border-collapse text-xs text-slate-700">
             <thead class="uppercase">
                 <tr class="bg-blue-600 text-white">
                     @foreach(['NO','TOOL NAME','SPECIFICATION','NUMBER SERI','NUMBER REGISTRATION','SHOP'] as $heading)

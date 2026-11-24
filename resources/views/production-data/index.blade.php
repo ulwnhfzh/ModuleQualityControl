@@ -4,54 +4,45 @@
 <!-- TOOLBAR (Kotak Putih) -->
 <div class="feature-toolbar mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 lg:px-5">
     <div class="feature-toolbar-layout flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        
+
         <!-- KIRI: Judul dan Filter -->
-        <div class="feature-toolbar-layout flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-            <h1 class="text-lg font-bold text-slate-800 whitespace-nowrap">Data All Produksi</h1>
-            
-            <!-- Form Filter dengan Tombol Terapkan -->
-            <form id="filter-form" method="GET" action="{{ route('data-all-produksi.index') }}" class="flex flex-wrap items-center gap-x-4 gap-y-3">
-                <div class="flex items-center gap-2">
-                    <label for="year-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">YEAR</label>
-                    <div class="w-full sm:w-auto min-w-[110px]">
-                        <select id="year-select" name="year" onchange="this.form.submit()" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+        <div class="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-end xl:gap-6">
+            <h1 class="text-base font-bold text-slate-800 whitespace-nowrap sm:text-lg">Data All Produksi</h1>
+
+            <form id="filter-form" method="GET" action="{{ route('data-all-produksi.index') }}" class="flex w-full min-w-0 flex-col gap-3 xl:w-auto xl:flex-row xl:items-end">
+                <div class="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 xl:flex xl:w-auto xl:flex-wrap xl:items-end xl:gap-3">
+                    <div class="flex min-w-0 flex-col gap-1 xl:flex-row xl:items-center xl:gap-1.5">
+                        <label for="year-select" class="text-[10px] font-semibold uppercase tracking-wide text-slate-500 whitespace-nowrap">YEAR</label>
+                        <select id="year-select" name="year" onchange="this.form.submit()" class="w-full min-w-0 rounded-md border-slate-300 bg-white py-1.5 pl-2 pr-8 text-xs focus:border-blue-500 focus:ring-blue-500 xl:w-[88px]">
                             @foreach($yearOptions as $year)
-                                <option value="{{ $year }}" {{ $selectedYear === $year ? 'selected' : '' }}> {{ $year }}</option>
+                                <option value="{{ $year }}" {{ $selectedYear === $year ? 'selected' : '' }}>{{ $year }}</option>
                             @endforeach
                         </select>
                     </div>
-                </div>
 
-                <!-- Filter Division -->
-                <div class="flex items-center gap-2">
-                    <label for="division-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">DIVISION</label>
-                    <div class="w-full sm:w-auto min-w-[130px]">
-                        <select id="division-select" name="division" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <div class="flex min-w-0 flex-col gap-1 xl:flex-row xl:items-center xl:gap-1.5">
+                        <label for="division-select" class="text-[10px] font-semibold uppercase tracking-wide text-slate-500 whitespace-nowrap">DIVISION</label>
+                        <select id="division-select" name="division" class="w-full min-w-0 rounded-md border-slate-300 bg-white py-1.5 pl-2 pr-8 text-xs focus:border-blue-500 focus:ring-blue-500 xl:w-[120px]">
                             <option value="ALL" {{ $selectedDivision === 'ALL' ? 'selected' : '' }}>ALL DIVISION</option>
                             @foreach($divisionList as $division)
                                 <option value="{{ $division }}" {{ $selectedDivision === $division ? 'selected' : '' }}>{{ $division }}</option>
                             @endforeach
                         </select>
                     </div>
-                </div>
 
-                <div class="flex items-center gap-2">
-                    <label for="category-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">CATEGORY</label>
-                    <div class="w-full sm:w-auto min-w-[170px]">
-                        <select id="category-select" name="category" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <div class="flex min-w-0 flex-col gap-1 xl:flex-row xl:items-center xl:gap-1.5">
+                        <label for="category-select" class="text-[10px] font-semibold uppercase tracking-wide text-slate-500 whitespace-nowrap">CATEGORY</label>
+                        <select id="category-select" name="category" class="w-full min-w-0 rounded-md border-slate-300 bg-white py-1.5 pl-2 pr-8 text-xs focus:border-blue-500 focus:ring-blue-500 xl:w-[140px]">
                             <option value="ALL" {{ $selectedCategory === 'ALL' ? 'selected' : '' }}>ALL CATEGORY</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category }}" {{ $selectedCategory === $category ? 'selected' : '' }}>{{ $category }}</option>
                             @endforeach
                         </select>
                     </div>
-                </div>
 
-                <!-- Filter Tool Name -->
-                <div class="flex items-center gap-2">
-                    <label for="tool-select" class="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap mb-0 leading-none">TOOL NAME</label>
-                    <div class="w-full sm:w-auto min-w-[180px]">
-                        <select id="tool-select" name="tool_name" class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <div class="col-span-2 flex min-w-0 flex-col gap-1 sm:col-span-1 xl:flex-row xl:items-center xl:gap-1.5">
+                        <label for="tool-select" class="text-[10px] font-semibold uppercase tracking-wide text-slate-500 whitespace-nowrap">TOOL NAME</label>
+                        <select id="tool-select" name="tool_name" class="w-full min-w-0 rounded-md border-slate-300 bg-white py-1.5 pl-2 pr-8 text-xs focus:border-blue-500 focus:ring-blue-500 xl:w-[170px]">
                             <option value="">ALL TOOL</option>
                             @foreach($toolNameList as $toolName)
                                 <option value="{{ $toolName }}" {{ $searchTool === $toolName ? 'selected' : '' }}>{{ $toolName }}</option>
@@ -60,89 +51,88 @@
                     </div>
                 </div>
 
-                <!-- TOMBOL TERAPKAN -->
-                <button type="submit" class="bg-slate-800 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-slate-900 transition shadow-sm inline-flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <button type="submit" class="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-md bg-slate-800 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-900 xl:w-auto xl:py-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     Terapkan
                 </button>
             </form>
         </div>
 
         <!-- KANAN: Total dan Tombol Aksi -->
-        <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            <p class="text-xs text-slate-500 mr-1">Halaman ini <span class="font-bold text-slate-700">{{ $data->count() }}</span> baris</p>
-            <a href="{{ route('data-all-produksi.import.form', ['year' => $selectedYear]) }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-blue-600 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-50 sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.import') Import</a>
-            <a href="{{ route('data-all-produksi.export', ['division' => $selectedDivision, 'category' => $selectedCategory, 'year' => $selectedYear]) }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 sm:px-3 sm:py-2 sm:text-sm">@include('components.icons.export') Export</a>
-            <a href="{{ route('data-all-produksi.create', ['year' => $selectedYear]) }}" class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm"><span>+</span> Tambah</a>
+        <div class="flex flex-wrap items-center justify-start gap-2 lg:justify-end">
+            <p class="mr-1 text-xs text-slate-500">Halaman ini <span class="font-bold text-slate-700">{{ $data->count() }}</span> baris</p>
+            <a href="{{ route('data-all-produksi.import.form', ['year' => $selectedYear]) }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-blue-600 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-50 sm:text-sm">@include('components.icons.import') Import</a>
+            <a href="{{ route('data-all-produksi.export', ['division' => $selectedDivision, 'category' => $selectedCategory, 'year' => $selectedYear]) }}" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 sm:text-sm">@include('components.icons.export') Export</a>
+            <a href="{{ route('data-all-produksi.create', ['year' => $selectedYear]) }}" class="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded bg-black px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-gray-800 sm:text-sm"><span>+</span> Tambah</a>
         </div>
     </div>
 </div>
 
-<!-- TABEL DATA -->
-<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-    <div class="overflow-x-auto">
+<!-- TABEL DATA: tabel mengisi layar, header diam, hanya baris data yang bergerak -->
+<div class="w-full min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="table-sticky-scroll table-fill-screen max-w-full w-full min-w-0">
         <table class="data-grid w-full min-w-[1800px] table-fixed border-collapse text-xs text-slate-700">
             <colgroup>
-                <col style="width:48px">
-                @if($selectedDivision === 'ALL')<col style="width:125px">@endif
-                <col style="width:190px"><col style="width:105px"><col style="width:125px">
-                <col style="width:115px"><col style="width:115px"><col style="width:180px"><col style="width:170px">
-                @for($monthColumn = 0; $monthColumn < 12; $monthColumn++)<col style="width:64px">@endfor
-                <col style="width:220px"><col style="width:128px">
+                <col style="width:40px">
+                @if($selectedDivision === 'ALL')<col style="width:100px">@endif
+                <col style="width:150px"><col style="width:85px"><col style="width:95px">
+                <col style="width:90px"><col style="width:90px"><col style="width:130px"><col style="width:125px">
+                @for($monthColumn = 0; $monthColumn < 12; $monthColumn++)<col style="width:52px">@endfor
+                <col style="width:150px"><col style="width:121px">
             </colgroup>
             <thead class="bg-slate-800 text-white text-center">
                 <tr class="uppercase tracking-wide text-[11px]">
-                    <th rowspan="2" class="sticky-col border border-slate-600 px-2 py-3 align-middle bg-slate-800" style="left:0">No</th>
+                    <th rowspan="2" class="sticky-col border px-2 py-3 align-middle" style="left:0">No</th>
                     @if($selectedDivision === 'ALL')
-                        <th rowspan="2" class="sticky-col border border-slate-600 px-2 py-3 text-center align-middle bg-blue-800" style="left:48px">Division</th>
+                        <th rowspan="2" class="sticky-col border px-2 py-3 text-center align-middle" style="left:40px">Division</th>
                     @endif
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 text-center align-middle">Tool Name</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Type</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Size</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Number Seri</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Number Reg</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 text-center align-middle">Part Name</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 text-center align-middle">Part Number</th>
-                    <th colspan="12" class="border border-slate-600 px-2 py-2 bg-slate-700">Result</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle">Note</th>
-                    <th rowspan="2" class="border border-slate-600 px-2 py-3 align-middle text-center">Aksi</th>
+                    <th rowspan="2" class="border px-2 py-3 text-center align-middle">Tool Name</th>
+                    <th rowspan="2" class="border px-2 py-3 align-middle">Type</th>
+                    <th rowspan="2" class="border px-2 py-3 align-middle">Size</th>
+                    <th rowspan="2" class="border px-2 py-3 align-middle">Number Seri</th>
+                    <th rowspan="2" class="border px-2 py-3 align-middle">Number Reg</th>
+                    <th rowspan="2" class="border px-2 py-3 text-center align-middle">Part Name</th>
+                    <th rowspan="2" class="border px-2 py-3 text-center align-middle">Part Number</th>
+                    <th colspan="12" class="border px-2 py-2">Result</th>
+                    <th rowspan="2" class="border px-2 py-3 align-middle">Note</th>
+                    <th rowspan="2" class="border px-2 py-3 align-middle text-center">Aksi</th>
                 </tr>
                 <tr class="uppercase text-[10px]">
-                    <th class="border border-slate-600 px-1 py-2">JAN</th>
-                    <th class="border border-slate-600 px-1 py-2">FEB</th>
-                    <th class="border border-slate-600 px-1 py-2">MAR</th>
-                    <th class="border border-slate-600 px-1 py-2">APR</th>
-                    <th class="border border-slate-600 px-1 py-2">MEI</th>
-                    <th class="border border-slate-600 px-1 py-2">JUN</th>
-                    <th class="border border-slate-600 px-1 py-2">JUL</th>
-                    <th class="border border-slate-600 px-1 py-2">AUG</th>
-                    <th class="border border-slate-600 px-1 py-2">SEP</th>
-                    <th class="border border-slate-600 px-1 py-2">OCT</th>
-                    <th class="border border-slate-600 px-1 py-2">NOV</th>
-                    <th class="border border-slate-600 px-1 py-2">DEC</th>
+                    <th class="border px-1 py-2">JAN</th>
+                    <th class="border px-1 py-2">FEB</th>
+                    <th class="border px-1 py-2">MAR</th>
+                    <th class="border px-1 py-2">APR</th>
+                    <th class="border px-1 py-2">MEI</th>
+                    <th class="border px-1 py-2">JUN</th>
+                    <th class="border px-1 py-2">JUL</th>
+                    <th class="border px-1 py-2">AUG</th>
+                    <th class="border px-1 py-2">SEP</th>
+                    <th class="border px-1 py-2">OCT</th>
+                    <th class="border px-1 py-2">NOV</th>
+                    <th class="border px-1 py-2">DEC</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($data as $index => $item)
                     @php($hasNg = collect(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'])->contains(fn ($month) => $item->resultStatus($month) === 'NG'))
                     <tr class="{{ $hasNg ? 'bg-rose-100 text-rose-900 hover:bg-rose-200' : ($index % 2 ? 'bg-slate-50' : 'bg-white') . ' hover:bg-blue-50/50' }} text-center">
-                        <td class="sticky-col border border-slate-200 px-2 py-3 {{ $hasNg ? 'bg-rose-100' : ($index % 2 ? 'bg-slate-50' : 'bg-white') }}" style="left:0">{{ ($data->firstItem() ?? 1) + $index }}</td>
-                        
+                        <td class="sticky-col border px-2 py-3 {{ $hasNg ? 'bg-rose-100' : ($index % 2 ? 'bg-slate-50' : 'bg-white') }}" style="left:0">{{ ($data->firstItem() ?? 1) + $index }}</td>
+
                         @if($selectedDivision === 'ALL')
-                            <td class="sticky-col border border-slate-200 px-2 py-3 {{ $hasNg ? 'bg-rose-100' : ($index % 2 ? 'bg-slate-50' : 'bg-white') }} font-semibold text-blue-700" style="left:48px">{{ $item->division }}</td>
+                            <td class="sticky-col border px-2 py-3 {{ $hasNg ? 'bg-rose-100' : ($index % 2 ? 'bg-slate-50' : 'bg-white') }} font-semibold text-blue-700" style="left:40px">{{ $item->division }}</td>
                         @endif
-                        
-                        <td class="border border-slate-200 px-2 py-3 font-semibold text-slate-800"><span class="block truncate" title="{{ $item->tool_name }}">{{ $item->tool_name }}</span></td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->type }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->size }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->number_seri ?: '-' }}</td>
-                        <td class="border border-slate-200 px-2 py-3">{{ $item->number_reg ?: '-' }}</td>
-                        <td class="border border-slate-200 px-2 py-3"><span class="block truncate" title="{{ $item->part_name ?: '-' }}">{{ $item->part_name ?: '-' }}</span></td>
-                        <td class="border border-slate-200 px-2 py-3"><span class="block truncate" title="{{ $item->part_number ?: '-' }}">{{ $item->part_number ?: '-' }}</span></td>
-                        
+
+                        <td class="border px-2 py-3 font-semibold text-slate-800"><span class="block truncate" title="{{ $item->tool_name }}">{{ $item->tool_name }}</span></td>
+                        <td class="border px-2 py-3">{{ $item->type }}</td>
+                        <td class="border px-2 py-3">{{ $item->size }}</td>
+                        <td class="border px-2 py-3">{{ $item->number_seri ?: '-' }}</td>
+                        <td class="border px-2 py-3">{{ $item->number_reg ?: '-' }}</td>
+                        <td class="border px-2 py-3"><span class="block truncate" title="{{ $item->part_name ?: '-' }}">{{ $item->part_name ?: '-' }}</span></td>
+                        <td class="border px-2 py-3"><span class="block truncate" title="{{ $item->part_number ?: '-' }}">{{ $item->part_number ?: '-' }}</span></td>
+
                         @foreach(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'] as $month)
                             @php($resultStatus = $item->resultStatus($month))
-                            <td class="border border-slate-200 px-2 py-3">
+                            <td class="border px-2 py-3">
                                 @if($resultStatus === 'NG')
                                     <span class="rounded bg-rose-100 px-2 py-1 font-bold text-rose-700">NG</span>
                                 @elseif($resultStatus === 'OK')
@@ -152,10 +142,10 @@
                                 @endif
                             </td>
                         @endforeach
-                        
-                        <td class="border border-slate-200 px-2 py-3 text-left"><span class="block truncate" title="{{ $item->note ?: '-' }}">{{ $item->note ?: '-' }}</span></td>
-                        
-                        <td class="border border-slate-200 px-2 py-3 text-center">
+
+                        <td class="border px-2 py-3 text-left"><span class="block truncate" title="{{ $item->note ?: '-' }}">{{ $item->note ?: '-' }}</span></td>
+
+                        <td class="border px-2 py-3 text-center">
                             <div class="flex justify-center gap-1">
                                 <a href="{{ route('data-all-produksi.edit', $item->id) }}" class="rounded bg-blue-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-blue-700">EDIT</a>
                                 <form action="{{ route('data-all-produksi.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">

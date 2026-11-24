@@ -92,3 +92,70 @@ document.addEventListener('submit', (event) => {
         invalidEntry.querySelector('[data-date-text]')?.focus();
     }
 }, true);
+
+// ---------------------------------------------------------------------------
+// Header tabel menempel (sticky) saat scroll.
+// Menghitung "top" tiap baris header di dalam .table-sticky-scroll supaya
+// header 2-3 baris (rowspan/colspan) menumpuk rapat tanpa celah.
+// ---------------------------------------------------------------------------
+function setupStickyTableHeaders() {
+    const update = (thead) => {
+        let offset = -1;  // sejajar dengan top: -1px di CSS
+        thead.querySelectorAll(':scope > tr').forEach((tr) => {
+            tr.querySelectorAll(':scope > th').forEach((th) => {
+                th.style.top = `${offset}px`;
+            });
+            offset += tr.getBoundingClientRect().height;
+        });
+    };
+
+    const heads = document.querySelectorAll('.table-sticky-scroll thead');
+
+    heads.forEach((thead) => {
+        update(thead);
+        if ('ResizeObserver' in window) {
+            new ResizeObserver(() => update(thead)).observe(thead);
+        }
+    });
+
+    window.addEventListener('resize', () => heads.forEach(update));
+}
+
+setupStickyTableHeaders();
+
+// ---------------------------------------------------------------------------
+// Tabel "penuh layar": tinggi wrapper = sisa layar dari posisi tabel sampai
+// tepi bawah layar (tanpa ruang kosong di bawah). Opt-in lewat class
+// .table-fill-screen di samping .table-sticky-scroll.
+// ---------------------------------------------------------------------------
+function setupFillScreenTables() {
+    const MIN_HEIGHT = 280; // layar sangat pendek: tabel tidak boleh gepeng, halaman boleh scroll
+
+    const fit = (wrap) => {
+        const container = wrap.closest('main > div');
+        if (!container) return;
+
+        // padding bawah pembungkus halaman dihilangkan agar tabel benar-benar mentok ke bawah layar
+        container.style.paddingBottom = '0px';
+
+        const wrapRect = wrap.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        // yang ada di bawah tabel (pagination, catatan, tepi kartu) tetap diberi tempat
+        const belowTable = Math.max(0, containerRect.bottom - wrapRect.bottom);
+        const topOnPage = wrapRect.top + window.scrollY;
+
+        const height = Math.max(MIN_HEIGHT, Math.floor(window.innerHeight - topOnPage - belowTable));
+        wrap.style.maxHeight = `${height}px`;
+    };
+
+    const run = () => document.querySelectorAll('.table-fill-screen').forEach(fit);
+
+    run();
+    window.addEventListener('load', run);
+    window.addEventListener('resize', run);
+    window.addEventListener('orientationchange', run);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(run);
+}
+
+setupFillScreenTables();

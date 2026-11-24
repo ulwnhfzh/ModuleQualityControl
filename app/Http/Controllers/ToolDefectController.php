@@ -21,7 +21,7 @@ class ToolDefectController extends Controller
             'bulan' => 'nullable|in:' . implode(',', ToolDefect::MONTHS),
         ]);
         $tahun = $filters['tahun'] ?? date('Y');
-        $bulanFilter = $filters['bulan'] ?? 'DEC';
+        $bulanFilter = $filters['bulan'] ?? strtoupper(date('M'));
         $isListUpNgRecap = ListUpNg::where('tahun', $tahun)->exists();
 
         $jenisKerusakan = ToolDefect::COUNT_FIELDS;
@@ -260,7 +260,7 @@ class ToolDefectController extends Controller
             'bulan' => 'nullable|in:' . implode(',', ToolDefect::MONTHS),
         ]);
         $tahun = $filters['tahun'] ?? date('Y');
-        $bulan = $filters['bulan'] ?? 'DEC';
+        $bulan = $filters['bulan'] ?? strtoupper(date('M'));
         
         $jenisKerusakan = ToolDefect::COUNT_FIELDS;
         $rawData = ToolDefect::where('tahun', $tahun)->where('bulan', $bulan)->get();

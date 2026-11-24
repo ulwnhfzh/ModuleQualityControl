@@ -98,8 +98,8 @@
 </div>
 
 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-    <div class="overflow-x-auto">
-        <table class="period-grid w-full min-w-[1550px] table-fixed border-collapse text-xs text-slate-700">
+    <div class="overflow-x-auto table-sticky-scroll table-fill-screen">
+        <table class="period-grid data-grid w-full min-w-[1550px] table-fixed border-collapse text-xs text-slate-700">
             <colgroup>
                 <col style="width:52px"><col style="width:190px"><col style="width:100px"><col style="width:145px">
                 <col style="width:125px"><col style="width:175px"><col style="width:105px">

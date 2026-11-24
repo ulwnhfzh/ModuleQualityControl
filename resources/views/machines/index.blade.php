@@ -101,8 +101,8 @@
 </p>
 
 <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-    <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
-        <table class="w-full text-xs text-left whitespace-nowrap min-w-[1400px]">
+    <div class="overflow-x-auto table-sticky-scroll" style="-webkit-overflow-scrolling: touch;">
+        <table class="data-grid w-full text-xs text-left whitespace-nowrap min-w-[1400px] border-collapse">
             <thead class="table-header uppercase">
                 <tr>
                     <th class="px-2 py-2 md:py-3 border-r border-gray-700 text-[10px] md:text-xs">No</th>

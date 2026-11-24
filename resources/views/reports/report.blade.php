@@ -140,8 +140,8 @@
 </div>
 
 <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full text-xs text-left">
+    <div class="overflow-x-auto table-sticky-scroll table-fill-screen">
+        <table class="data-grid w-full text-xs text-left border-collapse">
             <thead class="bg-gray-800 text-white uppercase">
                 <tr>
                     <th class="px-3 py-3 text-[11px]">No</th>
