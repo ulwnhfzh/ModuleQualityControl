@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ListUpNg;
+use App\Models\ListUpNgCategory;
 use App\Models\ProductionData;
 use App\Models\ToolDefect;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 class ListUpNgController extends Controller
 {
     private const ADD_NEW_TYPE = '__add_new_type__';
+    private const ADD_NEW_CATEGORY = '__add_new_category__';
     private const DEPARTMENT_ALIASES = [
         'QA INC', 'QA INSP', 'P1', 'P2', 'P3', 'P5', 'P6', 'P7', 'P8', 'LSCC', 'ENG',
     ];
@@ -87,8 +89,9 @@ class ListUpNgController extends Controller
         $toolOptions = $this->productionToolOptions($selectedToolName, $selectedType);
 
         $departments = $this->departmentOptions();
+        $categoryOptions = $this->categoryOptions();
 
-        return view('list-up-ng.create', compact('toolOptions', 'selectedToolName', 'selectedType', 'departments'));
+        return view('list-up-ng.create', compact('toolOptions', 'selectedToolName', 'selectedType', 'departments', 'categoryOptions'));
     }
 
     public function store(Request $request)
@@ -105,14 +108,17 @@ class ListUpNgController extends Controller
             'ng_date' => 'required|date',
             'division' => 'required|string|max:255', // UBAH
             'category_ng' => 'required|string|max:255',
+            'new_category_ng' => 'required_if:category_ng,' . self::ADD_NEW_CATEGORY . '|nullable|string|max:255',
             'note' => 'nullable|string',
         ]);
         $validated = $this->resolveTypeSelection($validated);
+        $validated = $this->resolveCategorySelection($validated);
 
         $validated['tahun'] = date('Y', strtotime($request->ng_date));
 
         DB::transaction(function () use ($validated): void {
             $this->saveNewTypeToProductionMaster($validated);
+            $this->ensureCategoryExists($validated['category_ng']);
             ListUpNg::create($validated);
         });
 
@@ -130,8 +136,9 @@ class ListUpNgController extends Controller
         $toolOptions = $this->productionToolOptions($selectedToolName, $selectedType);
 
         $departments = $this->departmentOptions();
+        $categoryOptions = $this->categoryOptions();
 
-        return view('list-up-ng.edit', compact('listUpNg', 'toolOptions', 'selectedToolName', 'selectedType', 'departments'));
+        return view('list-up-ng.edit', compact('listUpNg', 'toolOptions', 'selectedToolName', 'selectedType', 'departments', 'categoryOptions'));
     }
 
     public function update(Request $request, ListUpNg $listUpNg)
@@ -336,6 +343,79 @@ class ListUpNgController extends Controller
         return $validated;
     }
 
+    /**
+     * Daftar category untuk dropdown: dari tabel master, lalu
+     * category lama yang hanya ada di data List Up NG (tidak bisa dihapus).
+     */
+    private function categoryOptions(): array
+    {
+        $masters = ListUpNgCategory::orderBy('id')
+            ->get(['id', 'name', 'is_default'])
+            ->map(fn (ListUpNgCategory $cat): array => [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'is_default' => (bool) $cat->is_default,
+            ]);
+
+        $knownNames = $masters->pluck('name')->all();
+
+        $legacy = ListUpNg::whereNotNull('category_ng')
+            ->where('category_ng', '<>', '')
+            ->distinct()
+            ->pluck('category_ng')
+            ->map(fn ($name) => ListUpNgCategory::normalize($name))
+            ->filter(fn (string $name): bool => $name !== '' && ! in_array($name, $knownNames, true))
+            ->unique()
+            ->map(fn (string $name): array => ['id' => null, 'name' => $name, 'is_default' => true]);
+
+        return $masters->concat($legacy)->values()->all();
+    }
+
+    private function resolveCategorySelection(array $validated): array
+    {
+        if (($validated['category_ng'] ?? null) === self::ADD_NEW_CATEGORY) {
+            $name = ListUpNgCategory::normalize($validated['new_category_ng'] ?? '');
+            if ($name === '') {
+                throw ValidationException::withMessages([
+                    'new_category_ng' => 'Nama category baru wajib diisi. Silakan masukkan nama category atau pilih category yang sudah tersedia.',
+                ]);
+            }
+            $validated['category_ng'] = $name;
+        } else {
+            $validated['category_ng'] = ListUpNgCategory::normalize($validated['category_ng'] ?? '');
+        }
+
+        unset($validated['new_category_ng']);
+
+        return $validated;
+    }
+
+    private function ensureCategoryExists(string $name): void
+    {
+        if ($name !== '') {
+            ListUpNgCategory::firstOrCreate(['name' => $name]);
+        }
+    }
+
+    /**
+     * Hapus category dari master. Data NG yang sudah memakai category
+     * ini tetap tersimpan, hanya tidak muncul lagi di pilihan form.
+     */
+    public function destroyCategory(ListUpNgCategory $category)
+    {
+        if ($category->is_default) {
+            return response()->json([
+                'message' => 'Category "' . $category->name . '" merupakan category bawaan sistem dan tidak dapat dihapus.',
+            ], 422);
+        }
+
+        $category->delete();
+
+        return response()->json([
+            'message' => 'Category "' . $category->name . '" berhasil dihapus.',
+        ]);
+    }
+
     private function saveNewTypeToProductionMaster(array $data): void
     {
         $type = trim((string) ($data['type'] ?? ''));
@@ -357,7 +437,7 @@ class ListUpNgController extends Controller
 
         if ($masterRows->isEmpty()) {
             throw ValidationException::withMessages([
-                'tool_name' => 'Tool Name belum tersedia di Data All Produksi.',
+                'tool_name' => 'Nama alat belum terdaftar di Data All Produksi. Silakan tambahkan alat tersebut terlebih dahulu.',
             ]);
         }
 
@@ -374,7 +454,7 @@ class ListUpNgController extends Controller
 
         if ($category === '') {
             throw ValidationException::withMessages([
-                'type' => 'Kategori Data All Produksi untuk alat ini belum tersedia.',
+                'type' => 'Kategori untuk alat ini belum diatur di Data All Produksi. Silakan lengkapi data tersebut terlebih dahulu.',
             ]);
         }
 

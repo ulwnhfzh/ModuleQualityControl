@@ -18,7 +18,7 @@
     <form action="{{ route('list-up-ng.update', $listUpNg->id) }}" method="POST">
         @csrf
         @method('PUT')
-        
+
         <div class="list-up-ng-form-grid mb-5">
             <div class="min-w-0">
                 <label class="block text-sm font-semibold mb-1">Tool Name *</label>
@@ -79,8 +79,8 @@
             <div class="min-w-0">
                 <label class="block text-sm font-semibold mb-1">Category NG *</label>
                 <select name="category_ng" required class="w-full border p-2 rounded">
-                    @foreach(['VERIFIKASI', 'KALIBRASI', 'KALIBRASI EKSTENAL'] as $c)
-                        <option value="{{ $c }}" @selected(old('category_ng', $listUpNg->category_ng) == $c)>{{ $c }}</option>
+                    @foreach($categoryOptions as $cat)
+                        <option value="{{ $cat['name'] }}" @selected(old('category_ng', $listUpNg->category_ng) === $cat['name'])>{{ $cat['name'] }}</option>
                     @endforeach
                 </select>
             </div>

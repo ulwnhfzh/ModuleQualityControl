@@ -76,11 +76,29 @@
             </div>
             <div class="min-w-0">
                 <label class="block text-sm font-semibold mb-1">Category NG *</label>
-                <select name="category_ng" required class="w-full border p-2 rounded">
-                    <option value="VERIFIKASI" @selected(old('category_ng') == 'VERIFIKASI')>VERIFIKASI</option>
-                    <option value="KALIBRASI" @selected(old('category_ng') == 'KALIBRASI')>KALIBRASI</option>
-                    <option value="KALIBRASI EKSTENAL" @selected(old('category_ng') == 'KALIBRASI EKSTENAL')>KALIBRASI EKSTENAL</option>
-                </select>
+                <div class="flex gap-2">
+                    <select id="category_ng" name="category_ng" required class="w-full min-w-0 border p-2 rounded">
+                        <option value="">-- Pilih Category --</option>
+                        @foreach($categoryOptions as $cat)
+                            <option value="{{ $cat['name'] }}"
+                                    data-id="{{ $cat['id'] }}"
+                                    data-default="{{ $cat['is_default'] ? 1 : 0 }}"
+                                    @selected(old('category_ng') === $cat['name'])>{{ $cat['name'] }}</option>
+                        @endforeach
+                        <option value="__add_new_category__" @selected(old('category_ng') === '__add_new_category__')>+ Tambah Category Baru</option>
+                    </select>
+                    <button type="button" id="deleteCategoryBtn" hidden
+                            class="shrink-0 rounded bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700">
+                        Hapus
+                    </button>
+                </div>
+                <div id="newCategoryContainer" class="mt-2" @if(old('category_ng') !== '__add_new_category__') hidden @endif>
+                    <input id="new_category_ng" name="new_category_ng" type="text" maxlength="255"
+                           class="w-full border p-2 rounded" value="{{ old('new_category_ng') }}"
+                           placeholder="Masukkan Category baru"
+                           @if(old('category_ng') === '__add_new_category__') required @endif>
+                    <p class="mt-1 text-xs text-gray-500">Category baru akan disimpan dan bisa dipilih lagi nanti.</p>
+                </div>
             </div>
             <div class="list-up-ng-form-note">
                 <label class="block text-sm font-semibold mb-1">Note</label>
@@ -101,6 +119,9 @@
     const selectedListUpNgType = @json($selectedType);
     const addNewTypeValue = '__add_new_type__';
     const shouldShowNewType = @json(old('type') === '__add_new_type__');
+    const addNewCategoryValue = '__add_new_category__';
+    const categoriesBaseUrl = @json(url('/list-up-ng/categories'));
+    const csrfToken = @json(csrf_token());
 
     $(function () {
         $('#tool_name').select2({
@@ -150,5 +171,57 @@
         container.hidden = !show;
         input.required = show;
     }
+
+    // ===== Category NG =====
+    const categorySelect = document.getElementById('category_ng');
+    const deleteCategoryBtn = document.getElementById('deleteCategoryBtn');
+
+    function toggleNewCategoryInput(show) {
+        const container = document.getElementById('newCategoryContainer');
+        const input = document.getElementById('new_category_ng');
+        container.hidden = !show;
+        input.required = show;
+        if (!show) {
+            input.value = '';
+        }
+    }
+
+    function refreshCategoryDeleteButton() {
+        const opt = categorySelect.options[categorySelect.selectedIndex];
+        const deletable = opt && opt.dataset.id && opt.dataset.default === '0';
+        deleteCategoryBtn.hidden = !deletable;
+    }
+
+    categorySelect.addEventListener('change', function () {
+        toggleNewCategoryInput(this.value === addNewCategoryValue);
+        refreshCategoryDeleteButton();
+    });
+
+    deleteCategoryBtn.addEventListener('click', async function () {
+        const opt = categorySelect.options[categorySelect.selectedIndex];
+        if (!opt || !opt.dataset.id) return;
+        if (!confirm(`Hapus category "${opt.value}"?`)) return;
+
+        const response = await fetch(`${categoriesBaseUrl}/${opt.dataset.id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            alert(data.message || 'Gagal menghapus category.');
+            return;
+        }
+
+        opt.remove();
+        categorySelect.value = '';
+        toggleNewCategoryInput(false);
+        refreshCategoryDeleteButton();
+    });
+
+    refreshCategoryDeleteButton();
 </script>
 @endsection
