@@ -118,7 +118,9 @@ class ToolController extends Controller
         );
 
         // ==========================================
-        // LOGIKA PENGECEKAN JATUH TEMPO (ALERT & EMAIL)
+        // LOGIKA PENGECEKAN JATUH TEMPO (ALERT)
+        // Pengiriman email sekarang dilakukan oleh
+        // perintah terjadwal verifikasi:reminders.
         // ==========================================
         $warningMessage = null;
         if ($tool->next_date) {
@@ -128,11 +130,6 @@ class ToolController extends Controller
             if ($sisaHari <= 7) {
                 $warningMessage = "⚠️ Perhatian: Alat '{$tool->tool_name}' akan jatuh tempo pada " . Carbon::parse($tool->next_date)->format('d M Y') . " (Sisa {$sisaHari} hari).";
                 
-                // Kirim Email ke Admin
-                $admins = User::where('role', 'admin')->get();
-                if ($admins->count() > 0) {
-                    Notification::send($admins, new ToolDueDateNotification($tool, $sisaHari));
-                }
             }
         }
 
@@ -211,6 +208,8 @@ class ToolController extends Controller
 
         // ==========================================
         // LOGIKA PENGECEKAN JATUH TEMPO SAAT UPDATE
+        // Pengiriman email sekarang dilakukan oleh
+        // perintah terjadwal verifikasi:reminders.
         // ==========================================
         $warningMessage = null;
         if ($tool->next_date) {
@@ -218,10 +217,6 @@ class ToolController extends Controller
             if ($sisaHari <= 7) {
                 $warningMessage = "⚠️ Perhatian: Alat '{$tool->tool_name}' akan jatuh tempo pada " . Carbon::parse($tool->next_date)->format('d M Y') . " (Sisa {$sisaHari} hari).";
                 
-                $admins = User::where('role', 'admin')->get();
-                if ($admins->count() > 0) {
-                    Notification::send($admins, new ToolDueDateNotification($tool, $sisaHari));
-                }
             }
         }
 

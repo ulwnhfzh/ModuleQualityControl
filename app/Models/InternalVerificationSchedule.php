@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\ValidDate;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -204,10 +205,10 @@ class InternalVerificationSchedule extends Model
     ];
 
     protected $casts = [
-        'period1_verification_date' => 'date',
-        'period1_next_verification_date' => 'date',
-        'period2_verification_date' => 'date',
-        'period2_next_verification_date' => 'date',
+        'period1_verification_date' => ValidDate::class,
+        'period1_next_verification_date' => ValidDate::class,
+        'period2_verification_date' => ValidDate::class,
+        'period2_next_verification_date' => ValidDate::class,
     ];
 
     public function tool()

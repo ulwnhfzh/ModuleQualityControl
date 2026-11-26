@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\ValidDate;
 use Illuminate\Database\Eloquent\Model;
 
 class ExternalCalibrationListUp extends Model
@@ -12,7 +13,7 @@ class ExternalCalibrationListUp extends Model
     ];
 
     protected $casts = [
-        'calibration_date' => 'date',
-        'next_calibration_date' => 'date',
+        'calibration_date' => ValidDate::class,
+        'next_calibration_date' => ValidDate::class,
     ];
 }

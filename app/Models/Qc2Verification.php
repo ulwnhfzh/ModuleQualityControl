@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\ValidDate;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,7 +19,7 @@ class Qc2Verification extends Model
     ];
 
     protected $casts = [
-        'verification_date' => 'date',
-        'next_verification_date' => 'date',
+        'verification_date' => ValidDate::class,
+        'next_verification_date' => ValidDate::class,
     ];
 }
