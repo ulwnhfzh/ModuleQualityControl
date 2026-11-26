@@ -15,37 +15,40 @@ class ScheduleExpiryNotifier
 {
     public const DEFAULT_WARNING_DAYS = 5;
 
+        /** Tanggal sebelum tahun ini dianggap hasil rumus Excel kosong (1899/1900), bukan jadwal asli. */
+    public const MIN_VALID_YEAR = 2000;
+
     public static function warningDays(): int
     {
-        $configured = Setting::get('warning_days_jadwal', self::DEFAULT_WARNING_DAYS);
-        $days = (int) $configured;
+        $days = (int) Setting::get('warning_days_jadwal', self::DEFAULT_WARNING_DAYS);
 
         return $days > 0 ? $days : self::DEFAULT_WARNING_DAYS;
     }
 
     /**
-     * Mengambil semua jadwal Verifikasi, Kalibrasi Internal, dan Kalibrasi Eksternal
-     * yang akan expired dalam <= batas hari setting (default 5 hari) atau sudah lewat tanggalnya.
+     * Semua jadwal yang sudah masuk jendela peringatan atau sudah lewat jatuh temponya.
+     * Setiap item membawa actual_date: tanggal verifikasi/kalibrasi periode yang sudah diisi (atau null).
      */
     public function dueItems(?Carbon $today = null): Collection
     {
         $today = ($today ?? Carbon::today())->copy()->startOfDay();
-        $warningDays = self::warningDays();
-        $limit = $today->copy()->addDays($warningDays)->endOfDay();
+        $limit = $today->copy()->addDays(self::warningDays())->endOfDay();
         $items = collect();
 
         // 1. VERIFIKASI INTERNAL (Periode 1 & Periode 2)
         if (Schema::hasTable('verifikasi_internal_schedules')) {
             InternalVerificationSchedule::query()
                 ->where(function ($q) use ($limit) {
-                    $q->whereNotNull('period1_next_verification_date')->whereDate('period1_next_verification_date', '<=', $limit->toDateString())
-                      ->orWhere(function ($q2) use ($limit) {
-                          $q2->whereNotNull('period2_next_verification_date')->whereDate('period2_next_verification_date', '<=', $limit->toDateString());
-                      });
+                    $q->whereNotNull('period1_next_verification_date')
+                        ->whereDate('period1_next_verification_date', '<=', $limit->toDateString())
+                        ->orWhere(function ($q2) use ($limit) {
+                            $q2->whereNotNull('period2_next_verification_date')
+                                ->whereDate('period2_next_verification_date', '<=', $limit->toDateString());
+                        });
                 })
                 ->get()
                 ->each(function (InternalVerificationSchedule $row) use ($today, $limit, &$items) {
-                    if ($row->period1_next_verification_date && !$row->period2_verification_date) {
+                    if ($row->period1_next_verification_date && ! $row->period2_verification_date) {
                         $nextDate = Carbon::parse($row->period1_next_verification_date)->startOfDay();
                         if ($nextDate->lte($limit)) {
                             $items->push($this->formatItem(
@@ -59,6 +62,7 @@ class ScheduleExpiryNotifier
                                 registrationNumber: $row->registration_number,
                                 shop: $row->shop,
                                 nextDate: $nextDate,
+                                actualDate: $this->startOfDayOrNull($row->period1_verification_date),
                                 today: $today,
                                 routeUrl: route('verifikasi.periode.index', [
                                     'tahun' => $row->tahun,
@@ -66,7 +70,7 @@ class ScheduleExpiryNotifier
                                     'company' => $row->company,
                                     'shop' => $row->shop,
                                     'tool_name' => $row->tool_name,
-                                ]) . '#schedule-' . $row->id
+                                ]) . '#schedule-' . $row->id,
                             ));
                         }
                     }
@@ -85,6 +89,7 @@ class ScheduleExpiryNotifier
                                 registrationNumber: $row->registration_number,
                                 shop: $row->shop,
                                 nextDate: $nextDate,
+                                actualDate: $this->startOfDayOrNull($row->period2_verification_date),
                                 today: $today,
                                 routeUrl: route('verifikasi.periode.index', [
                                     'tahun' => $row->tahun,
@@ -92,7 +97,7 @@ class ScheduleExpiryNotifier
                                     'company' => $row->company,
                                     'shop' => $row->shop,
                                     'tool_name' => $row->tool_name,
-                                ]) . '#schedule-' . $row->id
+                                ]) . '#schedule-' . $row->id,
                             ));
                         }
                     }
@@ -123,6 +128,7 @@ class ScheduleExpiryNotifier
                             registrationNumber: $row->registration_number,
                             shop: $row->shop,
                             nextDate: $nextDate,
+                            actualDate: $this->startOfDayOrNull($row->verification_date),
                             today: $today,
                             routeUrl: route('verifikasi.periode.index', [
                                 'tahun' => $row->tahun,
@@ -130,7 +136,7 @@ class ScheduleExpiryNotifier
                                 'company' => $row->company,
                                 'shop' => $row->shop,
                                 'tool_name' => $row->tool_name,
-                            ]) . '#schedule-' . $row->id
+                            ]) . '#schedule-' . $row->id,
                         ));
                     });
             }
@@ -140,14 +146,16 @@ class ScheduleExpiryNotifier
         if (Schema::hasTable('kalibrasi_internal_list_ups')) {
             InternalCalibrationListUp::query()
                 ->where(function ($q) use ($limit) {
-                    $q->whereNotNull('next_calibration_date')->whereDate('next_calibration_date', '<=', $limit->toDateString())
-                      ->orWhere(function ($q2) use ($limit) {
-                          $q2->whereNotNull('period2_next_calibration_date')->whereDate('period2_next_calibration_date', '<=', $limit->toDateString());
-                      });
+                    $q->whereNotNull('next_calibration_date')
+                        ->whereDate('next_calibration_date', '<=', $limit->toDateString())
+                        ->orWhere(function ($q2) use ($limit) {
+                            $q2->whereNotNull('period2_next_calibration_date')
+                                ->whereDate('period2_next_calibration_date', '<=', $limit->toDateString());
+                        });
                 })
                 ->get()
                 ->each(function (InternalCalibrationListUp $row) use ($today, $limit, &$items) {
-                    if ($row->next_calibration_date && !$row->period2_calibration_date) {
+                    if ($row->next_calibration_date && ! $row->period2_calibration_date) {
                         $nextDate = Carbon::parse($row->next_calibration_date)->startOfDay();
                         if ($nextDate->lte($limit)) {
                             $items->push($this->formatItem(
@@ -161,6 +169,7 @@ class ScheduleExpiryNotifier
                                 registrationNumber: $row->registration_number,
                                 shop: $row->shop,
                                 nextDate: $nextDate,
+                                actualDate: $this->startOfDayOrNull($row->calibration_date),
                                 today: $today,
                                 routeUrl: route('verifikasi.periode.index', [
                                     'tahun' => $row->tahun,
@@ -168,7 +177,7 @@ class ScheduleExpiryNotifier
                                     'company' => $row->company,
                                     'shop' => $row->shop,
                                     'tool_name' => $row->tool_name,
-                                ]) . '#schedule-' . $row->id
+                                ]) . '#schedule-' . $row->id,
                             ));
                         }
                     }
@@ -187,6 +196,7 @@ class ScheduleExpiryNotifier
                                 registrationNumber: $row->registration_number,
                                 shop: $row->shop,
                                 nextDate: $nextDate,
+                                actualDate: $this->startOfDayOrNull($row->period2_calibration_date),
                                 today: $today,
                                 routeUrl: route('verifikasi.periode.index', [
                                     'tahun' => $row->tahun,
@@ -194,7 +204,7 @@ class ScheduleExpiryNotifier
                                     'company' => $row->company,
                                     'shop' => $row->shop,
                                     'tool_name' => $row->tool_name,
-                                ]) . '#schedule-' . $row->id
+                                ]) . '#schedule-' . $row->id,
                             ));
                         }
                     }
@@ -220,17 +230,26 @@ class ScheduleExpiryNotifier
                         registrationNumber: $row->registration_number,
                         shop: $row->shop,
                         nextDate: $nextDate,
+                        actualDate: $this->startOfDayOrNull($row->calibration_date),
                         today: $today,
                         routeUrl: route('external-list-up.index', [
                             'tahun' => $row->tahun,
                             'shop' => $row->shop,
                             'tool_name' => $row->tool_name,
-                        ]) . '#schedule-' . $row->id
+                        ]) . '#schedule-' . $row->id,
                     ));
                 });
         }
 
-        return $items->sortBy('next_date')->values();
+        return $items
+            ->filter(fn (object $item) => (int) substr($item->next_date, 0, 4) >= self::MIN_VALID_YEAR)
+            ->sortBy('next_date')
+            ->values();
+    }
+
+    private function startOfDayOrNull($value): ?Carbon
+    {
+        return $value ? Carbon::parse($value)->startOfDay() : null;
     }
 
     private function formatItem(
@@ -244,6 +263,7 @@ class ScheduleExpiryNotifier
         ?string $registrationNumber,
         ?string $shop,
         Carbon $nextDate,
+        ?Carbon $actualDate,
         Carbon $today,
         string $routeUrl,
     ): object {
@@ -262,6 +282,7 @@ class ScheduleExpiryNotifier
             'next_date' => $nextDate->toDateString(),
             'sisa_hari' => $sisaHari,
             'level' => $sisaHari < 0 ? 'terlambat' : 'mendekati',
+            'actual_date' => $actualDate,
             'route_url' => $routeUrl,
         ];
     }
