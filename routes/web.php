@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail; // <-- TAMBAHAN UNTUK TES EMAIL
 use App\Http\Controllers\ToolController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\VerificationPeriodController;
@@ -119,6 +120,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     Route::get('/list-up-ng/create', [ListUpNgController::class, 'create'])->name('list-up-ng.create');
     Route::post('/list-up-ng', [ListUpNgController::class, 'store'])->name('list-up-ng.store');
+    Route::delete('/list-up-ng/categories/{category}', [ListUpNgController::class, 'destroyCategory'])
+        ->name('list-up-ng.categories.destroy');
     Route::get('/list-up-ng/{listUpNg}/edit', [ListUpNgController::class, 'edit'])->name('list-up-ng.edit');
     Route::put('/list-up-ng/{listUpNg}', [ListUpNgController::class, 'update'])->name('list-up-ng.update');
     Route::delete('/list-up-ng/{listUpNg}', [ListUpNgController::class, 'destroy'])->name('list-up-ng.destroy');
@@ -258,6 +261,19 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // ===== PENGATURAN NOTIFIKASI =====
     Route::get('/settings/notifikasi', [NotificationSettingsController::class, 'notifikasi'])->name('settings.notifikasi');
     Route::post('/settings/notifikasi', [NotificationSettingsController::class, 'updateNotification'])->name('settings.notifikasi.update');
+});
+
+// =========================================================================
+// ROUTE TESTING EMAIL (TAMBAHAN)
+// =========================================================================
+Route::get('/test-email', function () {
+    Mail::raw('Halo! Ini adalah email percobaan dari Laravel XAMPP.', function ($message) {
+        // GANTI EMAIL DI BAWAH INI DENGAN EMAIL TUJUAN YANG INGIN ANDA TES
+        $message->to('ulwnhafizh@gmail.com') 
+                ->subject('Tes Notifikasi Email Laravel');
+    });
+    
+    return 'Perintah kirim email sudah dijalankan! Silakan cek kotak masuk (atau Mailtrap).';
 });
 
 require __DIR__.'/auth.php';
