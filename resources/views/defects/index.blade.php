@@ -89,7 +89,7 @@
     </style>
 
     <!-- TABEL REKAPITULASI -->
-    <div class="overflow-x-auto rounded-lg border border-slate-200">
+    <div class="overflow-x-auto rounded-lg border border-slate-200" style="isolation:isolate">
         <table class="defect-grid w-full min-w-[1040px] table-fixed border-collapse text-center text-[11px] text-slate-700">
             <colgroup>
                 <col style="width:40px">
@@ -103,8 +103,8 @@
             </colgroup>
             <thead>
                 <tr class="font-bold uppercase">
-                    <th class="sticky-col border border-slate-600 px-1 py-2 leading-tight" rowspan="2" style="position:sticky;left:0;z-index:30">NO</th>
-                    <th class="sticky-col border border-slate-600 px-1 py-2 leading-tight" rowspan="2" style="position:sticky;left:40px;z-index:30">DIVISION</th>
+                    <th class="sticky-col border border-slate-600 px-1 py-2 leading-tight" rowspan="2" style="position:sticky;left:0;z-index:6">NO</th>
+                    <th class="sticky-col border border-slate-600 px-1 py-2 leading-tight" rowspan="2" style="position:sticky;left:40px;z-index:6">DIVISION</th>
                     <th class="border border-slate-600 px-1 py-2 leading-tight" colspan="12">{{ $bulanFilter }}</th>
                     <th class="border border-slate-600 px-1 py-2 leading-tight" rowspan="2">TOTAL</th>
                     <th class="border border-slate-600 px-1 py-2 leading-tight" rowspan="2">GRAND TOTAL</th>
@@ -127,8 +127,8 @@
                         $dbData = $existingDefects[$division] ?? null;
                     @endphp
                     <tr class="{{ $no % 2 ? 'bg-white' : 'bg-slate-50' }} hover:bg-blue-50">
-                        <td class="sticky-col border border-slate-200 px-1 py-2 font-semibold" style="position:sticky;left:0;z-index:10;background:inherit">{{ $no++ }}</td>
-                        <td class="sticky-col border border-slate-200 whitespace-nowrap px-2 py-2 text-left font-semibold" style="position:sticky;left:40px;z-index:10;background:inherit">{{ $division }}</td>
+                        <td class="sticky-col border border-slate-200 px-1 py-2 font-semibold" style="position:sticky;left:0;z-index:5;background:inherit">{{ $no++ }}</td>
+                        <td class="sticky-col border border-slate-200 whitespace-nowrap px-2 py-2 text-left font-semibold" style="position:sticky;left:40px;z-index:5;background:inherit">{{ $division }}</td>
 
                         @foreach($jenisKerusakan as $jenis)
                             <td class="border border-slate-200 px-1 py-2">{{ $data[$jenis] ?: '' }}</td>
@@ -168,7 +168,7 @@
             @if($hasYearData)
                 <tfoot>
                     <tr class="font-bold">
-                        <td colspan="2" class="border border-slate-300 px-2 py-2 text-right uppercase" style="position:sticky;left:0;z-index:10;background:#eaf3fc">TOTAL</td>
+                        <td colspan="2" class="border border-slate-300 px-2 py-2 text-right uppercase" style="position:sticky;left:0;z-index:5;background:#eaf3fc">TOTAL</td>
                         @foreach($jenisKerusakan as $jenis)
                             <td class="border border-slate-300 px-1 py-2">{{ $footerTotals[$jenis] ?: '' }}</td>
                         @endforeach
@@ -185,26 +185,31 @@
 </div>
 
 @if($hasYearData)
+<style>
+    .rekap-ng-card { border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; padding: 12px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05); }
+    .rekap-ng-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; color: #222; text-align: center; margin-bottom: 8px; }
+    .rekap-ng-section-title { font-weight: 700; text-transform: uppercase; color: #222; }
+</style>
 <section class="mb-5 mt-6">
     <div class="mb-3">
-        <h2 class="text-base font-bold text-slate-800">Analisis NG {{ $tahun }}</h2>
+        <h2 class="text-base rekap-ng-section-title">Analisis NG {{ $tahun }}</h2>
         <p class="text-xs text-slate-500">Tren bulanan dan kontribusi kerusakan berdasarkan rekap tahunan.</p>
     </div>
     <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <article class="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
-            <h3 class="mb-3 text-sm font-semibold text-slate-700">Frekuensi NG per bulan</h3>
+        <article class="rekap-ng-card">
+            <h3 class="rekap-ng-title">Frekuensi NG per bulan</h3>
             <div class="h-64"><canvas id="ngMonthlyChart"></canvas></div>
         </article>
-        <article class="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
-            <h3 class="mb-3 text-sm font-semibold text-slate-700">Jenis kerusakan — semua divisi</h3>
+        <article class="rekap-ng-card">
+            <h3 class="rekap-ng-title">Jenis kerusakan — semua divisi</h3>
             <div class="h-64"><canvas id="ngDefectChart"></canvas></div>
         </article>
-        <article class="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
-            <h3 class="mb-3 text-sm font-semibold text-slate-700">Kontribusi divisi</h3>
+        <article class="rekap-ng-card">
+            <h3 class="rekap-ng-title">Kontribusi divisi</h3>
             <div class="h-64"><canvas id="ngDivisionChart"></canvas></div>
         </article>
-        <article class="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
-            <h3 class="mb-3 text-sm font-semibold text-slate-700">Nama alat penyumbang NG terbanyak</h3>
+        <article class="rekap-ng-card">
+            <h3 class="rekap-ng-title">Nama alat penyumbang NG terbanyak</h3>
             @if(count($toolNameTotals))
                 <div class="h-64"><canvas id="ngToolChart"></canvas></div>
             @else
@@ -221,6 +226,7 @@
 </div>
 @endif
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script>
     const ngMonths = @json(array_values($monthLabels));
     const ngMonthlyValues = @json(array_values($monthlyTotals));
@@ -235,15 +241,17 @@
             ? Math.round((Number(value || 0) / total) * 1000) / 10
             : 0);
     };
-    const makePareto = (canvasId, labels, values, color = '#64748b') => {
+    const LABEL_BOX = (bg) => ({ anchor: ctx => (Number(ctx.dataset.data[ctx.dataIndex]) === 0 ? 'center' : 'end'), align: ctx => (Number(ctx.dataset.data[ctx.dataIndex]) === 0 ? 'top' : 'end'), offset: ctx => (Number(ctx.dataset.data[ctx.dataIndex]) === 0 ? 14 : 0), backgroundColor: bg, borderColor: '#7f7f7f', borderWidth: 1, borderRadius: 2, color: '#000000', font: { weight: 'bold', size: 11 }, padding: 3 });
+    const LINE_LABEL = { anchor: 'center', align: ctx => (Number(ctx.dataset.data[ctx.dataIndex]) === 0 ? 'bottom' : 'top'), offset: 4, backgroundColor: '#b7dee8', borderColor: '#7f7f7f', borderWidth: 1, borderRadius: 2, color: '#000000', font: { size: 10, weight: 'bold' }, padding: 2, formatter: v => Math.round(v) + '%' };
+    const makePareto = (canvasId, labels, values, opt = {}) => {
         const canvas = document.getElementById(canvasId);
         if (!canvas || !window.Chart) return;
         new Chart(canvas, {
             data: {
                 labels,
                 datasets: [
-                    { type: 'bar', label: 'Frekuensi', data: values, backgroundColor: color, borderRadius: 4, yAxisID: 'y' },
-                    { type: 'line', label: '% dari Total NG', data: ngPercentShare(values), borderColor: '#dc2626', backgroundColor: '#dc2626', pointRadius: 3, tension: 0.25, yAxisID: 'y1' }
+                    { type: 'bar', label: 'Frekuensi', data: values, backgroundColor: opt.barColor ?? '#c4d79b', borderRadius: 2, yAxisID: 'y', datalabels: LABEL_BOX(opt.barBox ?? '#ffff99') },
+                    { type: 'line', label: '% dari Total NG', data: ngPercentShare(values), borderColor: opt.lineColor ?? '#4f81bd', backgroundColor: opt.lineColor ?? '#4f81bd', pointRadius: 3, tension: 0.25, yAxisID: 'y1', datalabels: LINE_LABEL }
                 ]
             },
             options: {
@@ -257,14 +265,16 @@
             }
         });
     };
+    if (window.Chart && window.ChartDataLabels) Chart.register(ChartDataLabels);
     if (window.Chart) {
         Chart.defaults.font.family = 'Inter, ui-sans-serif, system-ui, sans-serif';
+        Chart.defaults.color = '#333333';
         const monthlyCanvas = document.getElementById('ngMonthlyChart');
         if (monthlyCanvas) {
             new Chart(monthlyCanvas, {
                 data: { labels: ngMonths, datasets: [
-                    { type: 'bar', label: 'Frekuensi NG', data: ngMonthlyValues, backgroundColor: '#64748b', borderRadius: 4, yAxisID: 'y' },
-                    { type: 'line', label: '% dari Total NG Tahunan', data: ngPercentShare(ngMonthlyValues), borderColor: '#475569', backgroundColor: '#475569', pointRadius: 3, tension: 0.2, yAxisID: 'y1' }
+                    { type: 'bar', label: 'Frekuensi NG', data: ngMonthlyValues, backgroundColor: '#9bbb59', borderRadius: 2, yAxisID: 'y', datalabels: LABEL_BOX('#ffff99') },
+                    { type: 'line', label: '% dari Total NG Tahunan', data: ngPercentShare(ngMonthlyValues), borderColor: '#4f81bd', backgroundColor: '#4f81bd', pointRadius: 3, datalabels: { display: false }, tension: 0.2, yAxisID: 'y1' }
                 ] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } }, scales: {
                     y: { beginAtZero: true, ticks: { precision: 0 } },
@@ -272,9 +282,9 @@
                 } }
             });
         }
-        makePareto('ngDefectChart', ngDefectLabels, ngDefectValues);
-        makePareto('ngDivisionChart', ngDivisionLabels, ngDivisionValues);
-        if (ngToolRows.length) makePareto('ngToolChart', ngToolRows.map(row => row.label), ngToolRows.map(row => row.value));
+        makePareto('ngDefectChart', ngDefectLabels, ngDefectValues, { barBox: '#ffff99', lineColor: '#c0504d' });
+        makePareto('ngDivisionChart', ngDivisionLabels, ngDivisionValues, { barBox: '#ffff99', lineColor: '#4f81bd' });
+        if (ngToolRows.length) makePareto('ngToolChart', ngToolRows.map(row => row.label), ngToolRows.map(row => row.value), { barBox: '#d99694', lineColor: '#4f81bd' });
     }
     function toggleExportNg() {
         const dropdown = document.getElementById('exportDropdownNg');
