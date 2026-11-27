@@ -16,12 +16,12 @@ class DailyReminderNotification extends Notification
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
     ];
 
+    private const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
     public function __construct(
         public readonly Carbon $date,
         public readonly array $counts,
-        public readonly array $jadwal,
-        public readonly array $mesinTerlambat,
-        public readonly array $mesinJatuhTempo,
+        public readonly array $sections,
         public readonly string $notificationUrl,
     ) {
     }
@@ -33,16 +33,14 @@ class DailyReminderNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $subject = 'Pengingat verifikasi dan kalibrasi, '
-            . $this->date->day . ' ' . self::BULAN[$this->date->month] . ' ' . $this->date->year;
+        $tanggal = self::HARI[$this->date->dayOfWeek] . ', ' . $this->date->day . ' '
+            . self::BULAN[$this->date->month] . ' ' . $this->date->year;
 
         return (new MailMessage)
-            ->subject($subject)
+            ->subject('[Pengingat] Verifikasi & Kalibrasi – ' . $tanggal)
             ->view('emails.pengingat-harian', [
                 'counts' => $this->counts,
-                'jadwal' => $this->jadwal,
-                'mesinTerlambat' => $this->mesinTerlambat,
-                'mesinJatuhTempo' => $this->mesinJatuhTempo,
+                'sections' => $this->sections,
                 'notificationUrl' => $this->notificationUrl,
             ]);
     }
