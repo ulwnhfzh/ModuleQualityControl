@@ -14,23 +14,27 @@ class DashboardTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
 
+        /** @var User $admin */
         $this->actingAs($admin)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Komposisi daftar induk')
-            ->assertSee('Rekap data')
+            ->assertSee('Perlu tindakan hari ini')
+            ->assertSee('Penyumbang terbesar')
+            ->assertSee('Aktivitas data terakhir')
             ->assertDontSee('Akses Cepat');
     }
 
     public function test_user_dashboard_shows_operational_summary_instead_of_shortcuts(): void
     {
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user']);
 
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Komposisi daftar induk')
-            ->assertSee('Rekap data')
+            ->assertSee('Perlu tindakan hari ini')
+            ->assertSee('Penyumbang terbesar')
+            ->assertDontSee('Aktivitas data terakhir')
             ->assertDontSee('Shortcut (Lihat Data)');
     }
 }
