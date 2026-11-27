@@ -1,271 +1,308 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    .dash { display: flex; flex-direction: column; gap: 20px; padding-bottom: 32px; width: 100%; }
+    .dash-hero {
+        border-radius: 16px; padding: 24px; color: #ffffff;
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #38bdf8 100%);
+        display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+        box-shadow: 0 10px 25px rgba(30, 58, 138, .18);
+    }
+    .dash-hero small { display: block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; opacity: .85; font-weight: 600; }
+    .dash-hero h1 { margin: 4px 0 0; font-size: 28px; font-weight: 700; }
+    .dash-hero p { margin: 4px 0 0; font-size: 14px; opacity: .9; }
+    .dash-hero select {
+        background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 10px;
+        padding: 8px 12px; font-size: 14px; font-weight: 600; min-width: 110px;
+    }
 
-<div class="dashboard-page flex w-full flex-col gap-4 pb-8">
+    .dash-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .dash-card {
+        background: #ffffff; border: 1px solid #e2e8f0; border-left-width: 4px; border-radius: 12px;
+        padding: 16px; text-decoration: none; color: inherit; box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .dash-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(15, 23, 42, .08); }
+    .dash-card .lbl { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #64748b; }
+    .dash-card .num { font-size: 32px; font-weight: 700; margin-top: 6px; line-height: 1.1; }
+    .dash-card .sub { font-size: 12px; color: #94a3b8; margin-top: 6px; }
+    .c-rose { border-left-color: #e11d48; } .c-rose .num { color: #e11d48; }
+    .c-amber { border-left-color: #f59e0b; } .c-amber .num { color: #d97706; }
+    .c-blue { border-left-color: #2563eb; } .c-blue .num { color: #2563eb; }
+
+    .dash-split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; }
+    .dash-panel {
+        background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+    }
+    .dash-panel h2 { margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; }
+    .dash-panel .desc { margin: 4px 0 0; font-size: 13px; color: #64748b; }
+    .dash-head { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-start; }
+    .dash-head select {
+        border: 1px solid #cbd5e1; border-radius: 10px; padding: 8px 12px; font-size: 14px;
+        font-weight: 600; color: #0f172a; background: #ffffff; min-width: 240px;
+    }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12px; color: #475569; margin-top: 12px; }
+    .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+    .legend b { color: #0f172a; }
+    .chart-box { position: relative; height: 320px; margin-top: 8px; }
+    .chart-empty {
+        position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+        color: #64748b; font-size: 14px;
+    }
+
+    .top-item { margin-top: 14px; }
+    .top-row { display: flex; justify-content: space-between; font-size: 13px; color: #0f172a; font-weight: 600; }
+    .top-row span:last-child { color: #64748b; font-weight: 500; }
+    .bar-track { height: 8px; background: #e2e8f0; border-radius: 999px; margin-top: 6px; overflow: hidden; }
+    .bar-fill { height: 8px; border-radius: 999px; background: linear-gradient(90deg, #38bdf8, #2563eb); }
+
+    .dash-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .dash-table th {
+        text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+        color: #64748b; padding: 10px 8px; border-bottom: 2px solid #e2e8f0;
+    }
+    .dash-table td { padding: 11px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .dash-table .nama { font-weight: 700; color: #0f172a; }
+    .dash-table .sub { display: block; font-size: 11px; color: #94a3b8; font-weight: 500; }
+    .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .pill-rose { background: #ffe4e6; color: #be123c; }
+    .pill-amber { background: #fef3c7; color: #b45309; }
+    .link { font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none; }
+    .link:hover { text-decoration: underline; }
+    .empty { text-align: center; padding: 28px 8px; color: #64748b; font-size: 14px; }
+
+    .act { list-style: none; margin: 0; padding: 0; }
+    .act li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+    .act li:last-child { border-bottom: none; }
+    .act .waktu { color: #94a3b8; font-size: 12px; white-space: nowrap; }
+
+    @media (max-width: 1100px) {
+        .dash-split { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+        .dash-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .dash-hero h1 { font-size: 22px; }
+    }
+</style>
+
+<div class="dash">
 
     {{-- HEADER --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+    <div class="dash-hero">
         <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Quality Control</p>
-            <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Dashboard</h1>
-            <p class="mt-1 text-sm text-slate-500">Ringkasan alat ukur dan aktivitas operasional.</p>
+            <small>Quality Control</small>
+            <h1>Dashboard</h1>
+            <p>Yang perlu ditindaklanjuti hari ini, dan pola order NG tahun {{ $tahun }}.</p>
         </div>
-        <div class="flex items-center gap-3">
-            <label for="dashboard-year" class="text-sm font-medium text-slate-600">Tahun laporan</label>
-            <form method="GET" action="{{ route('dashboard') }}">
-                <select name="tahun" onchange="this.form.submit()"
-                        id="dashboard-year" aria-label="Pilih tahun laporan" class="bg-white border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg px-3 py-2.5 shadow-sm
-                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
-                    @for($y = date('Y'); $y >= date('Y') - 12; $y--)
-                        <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>{{ $y }}</option>
-                    @endfor
-                </select>
-            </form>
-        </div>
+        <form method="GET" action="{{ route('dashboard') }}">
+            <label for="tahunSelect" style="display:none">Tahun laporan</label>
+            <select id="tahunSelect" name="tahun" onchange="this.form.submit()">
+                @for($y = date('Y'); $y >= date('Y') - 12; $y--)
+                    <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>{{ $y }}</option>
+                @endfor
+            </select>
+        </form>
     </div>
 
-    {{-- INDIKATOR KINERJA --}}
-    <div class="bg-transparent">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h2 class="font-bold text-slate-900 text-lg">Kinerja bulan ini <span class="font-medium text-slate-500">· {{ $kpi['bulanLabel'] }}</span></h2>
-                <p class="text-sm text-slate-500 mt-1">Pantau progres kalibrasi, keterlambatan, dan aktivitas tim.</p>
-            </div>
-        </div>
-
-        <div class="dashboard-kpi-grid grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-
-            {{-- Progres Kalibrasi --}}
-            <div class="bg-white rounded-lg p-4 border border-slate-200 min-h-[136px]">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Progres kalibrasi</p>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                </div>
-                <div class="flex items-baseline gap-2 mt-3">
-                    <p class="text-4xl font-bold tracking-tight text-slate-900">{{ $kpi['progressKalibrasi'] }}<span class="text-2xl text-slate-500">%</span></p>
-                </div>
-                <p class="text-xs text-slate-500 mt-1">
-                    {{ $kpi['totalKalibrasiBulanIni'] }} dari {{ $kpi['totalAlatKalibrasi'] }} alat
-                </p>
-                <div class="w-full bg-slate-100 rounded-full h-2 mt-4">
-                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                         style="width: {{ min($kpi['progressKalibrasi'], 100) }}%"></div>
-                </div>
-            </div>
-
-            {{-- Alat Terlambat --}}
-            <div class="bg-white rounded-lg p-4 border border-slate-200 min-h-[136px]">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Terlambat kalibrasi</p>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                </div>
-                <p class="text-4xl font-bold tracking-tight {{ $kpi['jumlahTerlambat'] > 0 ? 'text-rose-700' : 'text-slate-900' }} mt-3">{{ $kpi['jumlahTerlambat'] }}</p>
-                <p class="text-xs text-slate-500 mt-1">
-                    @if($kpi['jumlahTerlambat'] > 0)
-                        Memerlukan tindak lanjut segera
-                    @else
-                        Seluruh alat terkalibrasi sesuai jadwal
-                    @endif
-                </p>
-            </div>
-
-            {{-- Aktivitas Minggu Ini --}}
-            <div class="bg-white rounded-lg p-4 border border-slate-200 min-h-[136px]">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Aktivitas minggu ini</p>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                </div>
-                <div class="flex items-baseline gap-2 mt-3">
-                    <p class="text-4xl font-bold tracking-tight text-slate-900">{{ $kpi['aktivitasMingguIni'] }}</p>
-                    @php $perubahan = $kpi['perubahanAktivitas']; @endphp
-                    @if($perubahan > 0)
-                        <span class="text-sm font-semibold text-blue-600">↑ {{ $perubahan }}%</span>
-                    @elseif($perubahan < 0)
-                        <span class="text-sm font-semibold text-rose-600">↓ {{ abs($perubahan) }}%</span>
-                    @else
-                        <span class="text-sm font-semibold text-gray-500">—</span>
-                    @endif
-                </div>
-                <p class="text-xs text-slate-500 mt-1">
-                    Periode sebelumnya: {{ $kpi['aktivitasMingguLalu'] }} aktivitas
-                </p>
-            </div>
-        </div>
+    {{-- KARTU RINGKASAN --}}
+    <div class="dash-cards">
+        <a href="{{ route('notifikasi.index') }}" class="dash-card c-rose">
+            <div class="lbl">Jadwal terlambat</div>
+            <div class="num">{{ $cards['jadwal_terlambat'] }}</div>
+            <div class="sub">1 sampai 90 hari · {{ $cards['jadwal_lewat_90'] }} lewat 90 hari</div>
+        </a>
+        <a href="{{ route('notifikasi.index') }}" class="dash-card c-amber">
+            <div class="lbl">Jatuh tempo</div>
+            <div class="num">{{ $cards['jadwal_h5'] }}</div>
+            <div class="sub">dalam 5 hari, termasuk hari ini</div>
+        </a>
+        <a href="{{ route('notifikasi.index') }}" class="dash-card c-rose">
+            <div class="lbl">Mesin terlambat</div>
+            <div class="num">{{ $cards['mesin_terlambat'] }}</div>
+            <div class="sub">{{ $cards['mesin_cepat'] }} mesin jatuh tempo dalam 7 hari</div>
+        </a>
+        <a href="{{ route('list-up-ng.index', ['tahun' => $tahun]) }}" class="dash-card c-blue">
+            <div class="lbl">Order NG belum ditutup</div>
+            <div class="num">{{ $cards['ng_terbuka'] }}</div>
+            <div class="sub">dari {{ $cards['ng_total'] }} order NG tahun {{ $tahun }}</div>
+        </a>
     </div>
 
-    {{-- PEMBERITAHUAN --}}
-    @if($kpi['jumlahTerlambat'] > 0 || $kpi['jumlahJatuhTempo7'] > 0 || $kpi['jumlahJatuhTempo30'] > 0 || $kpi['jumlahVerificationBelumDikonfirmasi'] > 0)
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="bg-amber-50 px-4 py-3 border-b border-amber-200 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <h3 class="font-bold text-amber-800 text-sm">Pengingat operasional</h3>
-        </div>
+    {{-- GRAFIK PARETO + PENYUMBANG --}}
+    <div class="dash-split">
 
-        <div class="p-4 space-y-3">
-
-            {{-- Terlambat --}}
-            @if($kpi['jumlahTerlambat'] > 0)
-            <div class="bg-rose-50 border-l-4 border-rose-500 rounded-r-lg p-3">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center gap-2">
-                        <span class="font-semibold text-rose-800 text-sm">
-                            {{ $kpi['jumlahTerlambat'] }} alat terlambat kalibrasi
-                        </span>
-                    </div>
-                    <span class="text-xs text-rose-600">Memerlukan tindakan segera</span>
-                </div>
-                <div class="pl-0 space-y-1">
-                    @foreach($kpi['alatTerlambat']->take(3) as $alat)
-                    <div class="text-xs text-rose-700">
-                        • <strong>{{ $alat->tool_name }}</strong>
-                        ({{ $alat->machine_model ?? '-' }}) —
-                        @php $sisa = (int) $alat->sisa_hari; @endphp
-                        @if($sisa < 0)
-                            Terlambat {{ abs($sisa) }} hari
-                        @else
-                            {{ $sisa }} hari lagi
-                        @endif
-                    </div>
-                    @endforeach
-                    @if($kpi['jumlahTerlambat'] > $kpi['alatTerlambat']->count())
-                    <div class="text-xs text-rose-600 font-semibold">... dan {{ $kpi['jumlahTerlambat'] - $kpi['alatTerlambat']->count() }} alat lainnya</div>
-                    @endif
-                </div>
-            </div>
-            @endif
-
-            {{-- Jatuh Tempo Cepat --}}
-            @if($kpi['jumlahJatuhTempo7'] > 0)
-            <div class="bg-orange-50 border-l-4 border-orange-500 rounded-r-lg p-3">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center gap-2">
-                        <span class="font-semibold text-orange-800 text-sm">
-                            {{ $kpi['jumlahJatuhTempo7'] }} alat akan jatuh tempo
-                        </span>
-                    </div>
-                    <span class="text-xs text-orange-600">Segera dipersiapkan</span>
-                </div>
-                <div class="pl-0 space-y-1">
-                    @foreach($kpi['alatJatuhTempo7Hari']->take(3) as $alat)
-                    <div class="text-xs text-orange-700">
-                        • <strong>{{ $alat->tool_name }}</strong>
-                        ({{ $alat->machine_model ?? '-' }}) —
-                        @php $sisa = (int) $alat->sisa_hari; @endphp
-                        @if($sisa == 0)
-                            Hari ini
-                        @elseif($sisa == 1)
-                            Besok
-                        @else
-                            {{ $sisa }} hari lagi
-                        @endif
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            {{-- Jatuh Tempo Standar --}}
-            @if($kpi['jumlahJatuhTempo30'] > 0)
-            <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-3">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="font-semibold text-blue-800 text-sm">
-                            {{ $kpi['jumlahJatuhTempo30'] }} alat akan jatuh tempo dalam periode mendatang
-                        </span>
-                    </div>
-                    <a href="{{ route('mesin.index') }}" class="text-xs text-blue-600 underline hover:text-blue-800">
-                        Lihat Rincian →
-                    </a>
-                </div>
-            </div>
-            @endif
-
-            @if($kpi['jumlahVerificationBelumDikonfirmasi'] > 0)
-            <div class="rounded-r-lg border-l-4 border-amber-500 bg-amber-50 p-3">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <span class="text-sm font-semibold text-amber-900">{{ $kpi['jumlahVerificationBelumDikonfirmasi'] }} verifikasi menunggu konfirmasi</span>
-                    <a href="{{ route('verifikasi.index', ['tahun' => $kpi['tahun']]) }}" class="text-xs font-semibold text-blue-700 underline hover:text-blue-900">Buka daftar verifikasi</a>
-                </div>
-                <ul class="mt-2 space-y-1 pl-4 text-xs text-amber-800">
-                    @foreach($kpi['verifikasiBelumDikonfirmasi']->take(3) as $record)
-                        <li>{{ $record->tool_name }} · {{ ucfirst($record->tipe) }}</li>
-                    @endforeach
-                    @if($kpi['jumlahVerificationBelumDikonfirmasi'] > 3)
-                        <li class="font-semibold">Dan {{ $kpi['jumlahVerificationBelumDikonfirmasi'] - 3 }} verifikasi lainnya</li>
-                    @endif
-                </ul>
-            </div>
-            @endif
-
-        </div>
-    </div>
-    @endif
-
-    {{-- KOMPOSISI DAFTAR INDUK --}}
-    <div class="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
-    <div class="min-h-[156px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="mb-4">
-            <h3 class="font-semibold text-slate-900">Komposisi daftar induk</h3>
-            <p class="mt-1 text-sm text-slate-500">Jumlah alat terdaftar per kategori pada {{ $tahun }}.</p>
-        </div>
-        <div class="space-y-3">
-            @forelse($kpi['breakdownKategori'] as $kat)
-                @php
-                    $persentaseKategori = $totalTools > 0 ? round(($kat->jumlah / $totalTools) * 100) : 0;
-                @endphp
+        <section class="dash-panel">
+            <div class="dash-head">
                 <div>
-                    <div class="mb-1.5 flex items-center justify-between gap-3 text-xs">
-                        <span class="font-medium text-slate-700">{{ $kat->category }}</span>
-                        <span class="shrink-0 font-semibold text-slate-600">{{ $kat->jumlah }} <span class="font-normal text-slate-400">({{ $persentaseKategori }}%)</span></span>
-                    </div>
-                    <div class="h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label="Persentase kategori {{ $kat->category }}" aria-valuenow="{{ $persentaseKategori }}" aria-valuemin="0" aria-valuemax="100">
-                        <div class="h-full rounded-full bg-blue-600 transition-all" style="width: {{ $persentaseKategori }}%"></div>
-                    </div>
+                    <h2 id="paretoJudul">Grafik</h2>
+                    <p class="desc" id="paretoDeskripsi"></p>
                 </div>
-            @empty
-                <div class="py-6 text-center text-sm text-slate-500">Belum ada data daftar induk untuk tahun ini.</div>
-            @endforelse
-        </div>
+                <select id="paretoPilih" aria-label="Pilih data grafik">
+                    @foreach($pareto as $key => $p)
+                        <option value="{{ $key }}" {{ $key === $defaultPareto ? 'selected' : '' }}>{{ $p['judul'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="legend">
+                <span><i style="background:#7dd3fc"></i>Batang: jumlah</span>
+                <span><i style="background:#f97316"></i>Garis: persentase kumulatif</span>
+                <span style="margin-left:auto">Total: <b id="paretoTotal">0</b></span>
+            </div>
+
+            <div class="chart-box">
+                <canvas id="paretoChart"></canvas>
+                <p id="paretoKosong" class="chart-empty">Belum ada data untuk grafik ini.</p>
+            </div>
+        </section>
+
+        <section class="dash-panel">
+            <h2>Penyumbang terbesar</h2>
+            <p class="desc">Lima teratas dari grafik yang dipilih, beserta persentasenya.</p>
+            <div id="paretoTop"></div>
+        </section>
     </div>
 
-    {{-- REKAPITULASI DATA TAHUNAN --}}
-    <div class="min-h-[156px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3 class="font-semibold text-slate-900">Rekap data {{ $tahun }}</h3>
-        <p class="mt-1 mb-4 text-sm text-slate-500">Jumlah catatan dalam sistem.</p>
-        <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-                <div class="bg-slate-50 rounded-lg p-2.5">
-                    <p class="text-2xl font-bold text-blue-700">{{ $totalTools }}</p>
-                    <p class="text-[10px] text-blue-600 uppercase">Daftar Induk</p>
-                </div>
-                <div class="bg-slate-50 rounded-lg p-2.5">
-                    <p class="text-2xl font-bold text-blue-700">{{ $totalVerification }}</p>
-                    <p class="text-[10px] text-blue-600 uppercase">Verification</p>
-                </div>
-                <div class="bg-slate-50 rounded-lg p-2.5">
-                    <p class="text-2xl font-bold text-purple-700">{{ $totalInternal }}</p>
-                    <p class="text-[10px] text-purple-600 uppercase">Internal</p>
-                </div>
-                <div class="bg-slate-50 rounded-lg p-2.5">
-                    <p class="text-2xl font-bold text-amber-700">{{ $totalExternal }}</p>
-                    <p class="text-[10px] text-amber-600 uppercase">External</p>
-                </div>
-                <div class="bg-slate-50 rounded-lg p-2.5">
-                    <p class="text-2xl font-bold text-rose-700">{{ $totalMachine }}</p>
-                    <p class="text-[10px] text-rose-600 uppercase">Machine</p>
-                </div>
+    {{-- PERLU TINDAKAN --}}
+    <section class="dash-panel">
+        <div class="dash-head">
+            <div>
+                <h2>Perlu tindakan hari ini</h2>
+                <p class="desc">Lima item paling mendesak dari jadwal dan mesin, diurutkan dari yang paling terlambat.</p>
+            </div>
+            <a href="{{ route('notifikasi.index') }}" class="link">Lihat semua di halaman Notification</a>
         </div>
-    </div>
-    </div>
 
+        @if(count($tindakan))
+            <div style="overflow-x:auto; margin-top:12px;">
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th style="width:22%">Jenis</th>
+                            <th style="width:30%">Nama alat</th>
+                            <th style="width:18%">Jatuh tempo</th>
+                            <th style="width:18%">Keterangan</th>
+                            <th style="width:12%; text-align:right"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($tindakan as $r)
+                            <tr>
+                                <td>{{ $r['jenis'] }}</td>
+                                <td>
+                                    <span class="nama">{{ $r['nama'] }}</span>
+                                    @if($r['detail'])<span class="sub">{{ $r['detail'] }}</span>@endif
+                                </td>
+                                <td>{{ $r['jatuh_tempo'] }}</td>
+                                <td>
+                                    <span class="pill {{ $r['sisa'] < 0 ? 'pill-rose' : 'pill-amber' }}">{{ $r['keterangan'] }}</span>
+                                </td>
+                                <td style="text-align:right">
+                                    <a class="link" href="{{ route('notifikasi.index') }}">Buka</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <p class="empty">Tidak ada yang perlu ditindaklanjuti hari ini.</p>
+        @endif
+    </section>
+
+    {{-- AKTIVITAS (admin) --}}
+    @if($isAdmin)
+        <section class="dash-panel">
+            <h2>Aktivitas data terakhir</h2>
+            <p class="desc">Perubahan data terbaru. Login dan logout tidak ditampilkan.</p>
+            @if(count($aktivitas))
+                <ul class="act" style="margin-top:10px;">
+                    @foreach($aktivitas as $a)
+                        <li>
+                            <span>
+                                <b>{{ $a['user'] }}</b>
+                                {{ strtolower($a['aksi']) }} {{ $a['jenis'] }}
+                                <span style="color:#64748b">· {{ $a['keterangan'] }}</span>
+                            </span>
+                            <span class="waktu">{{ $a['waktu'] }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @else
+                <p class="empty">Belum ada aktivitas data.</p>
+            @endif
+        </section>
+    @endif
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const PARETO = @json($pareto);
+    const pilih = document.getElementById('paretoPilih');
+    let grafik = null;
+
+    function tampilkan(kunci) {
+        const d = PARETO[kunci];
+        document.getElementById('paretoJudul').textContent = d.judul;
+        document.getElementById('paretoDeskripsi').textContent = d.deskripsi;
+        document.getElementById('paretoTotal').textContent = Number(d.total).toLocaleString('id-ID');
+
+        // Penyumbang terbesar
+        const daftar = document.getElementById('paretoTop');
+        daftar.innerHTML = '';
+        if (!d.labels.length) {
+            daftar.innerHTML = '<p class="empty">Belum ada data.</p>';
+        }
+        d.labels.slice(0, 5).forEach((label, i) => {
+            const persen = d.total ? Math.round(d.values[i] / d.total * 1000) / 10 : 0;
+            daftar.insertAdjacentHTML('beforeend', `
+                <div class="top-item">
+                    <div class="top-row"><span>${i + 1}. ${label}</span><span>${d.values[i]} · ${persen}%</span></div>
+                    <div class="bar-track"><div class="bar-fill" style="width:${Math.min(persen, 100)}%"></div></div>
+                </div>`);
+        });
+
+        // Grafik Pareto
+        const kosong = document.getElementById('paretoKosong');
+        const kanvas = document.getElementById('paretoChart');
+        if (grafik) grafik.destroy();
+
+        if (!d.labels.length) {
+            kanvas.style.visibility = 'hidden';
+            kosong.style.display = 'flex';
+            return;
+        }
+        kanvas.style.visibility = 'visible';
+        kosong.style.display = 'none';
+
+        grafik = new Chart(kanvas, {
+            data: {
+                labels: d.labels,
+                datasets: [
+                    { type: 'bar', label: 'Jumlah', data: d.values, backgroundColor: '#7dd3fc', hoverBackgroundColor: '#38bdf8', borderRadius: 6, yAxisID: 'y' },
+                    { type: 'line', label: 'Kumulatif %', data: d.kumulatif, borderColor: '#f97316', backgroundColor: '#f97316', pointRadius: 4, tension: 0.25, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ctx.dataset.yAxisID === 'y1' ? ` ${ctx.parsed.y}%` : ` ${ctx.parsed.y}` } }
+                },
+                scales: {
+                    x: { ticks: { autoSkip: false, maxRotation: 50, minRotation: 0 }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } },
+                    y1: { beginAtZero: true, max: 100, position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
+                }
+            }
+        });
+    }
+
+    pilih.addEventListener('change', () => tampilkan(pilih.value));
+    tampilkan(pilih.value);
+</script>
 @endsection
