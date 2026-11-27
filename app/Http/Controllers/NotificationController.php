@@ -7,6 +7,7 @@ use App\Models\NotificationStatus;
 use App\Models\Setting;
 use App\Models\Verification;
 use App\Services\ScheduleExpiryNotifier;
+use App\Services\ReminderService;
 use App\Traits\LogsActivity;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -43,14 +44,13 @@ class NotificationController extends Controller
             ->unique()
             ->toArray();
 
-        // Ambil semua alat yang butuh perhatian
+        // Ambil semua alat yang butuh perhatian. Mesin yang sudah diverifikasi
+        // untuk periodenya dikeluarkan, sama seperti di email
+        $mesinSelesai = app(ReminderService::class)->doneMachineIds($hariIni);
         $semuaAlat = ExternalMachine::whereNotNull('next_date')
             ->where('next_date', '<=', $batasStandar)
             ->get()
-            ->filter(function ($item) use ($alatSudahDiverifikasi) {
-                $namaAlat = strtoupper(trim($item->tool_name));
-                return !in_array($namaAlat, $alatSudahDiverifikasi);
-            });
+            ->filter(fn ($item) => ! $mesinSelesai->contains($item->id));
 
         // Status notifikasi
         $statusMap = NotificationStatus::whereIn('alat_id', $semuaAlat->pluck('id'))
@@ -90,8 +90,8 @@ class NotificationController extends Controller
             return $item;
         })->values();
 
-        // Jadwal Verifikasi, Kalibrasi Internal, & Kalibrasi Eksternal H-5 & Terlambat
-        $jadwalExpiredH5 = app(ScheduleExpiryNotifier::class)->dueItems($hariIni);
+        // jadwal yang belum diisi, sama seperti di email
+        $jadwalExpiredH5 = app(ReminderService::class)->activeScheduleItems($hariIni);
 
         return view('notifications.index', compact(
             'alatTerlambat',
